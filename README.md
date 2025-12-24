@@ -38,6 +38,19 @@ Add to your project's `.claude/settings.json`:
 
 You should see `ccc` in the list of installed plugins.
 
+## Environment Variables
+
+Add these to your shell configuration (e.g., `.zshrc` or `.bashrc`):
+
+```bash
+# Enable dynamic loading/unloading of MCP servers during active sessions
+export ENABLE_EXPERIMENTAL_MCP_CLI=true
+
+# API keys for MCP servers
+export CONTEXT7_API_KEY=xxx
+export EXA_API_KEY=xxx
+```
+
 ## Included Components
 
 ### Skills

@@ -83,6 +83,10 @@ After adding, restart Claude Code to load the MCP servers.
 
 ### Skills
 
+#### test-driven-development
+
+Use when implementing any feature or bugfix, before writing implementation code. Enforces the Red-Green-Refactor cycle: write a failing test first, write minimal code to pass, then refactor.
+
 #### writing-skills
 
 Use when creating new skills, editing existing skills, or verifying skills work before deployment.

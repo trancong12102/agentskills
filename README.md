@@ -38,13 +38,31 @@ Add to your project's `.claude/settings.json`:
 
 You should see `ccc` in the list of installed plugins.
 
-## Included Skills
+## Included Components
 
-### writing-skills
+### Skills
+
+#### writing-skills
 
 Use when creating new skills, editing existing skills, or verifying skills work before deployment.
 
 This skill applies Test-Driven Development principles to process documentation - write test cases (pressure scenarios), watch them fail (baseline behavior), write the skill, and verify agents comply.
+
+### Agents
+
+#### code-review
+
+Senior code reviewer for security, performance, and best practices. Use proactively after completing significant code changes, before commits, or when reviewing PRs. Analyzes uncommitted changes, branch diffs, or specific commits.
+
+#### search
+
+Research specialist for web searches, documentation lookups, and GitHub repository analysis. Use when asking about libraries, frameworks, APIs, or any technical topics requiring up-to-date information.
+
+### Commands
+
+#### commit
+
+Generate conventional commit messages following the [Conventional Commits 1.0.0](https://www.conventionalcommits.org/) specification. Invoke with `/commit`.
 
 ## Usage
 

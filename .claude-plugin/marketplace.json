@@ -1,6 +1,6 @@
 {
-  "name": "ccc",
-  "description": "Development marketplace for Superpowers core skills library",
+  "name": "ccc-marketplace",
+  "description": "Development marketplace for Claude Code core skills library",
   "owner": {
     "name": "Cong Tran",
     "email": "trancong12102@gmail.com"

@@ -51,6 +51,34 @@ export CONTEXT7_API_KEY=xxx
 export EXA_API_KEY=xxx
 ```
 
+## MCP Servers
+
+The search agent requires MCP servers for web search, library documentation, and GitHub repository analysis. Add these to your `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey=${EXA_API_KEY}"
+    },
+    "deepwiki": {
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/mcp"
+    }
+  }
+}
+```
+
+After adding, restart Claude Code to load the MCP servers.
+
 ## Included Components
 
 ### Skills

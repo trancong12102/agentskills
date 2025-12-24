@@ -19,17 +19,6 @@ Core skills library for Claude Code: TDD, debugging, collaboration patterns, and
    /plugin install ccc@ccc-marketplace
    ```
 
-### Alternative: Using Settings
-
-Add to your project's `.claude/settings.json`:
-
-```json
-{
-  "extraKnownMarketplaces": ["trancong12102/ccc"],
-  "enabledPlugins": ["ccc@ccc-marketplace"]
-}
-```
-
 ### Verify Installation
 
 ```bash

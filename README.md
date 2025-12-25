@@ -38,7 +38,7 @@ Web search, documentation lookup, and repository analysis.
 
 | Type | Name | Description |
 |------|------|-------------|
-| Agent | `search` | Research specialist using MCP tools (exa, context7, deepwiki) |
+| Agent | `librarian` | Research specialist using MCP tools (exa, context7, deepwiki) |
 
 ### Git Workflows
 

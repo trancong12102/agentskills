@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-12-25
+
+### Changed
+
+- Rename `search` agent to `librarian` for broader research capabilities
+- Rewrite librarian agent following Google Gemini 3 prompting best practices
+- Add Plan-Execute-Validate-Format workflow for structured research
+- Add few-shot examples for IMPLEMENTATION, TROUBLESHOOTING, COMPARISON, CONCEPTUAL queries
+- Improve agent description for more proactive invocation triggers
+
 ## [0.8.1] - 2025-12-25
 
 ### Fixed

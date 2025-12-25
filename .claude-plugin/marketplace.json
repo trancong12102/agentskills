@@ -10,19 +10,19 @@
       "name": "development",
       "description": "Code review and development best practices",
       "source": "./plugins/development",
-      "version": "0.9.0"
+      "version": "0.10.0"
     },
     {
       "name": "research",
       "description": "Web search, documentation lookup, and repository analysis",
       "source": "./plugins/research",
-      "version": "0.9.0"
+      "version": "0.10.0"
     },
     {
       "name": "git-workflows",
       "description": "Git operations, conventional commits, and version control workflows",
       "source": "./plugins/git-workflows",
-      "version": "0.9.0"
+      "version": "0.10.0"
     }
   ]
 }

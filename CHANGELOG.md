@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganize plugin structure into categories (`plugins/development`, `plugins/research`, `plugins/git-workflows`)
 - Each plugin now has its own `plugin.json` with category metadata
 - Version now defined per plugin entry in marketplace.json
+- Rename marketplace from `ccc-marketplace` to `ccc`
 
 ### Removed
 

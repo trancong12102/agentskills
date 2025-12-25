@@ -1,4 +1,4 @@
-# CCC - Claude Code Core Skills
+# CCC - Claude Code Core Plugins Marketplace
 
 **3 focused plugins** organized by category for minimal token usage.
 
@@ -9,9 +9,9 @@
 /plugin marketplace add trancong12102/ccc
 
 # Install individual plugins by category
-/plugin install development@ccc-marketplace
-/plugin install research@ccc-marketplace
-/plugin install git-workflows@ccc-marketplace
+/plugin install development@ccc
+/plugin install research@ccc
+/plugin install git-workflows@ccc
 ```
 
 ## Plugin Categories

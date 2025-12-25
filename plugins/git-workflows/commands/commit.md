@@ -118,9 +118,15 @@ Closes #456
 
 ## Your Task
 
+**User instructions:** $ARGUMENTS
+
 1. Run `git status` and `git diff HEAD` to see all changes
 2. Analyze changes thoroughly
-3. Stage changes with `git add -A`
+3. Stage changes:
+   - If user specifies files in instructions, stage only those files
+   - If no specific files mentioned, stage all changes with `git add -A`
 4. Generate commit message following format above
+   - If user provided instructions above, incorporate them into the commit message
+   - If no instructions provided, generate the message based on the changes alone
 5. Commit with `git commit -m "subject" -m "body" -m "footer"` (use multiple -m for multiline)
 6. Output ONLY the commit message (no explanations)

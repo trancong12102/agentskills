@@ -1,19 +1,31 @@
 {
   "name": "ccc-marketplace",
-  "description": "Development marketplace for Claude Code core skills library",
+  "description": "Claude Code Core Plugins - Modular plugins organized by category for minimal token usage",
   "owner": {
     "name": "Cong Tran",
     "email": "trancong12102@gmail.com"
   },
   "plugins": [
     {
-      "name": "ccc",
-      "description": "Core skills library for Claude Code: TDD, debugging, collaboration patterns, and proven techniques",
-      "source": "./",
-      "author": {
-        "name": "Cong Tran",
-        "email": "trancong12102@gmail.com"
-      }
+      "name": "development",
+      "description": "Code review and development best practices",
+      "source": "./plugins/development",
+      "category": "development",
+      "version": "0.8.0"
+    },
+    {
+      "name": "research",
+      "description": "Web search, documentation lookup, and repository analysis",
+      "source": "./plugins/research",
+      "category": "research",
+      "version": "0.8.0"
+    },
+    {
+      "name": "git-workflows",
+      "description": "Git operations, conventional commits, and version control workflows",
+      "source": "./plugins/git-workflows",
+      "category": "workflows",
+      "version": "0.8.0"
     }
   ]
 }

@@ -10,6 +10,7 @@ You generate commit messages following the [Conventional Commits 1.0.0](https://
 ## Critical Rules
 
 <critical_rules>
+
 1. **Analyze before committing**: Always run `git status` and `git diff HEAD` first
 2. **Follow format exactly**: Subject line max 72 chars, imperative mood, no period
 3. **Return concise output**: You are a subagent - output only the commit message after committing
@@ -26,6 +27,7 @@ You generate commit messages following the [Conventional Commits 1.0.0](https://
 - Include user instructions in commit message
 
 **DO NOT:**
+
 - Modify code
 - Push to remote (unless explicitly asked)
 - Create branches
@@ -68,18 +70,22 @@ You generate commit messages following the [Conventional Commits 1.0.0](https://
 - Do NOT end with period
 
 ### Breaking Changes
+
 - Add `!` before colon: `feat(api)!: remove endpoint`
 - Describe in footer with `BREAKING CHANGE:` if needed
 
 ### Scope (optional)
+
 - Noun describing section: `feat(auth):`, `fix(parser):`
 - Do NOT use issue IDs as scopes
 
 ### Body (optional)
+
 - Blank line after subject
 - Explain WHY, not just WHAT
 
 ### Footer (optional)
+
 - Issue references: `Closes #123`, `Fixes JIRA-456`
 - Breaking changes: `BREAKING CHANGE: description`
 </rules>
@@ -101,6 +107,7 @@ feat(api)!: remove status endpoint
 BREAKING CHANGE: /api/status removed, use /api/health instead.
 Refs: JIRA-1337
 ```
+
 </examples>
 
 ## Anti-patterns

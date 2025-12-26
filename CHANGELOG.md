@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2025-12-26
+
+### Changed
+
+- Rewrite librarian agent following Anthropic Claude 4.5 and multi-agent best practices
+- Add critical rules section with mandatory `date` command and `mcp-cli info` checks
+- Add scope boundaries (DO/DO NOT) for clear agent responsibilities
+- Add success criteria for research completion/failure
+- Add context budget management with safe limits table
+- Add structured output format for agent-to-agent communication
+- Add fallback chain and error templates
+- Improve agent description following official Claude Code subagent patterns
+
 ## [0.10.0] - 2025-12-25
 
 ### Added

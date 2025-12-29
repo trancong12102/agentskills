@@ -12,6 +12,16 @@ A collection of reusable agent skills for AI coding assistants.
 | [openspec-archive](openspec-archive/SKILL.md) | Archive a deployed OpenSpec change and update specs |
 | [searching-web](searching-web/SKILL.md) | Searches web, library documentation, GitHub repositories, and code examples |
 
+## Environment Variables
+
+Some skills require API keys. Add these to your shell configuration (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash
+# Required for searching-web skill
+export CONTEXT7_API_KEY="your-context7-api-key"
+export EXA_API_KEY="your-exa-api-key"
+```
+
 ## Usage
 
 ### Ampcode

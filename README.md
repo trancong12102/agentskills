@@ -13,6 +13,22 @@ A collection of reusable agent skills for AI coding assistants.
 
 ## Usage
 
+### Ampcode
+
+Install all skills:
+
+```bash
+amp skill add --global trancong12102/agentskills
+```
+
+Install a specific skill:
+
+```bash
+amp skill add --global trancong12102/agentskills/<skill-name>
+```
+
+### Manual
+
 Copy the desired skill's `SKILL.md` file to your agent's skills directory.
 
 ## License

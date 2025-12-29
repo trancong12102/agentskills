@@ -10,6 +10,7 @@ A collection of reusable agent skills for AI coding assistants.
 | [openspec-proposal](openspec-proposal/SKILL.md) | Scaffold a new OpenSpec change and validate strictly |
 | [openspec-apply](openspec-apply/SKILL.md) | Implement an approved OpenSpec change and keep tasks in sync |
 | [openspec-archive](openspec-archive/SKILL.md) | Archive a deployed OpenSpec change and update specs |
+| [searching-web](searching-web/SKILL.md) | Searches web, library documentation, GitHub repositories, and code examples |
 
 ## Usage
 

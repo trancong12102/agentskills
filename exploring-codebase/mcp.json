@@ -1,0 +1,10 @@
+{
+  "morph": {
+    "command": "bunx",
+    "args": ["@morphllm/morphmcp@latest"],
+    "env": {
+      "MORPH_API_KEY": "${MORPH_API_KEY}",
+      "ENABLED_TOOLS": "warpgrep_codebase_search"
+    }
+  }
+}

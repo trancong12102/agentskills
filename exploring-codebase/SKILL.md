@@ -1,48 +1,71 @@
 ---
 name: exploring-codebase
-description: MUST USE for codebase exploration. Replaces finder, Grep, glob. Triggers on "where is", "how does", "find", "called", "used", or any code search question.
+description: Locate code, trace flows, and find usages in codebases. Use proactively for "where is", "how does", "find", "called", "used", or any code search question.
 ---
 
 # Codebase Explorer
 
-## When to Use Direct Calls vs Subagent
+Explore and understand codebases by locating files, tracing flows, and finding usages.
 
-| Query Type | Approach |
-|------------|----------|
+## Quick Reference
+
+| Goal | Tool | When |
+|------|------|------|
+| Natural language search | `warpgrep_codebase_search` | Default choice |
+| Semantic/conceptual search | `finder` | Fallback if warpgrep unclear |
+| Exact string/pattern | `Grep` | Last resort, precise matches |
+
+## Complexity Guide
+
+| Query | Approach |
+|-------|----------|
 | Simple (≤3 searches) | Call tools directly |
-| Complex (>3 searches, multi-phase) | Spawn Task subagent |
+| Complex (>3 searches) | Spawn Task subagent |
 
-## Simple Queries: Direct Tool Calls
+## Examples
 
-For most code exploration, call tools directly:
-
-1. **mcp__morph__warpgrep_codebase_search** — Natural language search (preferred)
-2. **finder** — Semantic/conceptual search (fallback)
-3. **Grep** — Exact string/pattern match (last resort)
+### Simple: Find a function
 
 ```
-Example: "where is typesense api called?"
-→ Call warpgrep_codebase_search with search_string='where is typesense api called'
-→ Return file paths with line numbers
+User: "where is the auth middleware?"
+→ warpgrep_codebase_search(search_string='where is auth middleware defined')
+→ Return: file paths with line numbers
 ```
 
-## Complex Queries: Spawn Subagent
-
-Use Task subagent when:
-- Expecting many searches (>3-5 calls)
-- Multi-file investigation or tracing flows
-- Need structured analysis before reporting
+### Moderate: Trace a flow
 
 ```
-Task(
-  description: "<brief description>",
-  prompt: "Investigate <complex question>.
-Use warpgrep_codebase_search, then finder/Grep as needed.
-Return: summary of findings with file paths and line numbers."
-)
+User: "how does the search API work?"
+→ warpgrep_codebase_search(search_string='search API endpoint handler')
+→ Read relevant files
+→ warpgrep_codebase_search(search_string='search service calls database')
+→ Return: summary with file paths
 ```
 
-## Error Recovery
+### Complex: Debug investigation
 
-- No results → Broaden query, remove specific terms
-- Wrong results → Rephrase with different terminology
+```
+User: "why is the background job failing?"
+→ Task(
+    description: "Investigate background job failure",
+    prompt: "Find all code related to background job execution.
+    Use warpgrep_codebase_search for: job scheduler, job handler, error handling.
+    Read relevant files and trace the flow.
+    Return: summary of job lifecycle with file paths and potential failure points."
+  )
+```
+
+## Fallback Chain
+
+| Issue | Action |
+|-------|--------|
+| No results | Broaden query, remove specific terms |
+| Too many results | Add file path filter, use Grep for exact match |
+| Wrong results | Rephrase with different terminology |
+| Warpgrep unavailable | Use finder, then Grep |
+
+## Output Format
+
+- Always include file paths with line numbers
+- Group findings by file
+- End with concise summary for complex investigations

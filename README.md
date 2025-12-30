@@ -13,17 +13,33 @@ A collection of reusable agent skills for AI coding assistants.
 | [searching-web](searching-web/SKILL.md) | Search web, library docs, GitHub repos, and code examples |
 | [exploring-codebase](exploring-codebase/SKILL.md) | Locate code, trace flows, and find usages in codebases |
 
-## Environment Variables
+## Configuration
 
-Some skills require API keys. Add these to your shell configuration (`~/.bashrc`, `~/.zshrc`, etc.):
+### Environment Variables
+
+Add these to your shell configuration (`~/.bashrc`, `~/.zshrc`, etc.):
 
 ```bash
-# Required for searching-web skill
-export CONTEXT7_API_KEY="your-context7-api-key"
-export EXA_API_KEY="your-exa-api-key"
+export CONTEXT7_API_KEY="your-context7-api-key"  # searching-web
+export EXA_API_KEY="your-exa-api-key"            # searching-web
+export MORPH_API_KEY="your-morph-api-key"        # exploring-codebase
+```
 
-# Required for exploring-codebase skill
-export MORPH_API_KEY="your-morph-api-key"
+### MCP Servers
+
+#### exploring-codebase
+
+```json
+{
+  "morph": {
+    "command": "bunx",
+    "args": ["@morphllm/morphmcp@latest"],
+    "env": {
+      "MORPH_API_KEY": "${MORPH_API_KEY}",
+      "ENABLED_TOOLS": "warpgrep_codebase_search"
+    }
+  }
+}
 ```
 
 ## Usage

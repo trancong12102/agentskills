@@ -5,55 +5,44 @@ description: MUST USE for codebase exploration. Replaces finder, Grep, glob. Tri
 
 # Codebase Explorer
 
-**Spawn a subagent using Task tool** to explore codebase. Do not call search tools directly.
+## When to Use Direct Calls vs Subagent
 
-## How to Use
+| Query Type | Approach |
+|------------|----------|
+| Simple (≤3 searches) | Call tools directly |
+| Complex (>3 searches, multi-phase) | Spawn Task subagent |
 
-When user asks a code exploration question, create a Task:
+## Simple Queries: Direct Tool Calls
+
+For most code exploration, call tools directly:
+
+1. **mcp__morph__warpgrep_codebase_search** — Natural language search (preferred)
+2. **finder** — Semantic/conceptual search (fallback)
+3. **Grep** — Exact string/pattern match (last resort)
+
+```
+Example: "where is typesense api called?"
+→ Call warpgrep_codebase_search with search_string='where is typesense api called'
+→ Return file paths with line numbers
+```
+
+## Complex Queries: Spawn Subagent
+
+Use Task subagent when:
+- Expecting many searches (>3-5 calls)
+- Multi-file investigation or tracing flows
+- Need structured analysis before reporting
 
 ```
 Task(
-  description: "<brief description of what to find>",
-  prompt: "Find <what user asked> in this codebase.
-
-Use mcp__morph__warpgrep_codebase_search with:
-- search_string: '<user question as natural language>'
-- repo_path: '<workspace root absolute path>'
-
-If warpgrep returns no results, use finder tool as fallback.
-Only use Grep as last resort.
-
-Return: file paths with line numbers, and brief summary of findings."
+  description: "<brief description>",
+  prompt: "Investigate <complex question>.
+Use warpgrep_codebase_search, then finder/Grep as needed.
+Return: summary of findings with file paths and line numbers."
 )
 ```
-
-## Example
-
-User: "where is typesense api called?"
-
-```
-Task(
-  description: "Find where typesense API is called",
-  prompt: "Find where typesense API is called in this codebase.
-
-Use mcp__morph__warpgrep_codebase_search with:
-- search_string: 'where is typesense api called'
-- repo_path: <use actual workspace root>
-
-If warpgrep returns no results, use finder tool as fallback.
-
-Return: file paths with line numbers, and brief summary of findings."
-)
-```
-
-## Why Subagent?
-
-- Keeps main context clean (avoids pollution from search results)
-- Subagent follows tool priority without built-in bias
-- Returns only summarized findings
 
 ## Error Recovery
 
 - No results → Broaden query, remove specific terms
 - Wrong results → Rephrase with different terminology
-- Warpgrep unavailable → Fall back to finder, then Grep

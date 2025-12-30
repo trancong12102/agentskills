@@ -11,7 +11,7 @@ A collection of reusable agent skills for AI coding assistants.
 | [openspec-apply](openspec-apply/SKILL.md) | Implement an approved OpenSpec change and keep tasks in sync |
 | [openspec-archive](openspec-archive/SKILL.md) | Archive a deployed OpenSpec change and update specs |
 | [searching-web](searching-web/SKILL.md) | Searches web, library documentation, GitHub repositories, and code examples |
-| [exploring-codebase](exploring-codebase/SKILL.md) | Explores codebase using WarpGrep MCP for semantic code search |
+| [exploring-codebase](exploring-codebase/SKILL.md) | Explores codebase using semantic search via subagent |
 
 ## Environment Variables
 

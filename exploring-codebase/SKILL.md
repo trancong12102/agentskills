@@ -1,63 +1,59 @@
 ---
 name: exploring-codebase
-description: Explores codebase using WarpGrep MCP for semantic code search. Use when finding code by behavior, concept, or functionality; when chaining multiple grep calls; when asking "where is X handled" or "how does Y work".
+description: MUST USE for codebase exploration. Replaces finder, Grep, glob. Triggers on "where is", "how does", "find", "called", "used", or any code search question.
 ---
 
-# WarpGrep Codebase Explorer
+# Codebase Explorer
 
-Performs semantic codebase search using `mcp__morph__warpgrep_codebase_search` instead of glob/grep.
+**Spawn a subagent using Task tool** to explore codebase. Do not call search tools directly.
 
-## Quick Reference
+## How to Use
 
-| Need | Tool | When |
-|------|------|------|
-| Semantic/conceptual search | WarpGrep | "where is auth handled", "how does X work" |
-| Find files by name pattern | glob | "find all *.test.ts files" |
-| Exact string match | Grep | Known symbol or literal string |
+When user asks a code exploration question, create a Task:
 
-## When to Use WarpGrep
+```
+Task(
+  description: "<brief description of what to find>",
+  prompt: "Find <what user asked> in this codebase.
 
-- Finding code by behavior or concept
-- Multi-step searches requiring chained grep calls
-- Locating implementations across multiple files
-- Understanding end-to-end feature flows
-- Finding connections between codebase areas
+Use mcp__morph__warpgrep_codebase_search with:
+- search_string: '<user question as natural language>'
+- repo_path: '<workspace root absolute path>'
 
-## Tool Parameters
+If warpgrep returns no results, use finder tool as fallback.
+Only use Grep as last resort.
 
-```json
-{
-  "search_string": "Where is JWT token validation performed",
-  "repo_path": "/absolute/path/to/repo"
-}
+Return: file paths with line numbers, and brief summary of findings."
+)
 ```
 
-**Required:**
-- `search_string`: Natural language query describing what to find
-- `repo_path`: Absolute path to repository root
+## Example
 
-## Writing Effective Queries
+User: "where is typesense api called?"
 
-| Goal | Good Query | Bad Query |
-|------|-----------|-----------|
-| Find auth | "Where is JWT token validation performed in the middleware" | "auth" |
-| Locate handler | "Find the Express route handler for /api/users endpoint" | "users route" |
-| Understand flow | "How does payment processing flow from API to database" | "payment" |
-| Find integration | "Where does the frontend call the authentication API" | "login" |
+```
+Task(
+  description: "Find where typesense API is called",
+  prompt: "Find where typesense API is called in this codebase.
 
-**Tips:**
-- Be specific: mention frameworks, patterns, file types
-- Describe behavior, not just keywords
-- Include architectural context when known
+Use mcp__morph__warpgrep_codebase_search with:
+- search_string: 'where is typesense api called'
+- repo_path: <use actual workspace root>
 
-## Workflow
+If warpgrep returns no results, use finder tool as fallback.
 
-1. Use WarpGrep for conceptual/behavioral queries
-2. Verify results with Read tool
-3. Fall back to Grep for exact matches if needed
+Return: file paths with line numbers, and brief summary of findings."
+)
+```
+
+## Why Subagent?
+
+- Keeps main context clean (avoids pollution from search results)
+- Subagent follows tool priority without built-in bias
+- Returns only summarized findings
 
 ## Error Recovery
 
-- No results → Broaden query, remove specific framework names
-- Too many results → Add more context (file types, directory hints)
+- No results → Broaden query, remove specific terms
 - Wrong results → Rephrase with different terminology
+- Warpgrep unavailable → Fall back to finder, then Grep

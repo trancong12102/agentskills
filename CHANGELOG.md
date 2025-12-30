@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-12-30
+
+### Changed
+
+- exploring-codebase: use subagent delegation for cleaner context
+- exploring-codebase: improved trigger description for better skill activation
+- exploring-codebase: added error recovery section
+
 ## [1.4.0] - 2025-12-30
 
 ### Added

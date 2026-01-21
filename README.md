@@ -18,6 +18,14 @@ A collection of reusable agent skills for AI coding assistants.
 
 The oracle skill requires **Codex MCP** to be configured in Claude Code (or other agents). Add the Codex MCP server to your configuration to enable invoking gpt-5.2 (xhigh) for complex reasoning tasks.
 
+Add this profile to your Codex `config.toml`:
+
+```toml
+[profiles.oracle]
+model = "gpt-5.2"
+model_reasoning_effort = "xhigh"
+```
+
 See the [Codex MCP documentation](https://github.com/openai/codex) for setup instructions.
 
 ## Recommended External Skills

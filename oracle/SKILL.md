@@ -47,7 +47,7 @@ mcp__codex__codex with:
     Instructions: You have access to powerful tools to help with analysis. Read additional files from the codebase as needed to understand context. Use web search to look up documentation, best practices, or solutions when helpful. Proactively use these tools to provide thorough, well-informed analysis.
 
     <task with optional @file references>
-  sandbox: "read-only"  # or "workspace-write" for modifications
+  profile: "oracle"
 ```
 
 Use `@` syntax to include specific files directly in prompts (e.g., `@src/auth/login.ts`).
@@ -103,11 +103,10 @@ Related files: @src/api/update.ts @src/cache/invalidation.ts @src/hooks/useData.
 
 ## Integration Reference
 
-| Parameter         | Description                                          | Default           |
-| ----------------- | ---------------------------------------------------- | ----------------- |
-| `prompt`          | The analysis request (required). Use `@file` syntax  | -                 |
-| `sandbox`         | `read-only`, `workspace-write`, `danger-full-access` | `read-only`       |
-| `approval-policy` | `untrusted`, `on-failure`, `on-request`, `never`     | `untrusted`       |
-| `cwd`             | Working directory for the session                    | Current directory |
+| Parameter | Description                                         | Default           |
+| --------- | --------------------------------------------------- | ----------------- |
+| `prompt`  | The analysis request (required). Use `@file` syntax | -                 |
+| `profile` | Configuration profile from config.toml              | `oracle`          |
+| `cwd`     | Working directory for the session                   | Current directory |
 
 For continued conversations, use `mcp__codex__codex-reply` with the `threadId` from the initial response.

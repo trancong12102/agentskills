@@ -26,6 +26,12 @@ model = "gpt-5.2"
 model_reasoning_effort = "xhigh"
 approval_policy = "never"
 sandbox_mode = "read-only"
+
+[sandbox_workspace_write]
+network_access = true
+
+[features]
+web_search_request = true
 ```
 
 See the [Codex MCP documentation](https://github.com/openai/codex) for setup instructions.

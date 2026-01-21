@@ -24,6 +24,8 @@ Add this profile to your Codex `config.toml`:
 [profiles.oracle]
 model = "gpt-5.2"
 model_reasoning_effort = "xhigh"
+approval_policy = "never"
+sandbox_mode = "read-only"
 ```
 
 See the [Codex MCP documentation](https://github.com/openai/codex) for setup instructions.

@@ -1,17 +1,17 @@
 ---
 name: oracle
-description: "Consult a second-opinion reasoning model for complex analysis, debugging, code review, or architectural decisions. Use when facing difficult bugs, reviewing critical code, designing refactors, or when the user says 'ask the oracle', 'use the oracle', 'second opinion', or 'consult oracle'."
+description: "This skill should be used when the user asks to 'ask the oracle', 'use the oracle', 'get a second opinion', 'consult oracle', 'deep analysis', or when facing difficult bugs, reviewing critical code, designing complex refactors, or needing architectural analysis. Invokes a powerful reasoning model via Codex MCP for complex analysis tasks."
 ---
 
 # Oracle - Second Opinion Model
 
 ## Overview
 
-The oracle is a powerful reasoning model optimized for complex analysis tasks. It excels at debugging, code review, architecture analysis, and finding better solutions - tasks requiring deep reasoning rather than quick edits.
+The oracle invokes a powerful reasoning model (OpenAI's gpt-5-codex/o3) via Codex MCP, optimized for complex analysis tasks. It excels at debugging, code review, architecture analysis, and finding better solutions.
 
 **Trade-offs:** Slower and more expensive than the main agent, but significantly better at complex reasoning. Use deliberately, not for every task.
 
-## When to Use the Oracle
+## When to Use
 
 **Good use cases:**
 
@@ -22,6 +22,7 @@ The oracle is a powerful reasoning model optimized for complex analysis tasks. I
 - Finding better solutions to hard problems
 - Verifying logic hasn't changed after modifications
 - Understanding complex codebases or algorithms
+- Researching unfamiliar APIs or libraries (with web search)
 
 **Poor use cases (use main agent instead):**
 
@@ -30,101 +31,162 @@ The oracle is a powerful reasoning model optimized for complex analysis tasks. I
 - File operations and basic searches
 - Tasks where speed matters more than depth
 
-## How to Invoke
+## Codex Capabilities
 
-Use the Codex MCP tool with a focused prompt. The oracle works best with:
+Codex has access to powerful tools that enhance the oracle's analysis:
 
-1. **Clear context**: Include relevant code, files, or error messages
-2. **Specific question**: State exactly what you need analyzed
-3. **Constraints**: Mention any requirements (backward compatibility, performance, etc.)
+### File Reading
 
-### Basic Invocation
+Include files directly in prompts using the `@` syntax:
 
 ```yaml
 mcp__codex__codex with:
-  prompt: "<your analysis request>"
-  sandbox: "read-only"  # For analysis tasks
+  prompt: "@src/auth/login.ts @src/auth/session.ts Analyze the authentication flow and identify security issues"
 ```
 
-### For Tasks Requiring File Access
+### Web Search
+
+Enable web search to let Codex research documentation, best practices, and solutions:
 
 ```yaml
 mcp__codex__codex with:
-  prompt: "<your request>"
-  sandbox: "workspace-write"  # If changes needed
+  prompt: "Research the best practices for implementing rate limiting in Express.js, then analyze our current implementation in @src/middleware/rateLimit.ts"
+  developer-instructions: "Use web search to find current best practices before analyzing the code"
+```
+
+### Combined Research and Analysis
+
+For comprehensive analysis, instruct Codex to:
+
+1. Search the web for relevant documentation/patterns
+2. Read the relevant files from the codebase
+3. Provide analysis with recommendations
+
+```yaml
+mcp__codex__codex with:
+  prompt: |
+    Task: Analyze our Redis caching implementation for issues.
+
+    Steps:
+    1. Search for current Redis caching best practices and common pitfalls
+    2. Read our implementation in @src/cache/*.ts
+    3. Compare our implementation against best practices
+    4. Provide specific recommendations with code examples
+  sandbox: "read-only"
+```
+
+## Invocation Patterns
+
+### Basic Analysis (Read-Only)
+
+```yaml
+mcp__codex__codex with:
+  prompt: "<analysis request>"
+  sandbox: "read-only"
+```
+
+### Analysis with File References
+
+```yaml
+mcp__codex__codex with:
+  prompt: "@file1.ts @file2.ts <analysis request>"
+  sandbox: "read-only"
+```
+
+### Research-Enhanced Analysis
+
+```yaml
+mcp__codex__codex with:
+  prompt: |
+    Research [topic] using web search, then analyze:
+    @relevant/files.ts
+
+    Provide recommendations based on current best practices.
+  sandbox: "read-only"
+```
+
+### Tasks Requiring File Modifications
+
+```yaml
+mcp__codex__codex with:
+  prompt: "<request>"
+  sandbox: "workspace-write"
   approval-policy: "on-failure"
 ```
 
 ## Example Prompts
 
-### Code Review
+### Code Review with Context Research
 
 ```text
-Review the changes in the last commit. Verify that the actual logic for
-[specific behavior] has not changed. Look for edge cases, race conditions,
-and potential bugs.
+Search for common security vulnerabilities in JWT implementations.
+Then review @src/auth/jwt.ts for these issues.
+Provide specific fixes for any vulnerabilities found.
 ```
 
-### Debugging
+### Debugging with Documentation Lookup
 
 ```text
-I have a bug in these files: [file list]
-It shows up when: [reproduction steps]
-Error: [error message]
-
-Analyze the code flow and identify the root cause.
+Research the expected behavior of React's useEffect cleanup function.
+Then analyze @src/components/DataFetcher.tsx to find why the memory leak occurs.
+The component fetches data but doesn't clean up properly on unmount.
 ```
 
 ### Architecture Analysis
 
 ```text
-Analyze how the functions `foo` and `bar` are used across the codebase.
-Figure out how we can refactor the duplication between them while keeping
-changes backward compatible.
+Analyze how @src/services/payment.ts and @src/services/order.ts interact.
+Search for best practices on separating payment and order concerns.
+Propose a refactoring plan that maintains backward compatibility.
 ```
 
 ### Finding Better Solutions
 
 ```text
-I implemented [feature] using [approach]. Analyze whether there's a better
-solution considering [constraints]. Compare trade-offs.
+I implemented caching using @src/cache/redis.ts
+Search for modern Redis caching patterns (cache-aside, write-through, etc.)
+Analyze whether there's a better approach considering:
+- High read volume
+- Occasional cache stampedes
+- Need for cache invalidation on writes
 ```
 
-### Complex Refactoring
+### Complex Bug Investigation
 
 ```text
-Look at the [component] code. Design a refactoring plan that:
-- Reduces code duplication
-- Maintains backward compatibility
-- Has clear separation of concerns
-- Includes a migration path
+Bug: Users intermittently see stale data after updates.
+Related files: @src/api/update.ts @src/cache/invalidation.ts @src/hooks/useData.ts
+
+1. Search for common causes of stale data in React + Redis architectures
+2. Trace the data flow through these files
+3. Identify race conditions or cache invalidation issues
+4. Provide a fix with explanation
 ```
 
 ## Workflow
 
-1. **Gather context first**: Read relevant files, run commands, collect error logs
-2. **Formulate a focused prompt**: Be specific about what you need analyzed
+1. **Gather context first**: Identify relevant files and the specific problem
+2. **Formulate a focused prompt**: Include file references with `@`, specify research needs
 3. **Invoke the oracle**: Use Codex MCP with appropriate sandbox settings
 4. **Act on the analysis**: Implement recommendations from the oracle's response
 
 ## Best Practices
 
-- **Provide full context**: The oracle can't read your mind. Include code snippets, error messages, and constraints
-- **Ask specific questions**: "Is this correct?" is worse than "Does this handle the edge case where X is null?"
+- **Use `@` syntax for files**: Include relevant files directly in the prompt
+- **Request web research**: Ask Codex to search for best practices, documentation, or solutions
+- **Provide full context**: Include error messages, reproduction steps, and constraints
+- **Ask specific questions**: "Does this handle null edge cases?" beats "Is this correct?"
 - **Request actionable output**: Ask for specific recommendations, not just analysis
-- **Use for verification**: After complex changes, ask the oracle to verify correctness
-- **Chain with main agent**: Use oracle for analysis, main agent for implementation
+- **Chain with main agent**: Use oracle for analysis/research, main agent for implementation
 
-## Integration Notes
-
-The oracle uses the Codex MCP server (`mcp__codex__codex`). Key parameters:
+## Integration Reference
 
 | Parameter                | Description                                          | Default           |
 | ------------------------ | ---------------------------------------------------- | ----------------- |
-| `prompt`                 | The analysis request (required)                      | -                 |
+| `prompt`                 | The analysis request (required). Use `@file` syntax  | -                 |
 | `sandbox`                | `read-only`, `workspace-write`, `danger-full-access` | `read-only`       |
 | `approval-policy`        | `untrusted`, `on-failure`, `on-request`, `never`     | `untrusted`       |
 | `cwd`                    | Working directory for the session                    | Current directory |
-| `developer-instructions` | Additional context for the model                     | -                 |
+| `developer-instructions` | Additional context/instructions for the model        | -                 |
 
-For continued conversations with the oracle, use `mcp__codex__codex-reply` with the `threadId` from the initial response.
+For continued conversations, use `mcp__codex__codex-reply` with the `threadId` from the initial response.

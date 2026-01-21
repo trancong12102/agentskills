@@ -56,7 +56,7 @@ Generate commit messages following [Conventional Commits 1.0.0](https://www.conv
 
 ## Breaking Changes
 
-Add `!` before colon: `feat(api)!: remove endpoint`
+Add exclamation mark before colon: `feat(api)!: remove endpoint`
 
 Footer: `BREAKING CHANGE: description`
 

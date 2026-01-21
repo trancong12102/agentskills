@@ -60,7 +60,7 @@ Generate commit messages following [Conventional Commits 1.0.0](https://www.conv
 | Reverts a previous commit               | `revert`   | -      |
 | Other maintenance tasks                 | `chore`    | -      |
 
-> **Note:** Only `feat` and `fix` have SemVer implications. Breaking changes (any type with `!` or `BREAKING CHANGE` footer) trigger MAJOR.
+> **Note:** Only `feat` and `fix` have SemVer implications. Breaking changes (any type with exclamation mark or `BREAKING CHANGE` footer) trigger MAJOR.
 
 ## Subject Line
 
@@ -106,7 +106,7 @@ Footers follow [git trailer format](https://git-scm.com/docs/git-interpret-trail
 
 Two ways to indicate breaking changes (can use both for emphasis):
 
-1. **Exclamation mark:** Add `!` before colon in subject
+1. **Exclamation mark:** Add exclamation mark before colon in subject
 
    ```text
    feat(api)!: remove deprecated endpoints

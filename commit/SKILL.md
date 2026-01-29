@@ -11,15 +11,16 @@ Generate commit messages following [Conventional Commits 1.0.0](https://www.conv
 
 - Be concise and direct; avoid preambles or long plans.
 - Use explicit formatting and exact output requirements.
-- Ask only for missing inputs (type, scope, breaking); otherwise proceed.
+- Infer type, scope, and breaking from the changes when possible; ask only if truly ambiguous.
 - Prefer tool-driven git commands over manual edits.
 
 ## Workflow
 
 1. Run `git status` and `git diff HEAD`.
 2. Stage only user-specified files; if user requests "all", use `git add -A`.
-3. Choose type/scope, then draft subject, body, and footers.
-4. Commit using HEREDOC:
+3. Infer type/scope/breaking from the diff when possible; ask only if needed.
+4. Draft subject, body, and footers.
+5. Commit using HEREDOC:
 
    ```bash
    git commit -m "$(cat <<'EOF'
@@ -32,7 +33,7 @@ Generate commit messages following [Conventional Commits 1.0.0](https://www.conv
    )"
    ```
 
-5. Output `<hash> <subject>` only.
+6. Output `<hash> <subject>` only.
 
 ## Scope Boundaries
 

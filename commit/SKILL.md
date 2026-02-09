@@ -56,7 +56,7 @@ Generate commit messages following [Conventional Commits 1.0.0](https://www.conv
 - Description must follow `: ` and be a short summary.
 - Body is separated from subject by one blank line.
 - Footer is separated from body by one blank line and uses `<token>: <value>` or `<token> #<value>`.
-- Breaking change must use `!` or a `BREAKING CHANGE:`/`BREAKING-CHANGE:` footer.
+- Breaking change must use the exclamation mark (!) after type/scope or a BREAKING CHANGE: / BREAKING-CHANGE: footer.
 
 ## Types
 
@@ -72,7 +72,7 @@ Generate commit messages following [Conventional Commits 1.0.0](https://www.conv
 - `chore`: other maintenance
 - `revert`: revert commit
 
-Breaking changes: use `!` or `BREAKING CHANGE:` footer (MAJOR).
+Breaking changes: use the exclamation mark (!) after type/scope or add a BREAKING CHANGE: footer (MAJOR).
 
 ## Subject
 

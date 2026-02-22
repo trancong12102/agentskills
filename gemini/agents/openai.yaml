@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gemini"
+  short_description: "Mandatory read-only Gemini co-planning with evidence-first outputs and FE full-package mode"
+  default_prompt: "Use $gemini to run Gemini read-only consultation (gemini-3.1-pro-preview) before decisions, planning, debugging, and implementation; outputs must be evidence-first (codebase refs, source citations when needed, explicit UNVERIFIED gaps), FE tasks must return full code packages."

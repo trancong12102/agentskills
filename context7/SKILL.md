@@ -3,54 +3,85 @@ name: context7
 description: Retrieve up-to-date documentation for software libraries, frameworks, and components via the Context7 API. This skill should be used when looking up documentation for any programming library or framework, finding code examples for specific APIs or features, verifying correct usage of library functions, or obtaining current information about library APIs that may have changed since training.
 ---
 
-# Context7 Documentation Lookup
+# Context7
 
-Retrieve current documentation and code examples for any programming library directly from the source.
+## Overview
 
-## Usage
+This skill enables retrieval of current documentation for software libraries and components by querying the Context7 API via curl. Use it instead of relying on potentially outdated training data.
 
-Use the Python script at `scripts/context7.py`.
+## Workflow
 
-### Get Documentation
+### Step 1: Search for the Library
 
-```bash
-# Text format (default)
-python scripts/context7.py docs \
-  --library-id /facebook/react --query "useEffect cleanup function"
-
-# Specific version
-python scripts/context7.py docs \
-  --library-id /vercel/next.js/v15.1.8 --query "app router middleware"
-```
-
-### Search Libraries
-
-Use search only when the library ID is unknown:
+To find the Context7 library ID, query the search endpoint:
 
 ```bash
-python scripts/context7.py search \
-  --library react --query "hooks"
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/libs/search?libraryName=LIBRARY_NAME&query=TOPIC" | jq '.results[0]'
 ```
 
-## Query Tips
+**Parameters:**
+- `libraryName` (required): The library name to search for (e.g., "react", "nextjs", "fastapi", "axios")
+- `query` (required): A description of the topic for relevance ranking
 
-- Use detailed, natural language queries for better results
-- Good: `"How to implement authentication with middleware"`
-- Bad: `"auth"`
+**Response fields:**
+- `id`: Library identifier for the context endpoint (e.g., `/websites/react_dev`)
+- `title`: Human-readable library name
+- `description`: Brief description of the library
+- `totalSnippets`: Number of documentation snippets available
 
-## Common Library IDs
+### Step 2: Fetch Documentation
 
-| Library | ID |
-| ------- | -- |
-| React | `/facebook/react` |
-| Next.js | `/vercel/next.js` |
-| TailwindCSS | `/tailwindlabs/tailwindcss` |
-| Expo | `/expo/expo` |
-| ORPC | `middleapi/orpc` |
+To retrieve documentation, use the library ID from step 1:
 
-## Rules
+```bash
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/context?libraryId=LIBRARY_ID&query=TOPIC&type=txt"
+```
 
-- Query docs directly when you know the library ID
-- Use search only if unsure about the library ID
-- Use specific version IDs for consistent results (e.g., `/vercel/next.js/v15.1.8`)
-- Use `--format json` for structured output
+**Parameters:**
+- `libraryId` (required): The library ID from search results
+- `query` (required): The specific topic to retrieve documentation for
+- `type` (optional): Response format - `json` (default) or `txt` (plain text, more readable)
+
+## Examples
+
+### React hooks documentation
+
+```bash
+# Find React library ID
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/libs/search?libraryName=react&query=hooks" | jq '.results[0].id'
+# Returns: "/websites/react_dev"
+
+# Fetch useState documentation
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/context?libraryId=/websites/react_dev&query=useState&type=txt"
+```
+
+### Next.js routing documentation
+
+```bash
+# Find Next.js library ID
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/libs/search?libraryName=nextjs&query=routing" | jq '.results[0].id'
+
+# Fetch app router documentation
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/context?libraryId=/vercel/next.js&query=app+router&type=txt"
+```
+
+### FastAPI dependency injection
+
+```bash
+# Find FastAPI library ID
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/libs/search?libraryName=fastapi&query=dependencies" | jq '.results[0].id'
+
+# Fetch dependency injection documentation
+curl -s -H "Authorization: Bearer $CONTEXT7_API_KEY" "https://context7.com/api/v2/context?libraryId=/fastapi/fastapi&query=dependency+injection&type=txt"
+```
+
+## Tips
+
+- Use `type=txt` for more readable output
+- Use `jq` to filter and format JSON responses
+- Be specific with the `query` parameter to improve relevance ranking
+- Authenticate requests with `-H "Authorization: Bearer $CONTEXT7_API_KEY"`
+- If the first search result is not correct, check additional results in the array
+- Always use the latest `libraryId` from search results before fetching context
+- URL-encode query parameters containing spaces (use `+` or `%20`)
+- Ensure `CONTEXT7_API_KEY` is set in your environment before running commands

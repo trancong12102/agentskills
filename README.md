@@ -1,3 +1,3 @@
 # Agent Skills
 
-This repository contains reusable Amp agent skills for common developer workflows.
+This repository contains reusable agent skills for common developer workflows.

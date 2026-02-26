@@ -63,11 +63,12 @@ scripts/gemini-review.sh branch --base main --focus "Review for accessibility re
 ### Step 3: Present Results
 
 The script outputs a structured review with:
-- **Summary**: High-level overview of the changes
-- **Critical findings**: Bugs, security issues, or breaking changes
-- **Improvements**: Suggestions for better code quality or performance
-- **Nitpicks**: Minor style or formatting issues
-- **Conclusion**: Clear recommendation (Approved / Request Changes)
+- **Header line**: Quality score (1-5), Effort estimate (1-5), and Verdict — scannable at a glance
+- **Summary**: 2-3 sentence high-level overview
+- **Changes Walkthrough**: Table summarizing what changed in each file
+- **Findings**: All issues grouped under one heading, each tagged with a category (`Bug`, `Security`, `Performance`, `Maintainability`, `Edge Case`, `Testing`, `Style`), file:line reference, explanation, and suggested fix — sorted by severity
+- **Highlights**: Positive patterns worth calling out (good abstractions, solid error handling, etc.)
+- **Verdict**: Final recommendation (Approved / Approved with suggestions / Request Changes)
 
 ### Step 4: Cleanup (Remote PRs only)
 
@@ -87,6 +88,5 @@ After reviewing a remote PR, ask the user if they want to switch back to the ori
 
 - Default to reviewing the current branch diff against `main` unless the user specifies otherwise
 - Always use the wrapper script — it enforces `gemini-3.1-pro-preview` model and read-only mode
-- Present findings sorted by severity (Critical > Improvements > Nitpicks)
-- Summarize the overall assessment before listing individual findings
+- Sort findings by severity: Bug/Security first, then Performance/Maintainability/Edge Case/Testing, then Style
 - If Gemini CLI is not installed, instruct the user to install and authenticate it

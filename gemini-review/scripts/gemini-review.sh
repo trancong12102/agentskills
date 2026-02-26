@@ -178,33 +178,49 @@ CONSTRAINTS:
 OUTPUT FORMAT:
 Return your review in this exact structure:
 
-## Summary
+## Review
+
+**Quality: X/5** · **Effort: X/5** · **Verdict: <verdict>**
+
+Where:
+- Quality (1-5): 1 = critical problems, 2 = significant bugs, 3 = implementation issues, 4 = minor polish needed, 5 = production ready
+- Effort (1-5): estimated effort to address the findings (1 = trivial, 5 = major rework)
+- Verdict: one of "Approved", "Approved with suggestions", "Request Changes"
+
+### Summary
 A 2-3 sentence high-level overview of the changes and their quality.
 
-## Critical
-Bugs, security issues, data loss risks, or breaking changes. Each item must include:
-- File path and line reference
-- Description of the issue
-- Suggested fix
+### Changes Walkthrough
+A markdown table summarizing what changed in each file:
 
-If none found, write: "No critical issues found."
+| File | Changes |
+|------|---------|
+| \`path/to/file.ts\` | Brief description of changes in this file |
 
-## Improvements
-Suggestions for better code quality, performance, or design. Each item must include:
-- File path and line reference
-- Current approach and why it could be improved
-- Suggested alternative
+### Findings
 
-If none found, write: "No improvements suggested."
+Group all findings under a single "Findings" heading sorted by severity. Each finding must follow this format:
 
-## Nitpicks
-Minor style, formatting, or naming issues. Optional section.
+> **[Category]** \`file/path.ts:LINE\` — Short title
+>
+> Explanation of the issue and why it matters.
+>
+> **Suggested fix:**
+> \`\`\`lang
+> code suggestion here
+> \`\`\`
 
-## Conclusion
-One of:
-- **Approved**: Changes are ready to merge.
-- **Approved with suggestions**: Changes can merge, but consider the improvements above.
-- **Request Changes**: Critical issues must be addressed before merging.
+Where Category is one of: \`Bug\`, \`Security\`, \`Performance\`, \`Maintainability\`, \`Edge Case\`, \`Testing\`, \`Style\`.
+
+Order findings: Bug/Security first, then Performance/Maintainability/Edge Case/Testing, then Style last.
+
+If no findings at all, write: "No issues found."
+
+### Highlights
+1-3 positive observations worth calling out: good patterns, clean abstractions, solid error handling, or well-written tests. Skip this section if nothing stands out.
+
+### Verdict
+Restate the verdict with a one-sentence justification.
 ${context_section}
 CODE CHANGES TO REVIEW:
 ${diff}

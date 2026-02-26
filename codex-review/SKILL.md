@@ -1,6 +1,6 @@
 ---
 name: codex-review
-description: Run code reviews using the OpenAI Codex CLI. Use when the user asks to review code, review a pull request, review a branch, review uncommitted changes, review a commit, or wants AI-powered code review via Codex.
+description: AI-powered code review via the OpenAI Codex CLI. This skill should be used when reviewing branch diffs before merging a PR, auditing uncommitted changes during development, inspecting a specific commit, performing custom-scoped reviews, or whenever changes touch security-sensitive paths or exhibit risky patterns.
 ---
 
 # Codex Code Review

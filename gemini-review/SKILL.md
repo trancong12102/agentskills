@@ -60,19 +60,64 @@ scripts/gemini-review.sh pr <PR_NUMBER>
 scripts/gemini-review.sh branch --base main --focus "Review for accessibility regressions and WCAG compliance"
 ```
 
+**Structured output for LLM consumption** (used by council-review):
+
+```bash
+scripts/gemini-review.sh branch --base main --format structured
+```
+
 ### Step 3: Present Results
 
-The script outputs a structured review with:
-- **Header line**: Quality score (1-5), Effort estimate (1-5), and Verdict — scannable at a glance
+The script outputs a review in one of two formats depending on `--format`:
+
+#### Markdown format (default)
+
+Human-readable output with:
+- **Verdict**: Approved / Approved with suggestions / Request Changes
 - **Summary**: 2-3 sentence high-level overview
 - **Changes Walkthrough**: Table summarizing what changed in each file
-- **Findings**: All issues grouped under one heading, each tagged with a category (`Bug`, `Security`, `Performance`, `Maintainability`, `Edge Case`, `Testing`, `Style`), file:line reference, explanation, and suggested fix — sorted by severity
-- **Highlights**: Positive patterns worth calling out (good abstractions, solid error handling, etc.)
-- **Verdict**: Final recommendation (Approved / Approved with suggestions / Request Changes)
+- **Findings**: All issues with explicit severity emoji (🔴🟠🟡🟢🔵), category, file:line reference, explanation, and suggested fix — sorted by severity
+- **Highlights**: Positive patterns worth calling out
+- **Verdict**: Final recommendation restated with justification
+
+#### Structured format (`--format structured`)
+
+YAML output optimized for LLM parsing and synthesis (e.g., by the `council-review` skill):
+
+```yaml
+verdict: approved | approved_with_suggestions | request_changes
+summary: |
+  2-3 sentence overview.
+changes:
+  - file: path/to/file.ts
+    description: Brief description of changes
+findings:
+  - severity: critical | high | medium | low | info
+    category: bug | security | performance | maintainability | edge_case | testing | style
+    file: path/to/file.ts
+    line: 42
+    title: Short title
+    description: |
+      Explanation of the issue.
+    suggestion: |
+      code fix here
+highlights:
+  - Short description of a positive pattern
+```
 
 ### Step 4: Cleanup (Remote PRs only)
 
 After reviewing a remote PR, ask the user if they want to switch back to the original branch.
+
+## Severity Levels
+
+| Emoji | Level | Criteria |
+|-------|-------|----------|
+| 🔴 | Critical | Exploitable vulnerability, data loss, or crash in production |
+| 🟠 | High | Likely bug or incident under realistic conditions |
+| 🟡 | Medium | Incorrect behavior under edge cases or degraded performance |
+| 🟢 | Low | Code quality issue that could escalate over time |
+| 🔵 | Info | Observation or suggestion, no action required |
 
 ## Common Options
 
@@ -80,6 +125,7 @@ After reviewing a remote PR, ask the user if they want to switch back to the ori
 | --- | --- |
 | `--base <BRANCH>` | Base branch for comparison (default: `main`) |
 | `--focus <TEXT>` | Narrow the review to specific concerns |
+| `--format <FORMAT>` | Output format: `markdown` (default) or `structured` (YAML for LLM consumption) |
 | `--context-file <PATH>` | Add extra context file (repeatable) |
 | `--dry-run` | Print the prompt without calling Gemini |
 | `--interactive` | Keep Gemini chat open for follow-up questions |
@@ -88,5 +134,7 @@ After reviewing a remote PR, ask the user if they want to switch back to the ori
 
 - Default to reviewing the current branch diff against `main` unless the user specifies otherwise
 - Always use the wrapper script — it enforces `gemini-3.1-pro-preview` model and read-only mode
-- Sort findings by severity: Bug/Security first, then Performance/Maintainability/Edge Case/Testing, then Style
+- Sort findings by severity: Critical/High first, then Medium, then Low/Info
+- Every finding must include an explicit severity level — never rely on implicit ordering alone
 - If Gemini CLI is not installed, instruct the user to install and authenticate it
+- When called from `council-review`, always use `--format structured` for reliable LLM parsing

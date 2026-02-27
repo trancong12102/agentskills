@@ -23,6 +23,7 @@ Options:
   --base <branch>         Base branch for comparison (default: main)
   --focus <text>          Narrow the review to specific concerns
   --context-file <path>   Add extra context file (repeatable)
+  --format <format>       Output format: markdown (default) or structured (YAML for LLM consumption)
   --dry-run               Print the prompt without calling Gemini
   --interactive           Keep Gemini chat open after review
 
@@ -135,10 +136,9 @@ build_context_block() {
   printf '%s' "$context"
 }
 
-build_review_prompt() {
-  local diff="$1"
-  local focus="$2"
-  local context_block="$3"
+build_common_preamble() {
+  local focus="$1"
+  local context_block="$2"
 
   local focus_block=""
   if [[ -n "$focus" ]]; then
@@ -174,24 +174,45 @@ CONSTRAINTS:
 - You may use read-only tools to explore the codebase for additional context.
 - Cite specific file paths and line numbers when referencing issues.
 - Be constructive and explain *why* a change is needed, not just *what* to change.
+${context_section}
+EOF
+}
 
+build_review_prompt() {
+  local diff="$1"
+  local focus="$2"
+  local context_block="$3"
+  local format="${4:-markdown}"
+
+  local preamble
+  preamble="$(build_common_preamble "$focus" "$context_block")"
+
+  case "$format" in
+    markdown) build_markdown_prompt "$preamble" "$diff" ;;
+    structured) build_structured_prompt "$preamble" "$diff" ;;
+    *) fail "Unknown format '${format}'. Use: markdown, structured." ;;
+  esac
+}
+
+build_markdown_prompt() {
+  local preamble="$1"
+  local diff="$2"
+
+  cat <<EOF
+${preamble}
 OUTPUT FORMAT:
-Return your review in this exact structure:
+Return your review in this exact Markdown structure:
 
 ## Review
 
-**Quality: X/5** · **Effort: X/5** · **Verdict: <verdict>**
+**Verdict: <verdict>**
 
-Where:
-- Quality (1-5): 1 = critical problems, 2 = significant bugs, 3 = implementation issues, 4 = minor polish needed, 5 = production ready
-- Effort (1-5): estimated effort to address the findings (1 = trivial, 5 = major rework)
-- Verdict: one of "Approved", "Approved with suggestions", "Request Changes"
+Where verdict is one of: "Approved", "Approved with suggestions", "Request Changes"
 
 ### Summary
 A 2-3 sentence high-level overview of the changes and their quality.
 
 ### Changes Walkthrough
-A markdown table summarizing what changed in each file:
 
 | File | Changes |
 |------|---------|
@@ -199,29 +220,78 @@ A markdown table summarizing what changed in each file:
 
 ### Findings
 
-Group all findings under a single "Findings" heading sorted by severity. Each finding must follow this format:
+All findings sorted by severity (critical first). Each finding MUST include an explicit severity tag. Use this exact format:
 
-> **[Category]** \`file/path.ts:LINE\` — Short title
->
-> Explanation of the issue and why it matters.
->
-> **Suggested fix:**
-> \`\`\`lang
-> code suggestion here
-> \`\`\`
+#### <SEVERITY_EMOJI> <Short title>
 
-Where Category is one of: \`Bug\`, \`Security\`, \`Performance\`, \`Maintainability\`, \`Edge Case\`, \`Testing\`, \`Style\`.
+**<Category>** · \`file/path.ts:LINE\`
 
-Order findings: Bug/Security first, then Performance/Maintainability/Edge Case/Testing, then Style last.
+Explanation of the issue and why it matters.
 
-If no findings at all, write: "No issues found."
+**Suggested fix:**
+\`\`\`lang
+code suggestion here
+\`\`\`
+
+Severity emoji mapping (use exactly these):
+- 🔴 Critical — Exploitable vulnerability, data loss, or crash in production
+- 🟠 High — Likely bug or incident under realistic conditions
+- 🟡 Medium — Incorrect behavior under edge cases or degraded performance
+- 🟢 Low — Code quality issue that could escalate over time
+- 🔵 Info — Observation or suggestion, no action required
+
+Category is one of: Bug, Security, Performance, Maintainability, Edge Case, Testing, Style
+
+If no findings: "No issues found."
 
 ### Highlights
-1-3 positive observations worth calling out: good patterns, clean abstractions, solid error handling, or well-written tests. Skip this section if nothing stands out.
+1-3 positive observations worth calling out. Skip if nothing stands out.
 
 ### Verdict
 Restate the verdict with a one-sentence justification.
-${context_section}
+
+CODE CHANGES TO REVIEW:
+${diff}
+EOF
+}
+
+build_structured_prompt() {
+  local preamble="$1"
+  local diff="$2"
+
+  cat <<EOF
+${preamble}
+OUTPUT FORMAT:
+Return your review as a YAML document. This output will be consumed by another LLM for synthesis, so strict adherence to the schema is critical.
+
+Return ONLY the YAML block below — no prose, no markdown fences, no explanation outside the YAML.
+
+verdict: approved | approved_with_suggestions | request_changes
+summary: |
+  2-3 sentence high-level overview.
+changes:
+  - file: path/to/file.ts
+    description: Brief description of changes
+findings:
+  - severity: critical | high | medium | low | info
+    category: bug | security | performance | maintainability | edge_case | testing | style
+    file: path/to/file.ts
+    line: 42
+    title: Short title
+    description: |
+      Explanation of the issue and why it matters.
+    suggestion: |
+      code fix here (optional, omit key if no suggestion)
+highlights:
+  - Short description of a positive pattern
+
+Field definitions:
+- severity: critical = exploitable vulnerability/data loss/crash, high = likely bug under realistic conditions, medium = edge case or perf issue, low = quality issue that could escalate, info = observation only
+- category: bug, security, performance, maintainability, edge_case, testing, style
+- findings: empty list [] if no issues found
+- highlights: empty list [] if nothing stands out
+- suggestion: omit this key entirely if no code fix to suggest
+
 CODE CHANGES TO REVIEW:
 ${diff}
 EOF
@@ -257,6 +327,7 @@ run_gemini() {
 handle_branch() {
   local base="main"
   local focus=""
+  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -265,6 +336,7 @@ handle_branch() {
     case "$1" in
       --base) base="$2"; shift 2 ;;
       --focus) focus="$2"; shift 2 ;;
+      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -278,12 +350,13 @@ handle_branch() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 
 handle_uncommitted() {
   local focus=""
+  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -291,6 +364,7 @@ handle_uncommitted() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --focus) focus="$2"; shift 2 ;;
+      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -304,13 +378,14 @@ handle_uncommitted() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 
 handle_commit() {
   local sha="$1"; shift
   local focus=""
+  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -318,6 +393,7 @@ handle_commit() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --focus) focus="$2"; shift 2 ;;
+      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -331,13 +407,14 @@ handle_commit() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 
 handle_pr() {
   local pr_number="$1"; shift
   local focus=""
+  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -345,6 +422,7 @@ handle_pr() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --focus) focus="$2"; shift 2 ;;
+      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -358,7 +436,7 @@ handle_pr() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 

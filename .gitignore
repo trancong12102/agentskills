@@ -1,6 +1,8 @@
 # General
 .DS_Store
 __MACOSX/
+__pycache__/
+*.pyc
 .AppleDouble
 .LSOverride
 Icon[]

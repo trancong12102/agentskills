@@ -12,7 +12,7 @@ Retrieve current documentation for software libraries by querying the Context7 A
 ### Step 1: Search for the Library
 
 ```bash
-scripts/context7.sh search <library> <topic>
+python3 scripts/context7.py search <library> <topic>
 ```
 
 Returns TSV with top 5 matches: `id`, `title`, `snippets`. Use the `id` from the first row for the fetch step.
@@ -20,22 +20,22 @@ Returns TSV with top 5 matches: `id`, `title`, `snippets`. Use the `id` from the
 ### Step 2: Fetch Documentation
 
 ```bash
-scripts/context7.sh fetch <library_id> <topic> [--max-tokens N]
+python3 scripts/context7.py fetch <library_id> <topic> [--max-tokens N]
 ```
 
 Fetches documentation snippets relevant to the topic, truncated to a token budget (default: 5000). Only the most relevant snippets are returned. Use `--max-tokens` to control output size — lower values for focused lookups, higher for broad exploration.
 
-Run `scripts/context7.sh --help` for full usage.
+Run `python3 scripts/context7.py --help` for full usage.
 
 ## Examples
 
 ```bash
 # Find React library ID, then fetch useState docs
-scripts/context7.sh search react "useState hook"
-scripts/context7.sh fetch /websites/react_dev "useState hook with objects"
+python3 scripts/context7.py search react "useState hook"
+python3 scripts/context7.py fetch /websites/react_dev "useState hook with objects"
 
 # Smaller budget for a quick lookup
-scripts/context7.sh fetch /vercel/next.js "middleware redirect" --max-tokens 2000
+python3 scripts/context7.py fetch /vercel/next.js "middleware redirect" --max-tokens 2000
 ```
 
 ## Rules

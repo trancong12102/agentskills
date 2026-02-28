@@ -31,23 +31,23 @@ If the scope is not already clear, use AskUserQuestion to ask:
 
 Launch **two Task agents simultaneously** in a single message. Both scripts are in `scripts/` relative to this skill's directory and enforce the correct model and read-only mode internally. Run `<script> --help` for full usage.
 
-#### Codex — `scripts/codex-review.sh`
+#### Codex — `scripts/codex-review.py`
 
 ```bash
-scripts/codex-review.sh uncommitted
-scripts/codex-review.sh branch --base main
-scripts/codex-review.sh commit <SHA>
+python3 scripts/codex-review.py uncommitted
+python3 scripts/codex-review.py branch --base main
+python3 scripts/codex-review.py commit <SHA>
 ```
 
-#### Gemini — `scripts/gemini-review.sh`
+#### Gemini — `scripts/gemini-review.py`
 
 Output is always structured YAML. Supports `pr` scope (Codex does not) and additional options `--context-file` and `--interactive`.
 
 ```bash
-scripts/gemini-review.sh uncommitted
-scripts/gemini-review.sh branch --base main
-scripts/gemini-review.sh commit <SHA>
-scripts/gemini-review.sh pr <PR_NUMBER>
+python3 scripts/gemini-review.py uncommitted
+python3 scripts/gemini-review.py branch --base main
+python3 scripts/gemini-review.py commit <SHA>
+python3 scripts/gemini-review.py pr <PR_NUMBER>
 ```
 
 Shared options: `--base <BRANCH>`, `--focus <TEXT>`, `--dry-run`.

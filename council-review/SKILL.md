@@ -5,7 +5,7 @@ description: "Use this skill for multi-model AI code review. Trigger whenever th
 
 # Council Review
 
-Run Codex and Gemini code reviews in parallel, then Claude performs its own review to cross-validate findings — like a review board where Claude is the lead reviewer who deliberates with two external experts and delivers one opinion.
+Run Codex, Gemini, and Claude's own `/review` all in parallel, then cross-validate and synthesize into one unified report — like a review board where three reviewers examine the code independently, and Claude as lead reviewer delivers the final opinion.
 
 ## Prerequisites
 
@@ -39,11 +39,15 @@ If the scope is not already clear, use AskUserQuestion to ask:
 - **Specific commit** — audit a single changeset
 - **Remote PR** — review a GitHub PR by number or URL (Gemini only, skip Codex)
 
-### Step 2: Run Reviews in Parallel
+### Step 2: Run All Three Reviews in Parallel
 
-Launch **two Task agents simultaneously** in a single message. Both scripts are in `scripts/` relative to this skill's directory and enforce the correct model and read-only mode internally. Run `<script> --help` for full usage.
+All three reviewers read the same diff independently — none depends on another's output. Launch them all at once in a single message to eliminate sequential wait time.
 
-#### Codex — `scripts/codex-review.py`
+Scripts are in `scripts/` relative to this skill's directory and enforce the correct model and read-only mode internally. Run `<script> --help` for full usage.
+
+#### Codex — `scripts/codex-review.py` (background Task agent)
+
+Launch as a background Task agent (`run_in_background: true`).
 
 ```bash
 python3 scripts/codex-review.py uncommitted
@@ -51,9 +55,9 @@ python3 scripts/codex-review.py branch --base main
 python3 scripts/codex-review.py commit <SHA>
 ```
 
-#### Gemini — `scripts/gemini-review.py`
+#### Gemini — `scripts/gemini-review.py` (background Task agent)
 
-Output is always structured YAML. Supports `pr` scope (Codex does not) and additional options `--context-file` and `--interactive`.
+Launch as a background Task agent (`run_in_background: true`). Output is always structured YAML. Supports `pr` scope (Codex does not) and additional options `--context-file` and `--interactive`.
 
 ```bash
 python3 scripts/gemini-review.py uncommitted
@@ -64,16 +68,19 @@ python3 scripts/gemini-review.py pr <PR_NUMBER>
 
 Shared options: `--base <BRANCH>`, `--focus <TEXT>`, `--dry-run`.
 
-### Step 3: Claude Code Review & Validation
+#### Claude — `/review` command
 
-After both external reviewers return, trigger the **`/review`** command to perform Claude Code's own independent review, then cross-validate all findings:
+While Codex and Gemini run in the background, trigger the `/review` command immediately on the same scope. This runs Claude Code's own independent review concurrently with the external reviewers, so by the time Codex and Gemini finish, Claude's review is already done too.
 
-1. **Run `/review`** — Invoke the `/review` command on the same scope to get Claude Code's own review.
-2. **Validate external findings** — For each finding from Codex and Gemini:
+### Step 3: Cross-Validate Findings
+
+Once all three reviews have returned, cross-validate:
+
+1. **Validate external findings** — For each finding from Codex and Gemini:
    - **Confirm** — Claude independently agrees the issue exists and is correctly described.
    - **Dispute** — Claude believes the finding is a false positive or incorrectly categorized. Note the reasoning.
    - **Enhance** — The issue exists but the explanation or suggested fix can be improved. Provide the improved version.
-3. **Add Claude's own findings** — Include any issues from `/review` that neither Codex nor Gemini caught.
+2. **Add Claude's own findings** — Include any issues from `/review` that neither Codex nor Gemini caught.
 
 ### Step 4: Synthesize into Unified Report
 
@@ -83,9 +90,9 @@ Load `references/output-format.md` for the report template. Load `references/mer
 
 ## Rules
 
-- **Run Codex and Gemini in parallel** — sequential execution doubles the wait for no benefit; both agents are independent.
+- **Run all three reviewers in parallel** — Codex, Gemini, and `/review` are independent reads of the same diff. Running them concurrently instead of sequentially saves the entire `/review` execution time.
 - **Use the same review scope for all reviewers** — comparing different scopes would make deduplication meaningless.
-- **Always run `/review` (Step 3) before synthesizing** — Claude's own analysis is what turns three outputs into one trustworthy report, not just a merge.
+- **Wait for all three reviews before synthesizing** — Claude's own analysis is what turns three outputs into one trustworthy report, not just a merge. All three must complete before cross-validation begins.
 - **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections). Source attribution belongs only in the collapsible raw outputs.
 - **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵, with higher confidence first within the same severity.
 - **Always use the wrapper scripts** for external reviewers — never call `codex` or `gemini` CLIs directly, because the scripts set the correct model and read-only mode.

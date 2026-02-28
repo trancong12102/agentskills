@@ -1,6 +1,6 @@
 # Agent Skills
 
-A collection of reusable skills for AI coding agents.
+A collection of reusable skills for AI coding agents, mainly for Claude Code.
 
 ## Installation
 

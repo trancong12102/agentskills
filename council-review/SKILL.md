@@ -1,13 +1,13 @@
 ---
 name: council-review
-description: Multi-model AI code review that runs Codex (OpenAI) and Gemini (Google) in parallel, then synthesizes findings into a unified report. Use when reviewing code changes, auditing diffs, or assessing code quality.
+description: Multi-model AI code review council. Use when reviewing code changes, auditing diffs, or assessing code quality.
 ---
 
 # Council Review
 
 ## Overview
 
-Run Codex and Gemini code reviews **in parallel** using the Task tool, then merge all findings into a single unified report — like a review board that deliberates and delivers one opinion. Individual reviewer outputs are preserved in a collapsible section but never shown as the primary structure.
+Run Codex and Gemini code reviews **in parallel** using the Task tool, then **Claude Code performs its own review** to validate and cross-check external findings before merging everything into a single unified report — like a review board where Claude is the lead reviewer who deliberates with two external experts and delivers one opinion. Individual reviewer outputs are preserved in a collapsible section but never shown as the primary structure.
 
 ## Prerequisites
 
@@ -52,9 +52,22 @@ python3 scripts/gemini-review.py pr <PR_NUMBER>
 
 Shared options: `--base <BRANCH>`, `--focus <TEXT>`, `--dry-run`.
 
-### Step 3: Synthesize into Unified Report
+### Step 3: Claude Code Review & Validation
 
-After both agents return, **merge, deduplicate, and rewrite** all findings into the format below. Do not copy-paste or concatenate the raw outputs — synthesize them into one coherent report as if written by a single reviewer.
+After both external reviewers return, trigger the **`/review`** command to perform Claude Code's own independent review, then cross-validate all findings:
+
+1. **Run `/review`** — Invoke the `/review` command on the same scope to get Claude Code's own review of the changes.
+2. **Validate external findings** — For each finding from Codex and Gemini:
+   - **Confirm** — Claude independently agrees the issue exists and is correctly described.
+   - **Dispute** — Claude believes the finding is a false positive or incorrectly categorized. Note the reasoning.
+   - **Enhance** — The issue exists but the explanation or suggested fix can be improved. Provide the improved version.
+3. **Add Claude's own findings** — Include any issues from `/review` that neither Codex nor Gemini caught.
+
+This step ensures the final report is grounded in Claude's own analysis, not just a merge of external outputs.
+
+### Step 4: Synthesize into Unified Report
+
+After your own review and validation are complete, **merge, deduplicate, and rewrite** all findings (from Codex, Gemini, and your own review) into the format below. Do not copy-paste or concatenate the raw outputs — synthesize them into one coherent report as if written by a single reviewer.
 
 ---
 
@@ -65,7 +78,7 @@ After both agents return, **merge, deduplicate, and rewrite** all findings into 
 ```
 ## Council Review
 
-**Verdict: <VERDICT>** · Reviewed by Codex + Gemini
+**Verdict: <VERDICT>** · Reviewed by Codex + Gemini + Claude
 
 <1-2 sentence justification>
 ```
@@ -83,7 +96,7 @@ Verdict values:
 
 ### Findings
 
-All issues from both reviewers merged into a **single flat list**, deduplicated, sorted by severity (critical first). Each finding follows this format:
+All issues from all reviewers merged into a **single flat list**, deduplicated, sorted by severity (critical first). Each finding follows this format:
 
 ```
 #### <EMOJI> <Short title>
@@ -110,10 +123,10 @@ code here
 
 **Categories:** `Bug`, `Security`, `Performance`, `Maintainability`, `Edge Case`, `Testing`, `Style`
 
-**Confidence is derived from reviewer agreement:**
-- **High** — Both reviewers flagged the same issue independently
-- **Medium** — One reviewer flagged it with clear evidence
-- **Low** — One reviewer flagged it but evidence is circumstantial
+**Confidence is derived from reviewer agreement (3 reviewers: Codex, Gemini, Claude). Merge rules (below) take precedence over these defaults when they specify a confidence level:**
+- **High** — 2+ reviewers flagged the same issue independently, or Claude confirmed an external finding
+- **Medium** — One external reviewer flagged it and Claude did not dispute it, or Claude found it alone with clear evidence
+- **Low** — Evidence is circumstantial or only one external reviewer flagged it with weak justification
 
 If no issues found: "No issues found."
 
@@ -135,6 +148,9 @@ Always include at the end:
 **Gemini:**
 <full gemini output>
 
+**Claude (/review):**
+<Claude's /review output and validation notes>
+
 </details>
 ```
 
@@ -142,22 +158,26 @@ Always include at the end:
 
 ## Merge Rules
 
-When synthesizing findings from both reviewers:
+When synthesizing findings from all three reviewers (Codex, Gemini, Claude):
 
-1. **Same issue, same fix** → Merge into one finding, confidence: High
-2. **Same issue, different fix** → Merge into one finding, confidence: High, present both fixes and note the difference
-3. **Contradictory assessments** (one says it's fine, the other flags it) → Include the finding, confidence: Low, briefly note the disagreement in the explanation
-4. **Unique finding from one reviewer** → Include as-is, confidence: Medium
+1. **Same issue, same fix, Claude confirmed** → Merge into one finding, confidence: High
+2. **Same issue, different fix** → Merge into one finding, confidence: High, present the best fix (prefer Claude's improved version if available)
+3. **External finding confirmed by Claude** → Include with Claude's enhanced explanation if applicable, confidence: High
+4. **External finding disputed by Claude** → Include the finding, confidence: Low, note Claude's reasoning for the dispute
+5. **Contradictory assessments between external reviewers, Claude breaks the tie** → Include with Claude's assessment as the deciding factor, confidence: Medium
+6. **Unique finding from one external reviewer, not disputed by Claude** → Include as-is, confidence: Medium
+7. **Unique finding from Claude only** → Include as Claude's own finding, confidence: Medium
 
 ## Rules
 
-- Always run both reviews **in parallel** — never sequentially
-- Use the same review scope for both reviewers
-- The report must read as **one unified opinion**, not two reports stitched together
+- Always run Codex and Gemini reviews **in parallel** — never sequentially
+- Use the same review scope for all reviewers
+- **Always run `/review` (Step 3)** before synthesizing — never skip this step
+- The report must read as **one unified opinion**, not three reports stitched together
 - Never structure findings by reviewer (no "Codex found..." / "Gemini found..." sections)
 - Source attribution appears only in the collapsible raw outputs section
 - Sort findings strictly by severity: 🔴 → 🟠 → 🟡 → 🟢 → 🔵
 - Within the same severity, High confidence findings come first
-- If one CLI is not installed, fall back to the available reviewer with a warning
-- If only Codex or only Gemini is explicitly requested, run just that one and skip the synthesis step
-- Always use the wrapper scripts — never call `codex` or `gemini` CLIs directly
+- If one external CLI is not installed, fall back to the available reviewer with a warning — Claude's own review always runs regardless
+- If only Codex or only Gemini is explicitly requested, run just that one + Claude's review, then synthesize
+- Always use the wrapper scripts for external reviewers — never call `codex` or `gemini` CLIs directly

@@ -1,11 +1,11 @@
 ---
 name: deps-dev
-description: Look up the latest version of any package using the deps.dev API. Use when checking package versions, updating dependencies, or adding new packages to a project.
+description: "Use this skill to look up the latest stable version of any open-source package across npm, PyPI, Go, Cargo, Maven, and NuGet. Trigger whenever the user asks 'what's the latest version of X', 'what version should I use', 'is X deprecated', 'how outdated is my package.json/requirements.txt/Cargo.toml', or needs version numbers for adding or updating dependencies. Also trigger when they mention pinning versions, checking if packages are maintained, or comparing current vs installed versions. Do NOT use for private/internal packages or for looking up documentation."
 ---
 
 # Latest Package Version Lookup
 
-Query the deps.dev API to get the latest stable version of open source packages.
+Query the deps.dev API to get the latest stable version of open-source packages. This is faster and more reliable than searching the web or guessing version numbers, and it catches deprecated packages before you install them.
 
 ## Supported Ecosystems
 
@@ -18,9 +18,23 @@ Query the deps.dev API to get the latest stable version of open source packages.
 | Maven | `maven` | `org.springframework:spring-core` |
 | NuGet | `nuget` | `Newtonsoft.Json` |
 
+## When to Use
+
+- Adding a new dependency and need the current version
+- Updating `package.json`, `requirements.txt`, `Cargo.toml`, etc. to latest
+- Checking whether a package has been deprecated
+- Comparing versions across multiple packages at once
+
+## When NOT to Use
+
+- Private or internal packages (deps.dev only indexes public registries)
+- Looking up documentation or usage examples (use `context7` instead)
+
 ## Workflow
 
-1. **Identify the ecosystem** from context:
+**DO NOT read script source code.** Run scripts directly and use `--help` for usage.
+
+1. **Identify the ecosystem** from project files:
    - `package.json` or `node_modules` → npm
    - `requirements.txt`, `pyproject.toml`, `setup.py` → pypi
    - `go.mod`, `go.sum` → go
@@ -28,11 +42,13 @@ Query the deps.dev API to get the latest stable version of open source packages.
    - `pom.xml`, `build.gradle` → maven
    - `*.csproj`, `packages.config` → nuget
 
-2. **Run the script** — run `scripts/get-versions.py --help` first if unsure about usage:
+2. **Run the script:**
 
 ```bash
 python3 scripts/get-versions.py <system> <pkg1> [pkg2] ...
 ```
+
+Run `python3 scripts/get-versions.py --help` if unsure about usage.
 
 ## Examples
 
@@ -44,7 +60,7 @@ python3 scripts/get-versions.py go github.com/gin-gonic/gin
 
 ## Output Format
 
-TSV with header. One line per package, ready to read directly:
+TSV with header. One line per package:
 
 ```
 package	version	published	status
@@ -56,6 +72,6 @@ Status values: `ok`, `deprecated`, `not found`, `error: <detail>`.
 
 ## Rules
 
-- Always use the script instead of manual curl commands
-- Flag packages with `deprecated` status
-- The script handles URL encoding and parallel fetching automatically
+- **Use the script instead of manual curl** — it handles URL encoding (especially for scoped npm packages like `@types/node`) and fetches multiple packages in parallel, so it's both easier and faster.
+- **Flag deprecated packages** — if the status column says `deprecated`, tell the user and suggest an alternative if you know one.
+- **Batch lookups when possible** — the script accepts multiple package names in one call, which is faster than running it once per package.

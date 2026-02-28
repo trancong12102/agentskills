@@ -10,7 +10,7 @@ Usage:
 
 Supported systems: npm, pypi, go, cargo, maven, nuget
 
-Output: JSON object with package versions
+Output: TSV with columns: package, version, published, status
 """
 
 import json
@@ -37,8 +37,8 @@ def get_latest_version(system: str, package: str) -> dict:
                 return {
                     "package": package,
                     "version": version["versionKey"]["version"],
-                    "publishedAt": version.get("publishedAt", ""),
-                    "isDeprecated": version.get("isDeprecated", False),
+                    "published": version.get("publishedAt", "")[:10],
+                    "status": "deprecated" if version.get("isDeprecated") else "ok",
                 }
 
         # No default version found, return the last one
@@ -48,41 +48,32 @@ def get_latest_version(system: str, package: str) -> dict:
             return {
                 "package": package,
                 "version": last["versionKey"]["version"],
-                "publishedAt": last.get("publishedAt", ""),
-                "isDeprecated": last.get("isDeprecated", False),
-                "note": "No default version, using latest available",
+                "published": last.get("publishedAt", "")[:10],
+                "status": "deprecated" if last.get("isDeprecated") else "ok",
             }
 
-        return {"package": package, "error": "No versions found"}
+        return {"package": package, "version": "-", "published": "-", "status": "not found"}
 
     except urllib.error.HTTPError as e:
-        return {"package": package, "error": f"HTTP {e.code}: {e.reason}"}
+        return {"package": package, "version": "-", "published": "-", "status": f"error: HTTP {e.code}"}
     except urllib.error.URLError as e:
-        return {"package": package, "error": f"Network error: {e.reason}"}
-    except json.JSONDecodeError:
-        return {"package": package, "error": "Invalid JSON response"}
+        return {"package": package, "version": "-", "published": "-", "status": f"error: {e.reason}"}
     except Exception as e:
-        return {"package": package, "error": str(e)}
+        return {"package": package, "version": "-", "published": "-", "status": f"error: {e}"}
 
 
 def main():
     if len(sys.argv) < 3:
-        print(json.dumps({
-            "error": "Usage: get-versions.py <system> <package1> [package2] ...",
-            "systems": ["npm", "pypi", "go", "cargo", "maven", "nuget"],
-        }))
+        print("Usage: get-versions.py <system> <package1> [package2] ...")
+        print("Systems: npm, pypi, go, cargo, maven, nuget")
         sys.exit(1)
 
     system = sys.argv[1].upper()
     packages = sys.argv[2:]
 
-    # Validate system
     valid_systems = ["NPM", "PYPI", "GO", "CARGO", "MAVEN", "NUGET"]
     if system not in valid_systems:
-        print(json.dumps({
-            "error": f"Invalid system: {sys.argv[1]}",
-            "valid_systems": [s.lower() for s in valid_systems],
-        }))
+        print(f"Error: Invalid system '{sys.argv[1]}'. Use: {', '.join(s.lower() for s in valid_systems)}")
         sys.exit(1)
 
     # Fetch versions in parallel
@@ -99,12 +90,10 @@ def main():
     pkg_order = {pkg: i for i, pkg in enumerate(packages)}
     results.sort(key=lambda x: pkg_order.get(x["package"], 999))
 
-    output = {
-        "system": system.lower(),
-        "packages": results,
-    }
-
-    print(json.dumps(output, indent=2))
+    # Print TSV
+    print("package\tversion\tpublished\tstatus")
+    for r in results:
+        print(f"{r['package']}\t{r['version']}\t{r['published']}\t{r['status']}")
 
 
 if __name__ == "__main__":

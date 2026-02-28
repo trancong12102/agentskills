@@ -1,44 +1,60 @@
 ---
 name: council-review
-description: Multi-model AI code review council that runs Codex (OpenAI) and Gemini (Google) reviews in parallel, then synthesizes findings into a single unified report. Use when the user wants a thorough multi-model code review, asks for "council review", "full review", "review with both models", or wants maximum review coverage before merging critical changes.
+description: Multi-model AI code review that runs Codex (OpenAI) and Gemini (Google) in parallel, then synthesizes findings into a unified report. Use when reviewing code changes, auditing diffs, or assessing code quality.
 ---
 
-# Council Review (Codex + Gemini)
+# Council Review
 
 ## Overview
 
 Run Codex and Gemini code reviews **in parallel** using the Task tool, then merge all findings into a single unified report — like a review board that deliberates and delivers one opinion. Individual reviewer outputs are preserved in a collapsible section but never shown as the primary structure.
 
+## Prerequisites
+
+- **Codex CLI**: Install with `npm i -g @openai/codex`, authenticate with `codex login`
+- **Gemini CLI**: Install and authenticate, ensure `gemini` command is available in PATH
+
+If only one CLI is installed, fall back to the available reviewer with a warning — do not fail entirely.
+
 ## Workflow
 
 ### Step 1: Determine Review Scope
 
-Ask the user what they want reviewed if not already clear:
+If the scope is not already clear, use AskUserQuestion to ask:
 
-| Scope | When to use | Codex | Gemini |
-| --- | --- | --- | --- |
-| Branch diff | Before opening or merging a PR | Yes | Yes |
-| Uncommitted changes | During active development | Yes | Yes |
-| Specific commit | Auditing a single changeset | Yes | Yes |
-| Remote PR | Reviewing a GitHub Pull Request by number or URL | No | Yes |
-| Custom | User provides specific review instructions | Yes | Yes |
+- **Uncommitted changes** (default) — staged, unstaged, and untracked changes
+- **Branch diff** — compare current branch against a base branch
+- **Specific commit** — audit a single changeset
+- **Remote PR** — review a GitHub PR by number or URL (Gemini only, skip Codex)
 
-> **Note:** Remote PR scope is only supported by Gemini. When user selects PR, run Gemini review only and skip Codex.
+### Step 2: Run Reviews in Parallel
 
-Default to reviewing the current branch diff against `main` unless the user specifies otherwise.
+Launch **two Task agents simultaneously** in a single message. Both scripts are in `scripts/` relative to this skill's directory and enforce the correct model and read-only mode internally. Run `<script> --help` for full usage.
 
-### Step 2: Run Both Reviews in Parallel
+#### Codex — `scripts/codex-review.sh`
 
-Launch **two Task agents simultaneously** in a single message:
+```bash
+scripts/codex-review.sh uncommitted
+scripts/codex-review.sh branch --base main
+scripts/codex-review.sh commit <SHA>
+```
 
-- **Agent 1**: Activate the `codex-review` skill and run it with the determined scope. Capture the full review output.
-- **Agent 2**: Activate the `gemini-review` skill with `--format structured` to get YAML output optimized for merging. Example: `scripts/gemini-review.sh branch --base main --format structured`
+#### Gemini — `scripts/gemini-review.sh`
 
-Tell each agent to capture and return the **full review output**. The structured YAML from Gemini makes it easier to extract and merge findings reliably.
+Output is always structured YAML. Supports `pr` scope (Codex does not) and additional options `--context-file` and `--interactive`.
+
+```bash
+scripts/gemini-review.sh uncommitted
+scripts/gemini-review.sh branch --base main
+scripts/gemini-review.sh commit <SHA>
+scripts/gemini-review.sh pr <PR_NUMBER>
+```
+
+Shared options: `--base <BRANCH>`, `--focus <TEXT>`, `--dry-run`.
 
 ### Step 3: Synthesize into Unified Report
 
-Once both agents return, **merge, deduplicate, and rewrite** all findings into the format below. Do NOT copy-paste or concatenate the raw outputs — synthesize them into one coherent report as if written by a single reviewer.
+After both agents return, **merge, deduplicate, and rewrite** all findings into the format below. Do not copy-paste or concatenate the raw outputs — synthesize them into one coherent report as if written by a single reviewer.
 
 ---
 
@@ -142,5 +158,6 @@ When synthesizing findings from both reviewers:
 - Source attribution appears only in the collapsible raw outputs section
 - Sort findings strictly by severity: 🔴 → 🟠 → 🟡 → 🟢 → 🔵
 - Within the same severity, High confidence findings come first
-- The synthesized report must be **shorter** than both raw outputs combined
-- If one CLI is not installed, warn the user and fall back to the available reviewer — do not fail entirely
+- If one CLI is not installed, fall back to the available reviewer with a warning
+- If only Codex or only Gemini is explicitly requested, run just that one and skip the synthesis step
+- Always use the wrapper scripts — never call `codex` or `gemini` CLIs directly

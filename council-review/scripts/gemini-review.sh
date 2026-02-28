@@ -23,7 +23,6 @@ Options:
   --base <branch>         Base branch for comparison (default: main)
   --focus <text>          Narrow the review to specific concerns
   --context-file <path>   Add extra context file (repeatable)
-  --format <format>       Output format: markdown (default) or structured (YAML for LLM consumption)
   --dry-run               Print the prompt without calling Gemini
   --interactive           Keep Gemini chat open after review
 
@@ -182,77 +181,11 @@ build_review_prompt() {
   local diff="$1"
   local focus="$2"
   local context_block="$3"
-  local format="${4:-markdown}"
 
   local preamble
   preamble="$(build_common_preamble "$focus" "$context_block")"
 
-  case "$format" in
-    markdown) build_markdown_prompt "$preamble" "$diff" ;;
-    structured) build_structured_prompt "$preamble" "$diff" ;;
-    *) fail "Unknown format '${format}'. Use: markdown, structured." ;;
-  esac
-}
-
-build_markdown_prompt() {
-  local preamble="$1"
-  local diff="$2"
-
-  cat <<EOF
-${preamble}
-OUTPUT FORMAT:
-Return your review in this exact Markdown structure:
-
-## Review
-
-**Verdict: <verdict>**
-
-Where verdict is one of: "Approved", "Approved with suggestions", "Request Changes"
-
-### Summary
-A 2-3 sentence high-level overview of the changes and their quality.
-
-### Changes Walkthrough
-
-| File | Changes |
-|------|---------|
-| \`path/to/file.ts\` | Brief description of changes in this file |
-
-### Findings
-
-All findings sorted by severity (critical first). Each finding MUST include an explicit severity tag. Use this exact format:
-
-#### <SEVERITY_EMOJI> <Short title>
-
-**<Category>** · \`file/path.ts:LINE\`
-
-Explanation of the issue and why it matters.
-
-**Suggested fix:**
-\`\`\`lang
-code suggestion here
-\`\`\`
-
-Severity emoji mapping (use exactly these):
-- 🔴 Critical — Exploitable vulnerability, data loss, or crash in production
-- 🟠 High — Likely bug or incident under realistic conditions
-- 🟡 Medium — Incorrect behavior under edge cases or degraded performance
-- 🟢 Low — Code quality issue that could escalate over time
-- 🔵 Info — Observation or suggestion, no action required
-
-Category is one of: Bug, Security, Performance, Maintainability, Edge Case, Testing, Style
-
-If no findings: "No issues found."
-
-### Highlights
-1-3 positive observations worth calling out. Skip if nothing stands out.
-
-### Verdict
-Restate the verdict with a one-sentence justification.
-
-CODE CHANGES TO REVIEW:
-${diff}
-EOF
+  build_structured_prompt "$preamble" "$diff"
 }
 
 build_structured_prompt() {
@@ -327,7 +260,6 @@ run_gemini() {
 handle_branch() {
   local base="main"
   local focus=""
-  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -336,7 +268,6 @@ handle_branch() {
     case "$1" in
       --base) base="$2"; shift 2 ;;
       --focus) focus="$2"; shift 2 ;;
-      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -350,13 +281,12 @@ handle_branch() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 
 handle_uncommitted() {
   local focus=""
-  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -364,7 +294,6 @@ handle_uncommitted() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --focus) focus="$2"; shift 2 ;;
-      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -378,14 +307,13 @@ handle_uncommitted() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 
 handle_commit() {
   local sha="$1"; shift
   local focus=""
-  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -393,7 +321,6 @@ handle_commit() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --focus) focus="$2"; shift 2 ;;
-      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -407,14 +334,13 @@ handle_commit() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 
 handle_pr() {
   local pr_number="$1"; shift
   local focus=""
-  local format="markdown"
   local interactive=0
   local dry_run=0
   local -a context_files=()
@@ -422,7 +348,6 @@ handle_pr() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --focus) focus="$2"; shift 2 ;;
-      --format) format="$2"; shift 2 ;;
       --context-file) context_files+=("$2"); shift 2 ;;
       --interactive) interactive=1; shift ;;
       --dry-run) dry_run=1; shift ;;
@@ -436,7 +361,7 @@ handle_pr() {
   if [[ "${#context_files[@]}" -gt 0 ]]; then
     context_block="$(build_context_block "${context_files[@]}")"
   fi
-  prompt="$(build_review_prompt "$diff" "$focus" "$context_block" "$format")"
+  prompt="$(build_review_prompt "$diff" "$focus" "$context_block")"
   run_gemini "$prompt" "$interactive" "$dry_run"
 }
 

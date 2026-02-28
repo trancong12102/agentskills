@@ -1,6 +1,6 @@
 ---
 name: deps-dev
-description: Look up the latest version of any package using the deps.dev API. This skill should be used proactively whenever adding, installing, or recommending packages — always verify the latest version before writing it to a manifest file. Also use when checking package versions, updating dependencies, or adding new packages to a project.
+description: Look up the latest version of any package using the deps.dev API. Use when checking package versions, updating dependencies, or adding new packages to a project.
 ---
 
 # Latest Package Version Lookup

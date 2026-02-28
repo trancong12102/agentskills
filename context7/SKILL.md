@@ -1,6 +1,6 @@
 ---
 name: context7
-description: Retrieve up-to-date documentation for software libraries and frameworks via the Context7 API. This skill should be used proactively whenever the task involves using, configuring, or debugging a library or framework — look up the latest docs automatically instead of relying on training data. Also use when looking up library documentation, finding code examples, or verifying correct usage of library APIs.
+description: Retrieve up-to-date documentation for software libraries and frameworks via the Context7 API. Use when looking up library documentation, finding code examples, or verifying correct usage of library APIs.
 ---
 
 # Context7

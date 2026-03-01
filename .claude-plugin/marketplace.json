@@ -1,0 +1,9 @@
+{
+  "name": "agentskills",
+  "description": "Claude Code skills and hook plugins",
+  "owner": { "name": "Cong Tran" },
+  "plugins": [
+    { "name": "play-sound", "version": "1.0.0", "source": "./plugins/play-sound" },
+    { "name": "skill-router", "version": "1.0.0", "source": "./plugins/skill-router" }
+  ]
+}

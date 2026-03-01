@@ -15,7 +15,7 @@ The plugin is fail-safe — if anything goes wrong (no API key, network error, n
 
 - **Per-session dedup**: Skills already recommended in the current session won't be suggested again
 - **Validation**: Only recommends skills that are actually installed (hallucinated names are dropped)
-- **Fast**: 10-second timeout, uses `gemini-3-flash-preview` for low latency
+- **Fast**: 10-second timeout, uses `gemini-2.5-flash-lite` for low latency
 
 ## Prerequisites
 

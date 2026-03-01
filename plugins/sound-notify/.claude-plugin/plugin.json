@@ -1,6 +1,6 @@
 {
   "name": "sound-notify",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Play notification sounds when Claude stops or asks a question (macOS)",
   "author": { "name": "Cong Tran" },
   "repository": "https://github.com/trancong12102/agentskills",

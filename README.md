@@ -33,6 +33,14 @@ Install plugins in Claude Code:
 /plugin install sound-notify@agentskills
 ```
 
+Enable auto-update to get the latest plugin versions on startup:
+
+```shell
+/plugin marketplace update agentskills
+```
+
+Then select **Enable auto-update** when prompted.
+
 ## License
 
 [MIT](./LICENSE) — Cong Tran

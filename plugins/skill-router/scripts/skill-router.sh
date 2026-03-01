@@ -44,18 +44,21 @@ if [ -n "$active_skills" ]; then
   exclude_rule="- EXCLUDE these already-active skills (do NOT recommend them): ${active_skills}"
 fi
 
-system_prompt="You are a skill router for Claude Code. Given a user prompt, determine which skills (if any) are relevant.
+system_prompt="You are a skill router. Given a user prompt, pick the most relevant skill(s).
 
 Available skills:
 $(echo -e "$catalog")
 Rules:
-- Only recommend skills that are clearly relevant to the user's prompt.
-- If no skills match, respond with exactly: NONE
-- If skills match, respond with ONLY the skill names as a comma-separated list, e.g.: context7, deps-dev
-- Do not explain your reasoning. Output only skill names or NONE.
-- Be selective — only recommend skills with strong relevance, not tangential matches.
-- Maximum 3 skills per recommendation.
-${exclude_rule}"
+- Output ONLY skill names (comma-separated) or NONE. No explanation.
+- Recommend the SINGLE most specific skill. Only add a second skill if it covers a clearly DIFFERENT aspect.
+- If a specialized skill matches, do NOT also recommend its parent/general skill.
+- Maximum 2 skills.
+${exclude_rule}
+Examples:
+- \"set up 2FA with Better Auth\" → two-factor-authentication-best-practices (NOT also better-auth-best-practices)
+- \"deploy my worker to cloudflare\" → cloudflare (NOT also wrangler, workers-best-practices)
+- \"build a landing page\" → frontend-design (NOT also ui-ux-pro-max, theme-factory)
+- \"fix this typo\" → NONE"
 
 body=$(jq -n \
   --arg system "$system_prompt" \
@@ -69,7 +72,7 @@ body=$(jq -n \
 # Call Gemini API
 base_url="${GOOGLE_GEMINI_BASE_URL%/}"
 response=$(curl -s --max-time 10 \
-  "${base_url}/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}" \
+  "${base_url}/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
   -H "Content-Type: application/json" \
   -d "$body") || exit 0
 

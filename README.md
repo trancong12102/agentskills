@@ -20,16 +20,14 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code -s deps-dev
 
 ## Plugins
 
-| Plugin                                 | Description                                                              |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| [skill-router](./plugins/skill-router) | Auto-recommend relevant skills using Gemini API when you submit a prompt |
-| [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question      |
+| Plugin                                 | Description                                                         |
+| -------------------------------------- | ------------------------------------------------------------------- |
+| [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question |
 
 Install plugins in Claude Code:
 
 ```shell
 /plugin marketplace add trancong12102/agentskills
-/plugin install skill-router@agentskills
 /plugin install sound-notify@agentskills
 ```
 

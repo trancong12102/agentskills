@@ -62,23 +62,3 @@ If no issues found: "No issues found."
 ## Highlights
 
 1-3 positive patterns worth calling out (good abstractions, solid error handling, thorough tests, etc.).
-
-## Raw Outputs
-
-Always include at the end:
-
-```markdown
-<details>
-<summary>Individual reviewer outputs</summary>
-
-**Codex:**
-<full codex output>
-
-**Gemini:**
-<full gemini output>
-
-**Claude (/review):**
-<Claude's /review output and validation notes>
-
-</details>
-```

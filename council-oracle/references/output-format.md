@@ -60,23 +60,3 @@ Known unknowns, assumptions made during analysis, and areas where further invest
 
 - <Risk or caveat with likelihood and suggested mitigation>
 ```
-
-## Raw Outputs
-
-Always include at the end:
-
-```markdown
-<details>
-<summary>Individual oracle outputs</summary>
-
-**Gemini:**
-<full gemini output>
-
-**Codex:**
-<full codex output>
-
-**Claude (subagent):**
-<full Claude subagent output>
-
-</details>
-```

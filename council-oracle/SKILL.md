@@ -100,7 +100,7 @@ Load `references/output-format.md` for the report template. Load `references/syn
 - **Run all three oracles in parallel** — Gemini, Codex, and the Claude subagent are independent analyses of the same question. Running them concurrently saves significant time.
 - **Use the same question and context for all oracles** — comparing analyses of different questions would make synthesis meaningless.
 - **Wait for all three oracles before synthesizing** — Claude's cross-validation is what turns three outputs into one trustworthy report. All three must complete before synthesis begins.
-- **Write one unified analysis** — the report should read as a single analyst's assessment. Never structure findings by oracle source (no "Gemini found..." sections). Source attribution belongs only in the collapsible raw outputs.
+- **Write one unified analysis** — the report should read as a single analyst's assessment. Never structure findings by oracle source (no "Gemini found..." sections).
 - **Organize findings by theme** — group related insights together, not by source or severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
 - **Research before reasoning** — Always check official documentation (via `context7`) and search for best practices, official blogs, and authoritative references (via WebSearch) before forming conclusions. Decisions grounded in current, official sources are far more trustworthy than those based on training knowledge alone.
 - **Always use the wrapper scripts** for external oracles — never call `codex` or `gemini` CLIs directly, because the scripts set the correct model and read-only mode.

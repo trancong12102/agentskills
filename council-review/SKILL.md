@@ -108,7 +108,7 @@ This applies to both `codex-review.py` and `gemini-review.py`.
 - **Run all three reviewers in parallel** — Codex, Gemini, and `/review` are independent reads of the same diff. Running them concurrently instead of sequentially saves the entire `/review` execution time.
 - **Use the same review scope for all reviewers** — comparing different scopes would make deduplication meaningless.
 - **Wait for all three reviews before synthesizing** — Claude's own analysis is what turns three outputs into one trustworthy report, not just a merge. All three must complete before cross-validation begins.
-- **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections). Source attribution belongs only in the collapsible raw outputs.
+- **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections).
 - **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵, with higher confidence first within the same severity.
 - **Always use the wrapper scripts** for external reviewers — never call `codex` or `gemini` CLIs directly, because the scripts set the correct model and read-only mode.
 - If one external CLI is missing, run the available one + Claude's review and synthesize normally.

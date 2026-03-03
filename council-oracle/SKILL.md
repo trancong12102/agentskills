@@ -41,8 +41,12 @@ Before launching the oracles, Claude must gather relevant context because the ex
 
 1. Understand the user's question and identify what parts of the codebase are relevant.
 2. Use Read, Grep, and Glob tools to read relevant files and code snippets.
-3. Write the gathered context to temporary files that can be passed to the scripts via `--context-file`.
-4. Formulate a clear, specific question that captures the user's intent.
+3. **Research official sources before deciding** — Don't rely solely on training knowledge. Proactively:
+   - Use the `context7` skill to fetch up-to-date official documentation for any libraries, frameworks, or tools involved in the question.
+   - Use WebSearch to find official blog posts, best practices guides, RFCs, or authoritative references that inform the analysis.
+   - Include the findings as additional context files so all three oracles benefit from accurate, current information.
+4. Write the gathered context to temporary files that can be passed to the scripts via `--context-file`.
+5. Formulate a clear, specific question that captures the user's intent.
 
 ### Step 2: Run Three Oracles in Parallel
 
@@ -98,5 +102,6 @@ Load `references/output-format.md` for the report template. Load `references/syn
 - **Wait for all three oracles before synthesizing** — Claude's cross-validation is what turns three outputs into one trustworthy report. All three must complete before synthesis begins.
 - **Write one unified analysis** — the report should read as a single analyst's assessment. Never structure findings by oracle source (no "Gemini found..." sections). Source attribution belongs only in the collapsible raw outputs.
 - **Organize findings by theme** — group related insights together, not by source or severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
+- **Research before reasoning** — Always check official documentation (via `context7`) and search for best practices, official blogs, and authoritative references (via WebSearch) before forming conclusions. Decisions grounded in current, official sources are far more trustworthy than those based on training knowledge alone.
 - **Always use the wrapper scripts** for external oracles — never call `codex` or `gemini` CLIs directly, because the scripts set the correct model and read-only mode.
 - If one external CLI is missing, run the available one + Claude subagent and synthesize normally.

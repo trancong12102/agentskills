@@ -78,6 +78,7 @@ QUESTION:
 CONSTRAINTS:
 - You are in read-only mode. Do not modify any files.
 - You may read files in the codebase to gather additional context.
+- IMPORTANT: Before making recommendations, use the `context7` skill to fetch official documentation for the relevant libraries, frameworks, and tools. Also use web search to find best practices, official blog posts, and authoritative references. Ground your analysis in these official sources and cite them in your findings.
 - Cite specific file paths and line numbers when referencing code.
 - Be concrete and actionable — avoid vague or generic advice.
 - If you are uncertain about something, say so explicitly with your confidence level.

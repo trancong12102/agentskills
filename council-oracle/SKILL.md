@@ -64,7 +64,7 @@ python3 scripts/gemini-oracle.py --question "..." --context-file path1 --context
 
 #### Codex — `scripts/codex-oracle.py` (background Bash task)
 
-Launch as a background Bash task (`run_in_background: true`).
+Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes.
 
 ```bash
 python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run]

@@ -45,9 +45,9 @@ All three reviewers read the same diff independently — none depends on another
 
 Scripts are in `scripts/` relative to this skill's directory and enforce the correct model and read-only mode internally. Run `<script> --help` for full usage.
 
-#### Codex — `scripts/codex-review.py` (background Task agent)
+#### Codex — `scripts/codex-review.py` (background Bash task)
 
-Launch as a background Task agent (`run_in_background: true`).
+Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes.
 
 ```bash
 python3 scripts/codex-review.py uncommitted
@@ -55,9 +55,9 @@ python3 scripts/codex-review.py branch --base main
 python3 scripts/codex-review.py commit <SHA>
 ```
 
-#### Gemini — `scripts/gemini-review.py` (background Task agent)
+#### Gemini — `scripts/gemini-review.py` (background Bash task)
 
-Launch as a background Task agent (`run_in_background: true`). Output is always structured YAML. Supports `pr` scope (Codex does not) and additional options `--context-file` and `--interactive`.
+Launch as a background Bash task (`run_in_background: true`). Output is always structured YAML. Supports `pr` scope (Codex does not) and additional options `--context-file` and `--interactive`.
 
 ```bash
 python3 scripts/gemini-review.py uncommitted

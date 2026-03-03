@@ -15,10 +15,16 @@ Subcommands:
 Options:
     --base <branch>         Base branch for comparison (default: main)
     --focus <text>          Narrow the review to specific concerns
+                            (ignored — Codex CLI does not support [PROMPT]
+                            together with scope flags; the script accepts it
+                            for interface parity with gemini-review.py)
     --dry-run               Print the command without running Codex
 
 Notes:
     - Model is fixed to gpt-5.3-codex
+    - Codex CLI's [PROMPT] arg is mutually exclusive with --uncommitted,
+      --base, and --commit. When --focus is provided, the script prints a
+      warning and drops it instead of failing.
 """
 
 import shutil
@@ -51,6 +57,15 @@ def run_codex(cmd, dry_run):
     sys.exit(result.returncode)
 
 
+def warn_focus_ignored(focus):
+    if focus:
+        print(
+            f"Warning: --focus '{focus}' ignored — Codex CLI does not support "
+            f"[PROMPT] together with scope flags (--uncommitted/--base/--commit).",
+            file=sys.stderr,
+        )
+
+
 def parse_common_opts(args):
     focus = ""
     dry_run = False
@@ -78,9 +93,8 @@ def handle_uncommitted(args):
     focus, dry_run, rest = parse_common_opts(args)
     if rest:
         fail(f"Unknown option: {rest[0]}")
+    warn_focus_ignored(focus)
     cmd = ["codex", "review", "--uncommitted", "-c", f"model={MODEL}"]
-    if focus:
-        cmd.append(focus)
     run_codex(cmd, dry_run)
 
 
@@ -101,9 +115,8 @@ def handle_branch(args):
             i += 1
     if filtered:
         fail(f"Unknown option: {filtered[0]}")
+    warn_focus_ignored(focus)
     cmd = ["codex", "review", "--base", base, "-c", f"model={MODEL}"]
-    if focus:
-        cmd.append(focus)
     run_codex(cmd, dry_run)
 
 
@@ -114,9 +127,8 @@ def handle_commit(args):
     focus, dry_run, rest = parse_common_opts(args[1:])
     if rest:
         fail(f"Unknown option: {rest[0]}")
+    warn_focus_ignored(focus)
     cmd = ["codex", "review", "--commit", sha, "-c", f"model={MODEL}"]
-    if focus:
-        cmd.append(focus)
     run_codex(cmd, dry_run)
 
 

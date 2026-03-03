@@ -88,6 +88,21 @@ After your own review and validation are complete, **merge, deduplicate, and rew
 
 Load `references/output-format.md` for the report template. Load `references/merge-rules.md` for how to reconcile findings across reviewers.
 
+## Error Handling: Retry on Argument Errors
+
+If a script exits with a non-zero code and stderr mentions argument conflicts (e.g. "cannot be used with", "unrecognized arguments", "invalid option"), **do not give up**. Follow this recovery sequence:
+
+1. **Read the error message** from the failed Bash output.
+2. **Run the script with `--help`** to get the correct usage.
+3. **Re-run with corrected arguments.** Common fixes:
+   - Drop the `--focus` flag — some CLI versions don't accept it with certain scopes.
+   - Move focus text from a positional argument to a named flag, or vice versa.
+   - Remove flags that conflict with the chosen subcommand.
+4. If the second attempt also fails with a different argument error, repeat steps 1-3 **once more** (max 2 retries).
+5. If it still fails after retries, log the error and continue with the remaining reviewers — a partial council review is better than none.
+
+This applies to both `codex-review.py` and `gemini-review.py`.
+
 ## Rules
 
 - **Run all three reviewers in parallel** — Codex, Gemini, and `/review` are independent reads of the same diff. Running them concurrently instead of sequentially saves the entire `/review` execution time.

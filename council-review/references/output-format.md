@@ -5,7 +5,7 @@
 ```markdown
 ## Council Review
 
-**Verdict: <VERDICT>** · Reviewed by Codex + Gemini + Claude
+**Verdict: <VERDICT>** · Reviewed by Codex + Claude
 
 <1-2 sentence justification>
 ```
@@ -51,9 +51,9 @@ code here
 
 **Categories:** `Bug`, `Security`, `Performance`, `Maintainability`, `Edge Case`, `Testing`, `Style`
 
-**Confidence is derived from reviewer agreement (3 reviewers: Codex, Gemini, Claude). Merge rules take precedence over these defaults when they specify a confidence level:**
+**Confidence is derived from reviewer agreement (2 reviewers: Codex, Claude). Merge rules take precedence over these defaults when they specify a confidence level:**
 
-- **High** — 2+ reviewers flagged the same issue independently, or Claude confirmed an external finding
+- **High** — Both reviewers flagged the same issue independently, or Claude confirmed a Codex finding
 - **Medium** — One external reviewer flagged it and Claude did not dispute it, or Claude found it alone with clear evidence
 - **Low** — Evidence is circumstantial or only one external reviewer flagged it with weak justification
 

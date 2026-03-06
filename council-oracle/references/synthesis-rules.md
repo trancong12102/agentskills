@@ -1,8 +1,8 @@
 # Council Oracle — Synthesis Rules
 
-When synthesizing findings from all three oracles (Gemini, Codex, Claude subagent):
+When synthesizing findings from both oracles (Codex, Claude subagent):
 
-1. **Same conclusion from 2+ oracles** — Merge into one finding, confidence: High
+1. **Same conclusion from both oracles** — Merge into one finding, confidence: High
 2. **Same conclusion, different reasoning** — Merge into one finding, confidence: High, present the best reasoning (prefer the most evidence-backed explanation)
 3. **Unique insight from one oracle, not contradicted by others** — Include as-is, confidence: Medium
 4. **Contradictory conclusions between oracles** — Claude breaks the tie using its own analysis and codebase knowledge, confidence: Medium, note the disagreement

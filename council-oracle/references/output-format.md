@@ -5,7 +5,7 @@
 ```markdown
 ## Oracle Analysis
 
-**Analyzed by Gemini + Codex + Claude**
+**Analyzed by Codex + Claude**
 
 <1-2 sentence summary of the analysis and key conclusion>
 ```

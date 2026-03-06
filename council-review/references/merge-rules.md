@@ -1,6 +1,6 @@
 # Council Review — Merge Rules
 
-When synthesizing findings from all three reviewers (Codex, Gemini, Claude):
+When synthesizing findings from both reviewers (Codex, Claude):
 
 1. **Same issue, same fix, Claude confirmed** → Merge into one finding, confidence: High
 2. **Same issue, different fix** → Merge into one finding, confidence: High, present the best fix (prefer Claude's improved version if available)

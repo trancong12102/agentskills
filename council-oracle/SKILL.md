@@ -1,16 +1,15 @@
 ---
 name: council-oracle
-description: "Use this skill when the user needs deep analysis, reasoning, or expert guidance on complex problems. Trigger on: 'oracle', 'think about this', 'analyze this deeply', 'second opinion', 'deep dive', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, trade-off evaluation, or complex why/how questions. Runs Gemini, Codex, and Claude in parallel, then synthesizes. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
+description: "Use this skill when the user needs deep analysis, reasoning, or expert guidance on complex problems. Trigger on: 'oracle', 'think about this', 'analyze this deeply', 'second opinion', 'deep dive', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, trade-off evaluation, or complex why/how questions. Runs Codex and Claude in parallel, then synthesizes. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
 ---
 
 # Council Oracle
 
-Run Gemini, Codex, and a Claude subagent all in parallel for deep analysis, then cross-validate and synthesize into one unified report — like a panel of three senior architects independently analyzing a problem, with Claude as lead synthesizer delivering the final assessment.
+Run Codex and a Claude subagent in parallel for deep analysis, then cross-validate and synthesize into one unified report — like a panel of two senior architects independently analyzing a problem, with Claude as lead synthesizer delivering the final assessment.
 
 ## Prerequisites
 
 - **Codex CLI**: Install with `npm i -g @openai/codex`, authenticate with `codex login`
-- **Gemini CLI**: Install and authenticate, ensure `gemini` command is available in PATH
 
 If only one CLI is installed, fall back to the available oracle with a warning — the analysis still has value with fewer perspectives, so don't fail entirely.
 
@@ -37,7 +36,7 @@ If only one CLI is installed, fall back to the available oracle with a warning �
 
 ### Step 1: Gather Context
 
-Before launching the oracles, Claude must gather relevant context because the external CLIs (Gemini, Codex) only see what's explicitly passed to them.
+Before launching the oracles, Claude must gather relevant context because Codex CLI only sees what's explicitly passed to it.
 
 1. Understand the user's question and identify what parts of the codebase are relevant.
 2. Use Read, Grep, and Glob tools to read relevant files and code snippets.
@@ -48,19 +47,11 @@ Before launching the oracles, Claude must gather relevant context because the ex
 4. Write the gathered context to temporary files that can be passed to the scripts via `--context-file`.
 5. Formulate a clear, specific question that captures the user's intent.
 
-### Step 2: Run Three Oracles in Parallel
+### Step 2: Run Both Oracles in Parallel
 
-All three oracles analyze the same question independently — none depends on another's output. Launch them all at once in a single message to eliminate sequential wait time.
+Both oracles analyze the same question independently — neither depends on the other's output. Launch them both at once in a single message to eliminate sequential wait time.
 
 Scripts are in `scripts/` relative to this skill's directory and enforce the correct model and read-only mode internally. Run `<script> --help` for full usage.
-
-#### Gemini — `scripts/gemini-oracle.py` (background Bash task)
-
-Launch as a background Bash task (`run_in_background: true`).
-
-```bash
-python3 scripts/gemini-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run] [--interactive]
-```
 
 #### Codex — `scripts/codex-oracle.py` (background Bash task)
 
@@ -72,7 +63,7 @@ python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-
 
 #### Claude — Agent tool (foreground)
 
-While Gemini and Codex run in the background, launch a Claude subagent using the Agent tool with `subagent_type="general-purpose"`. The subagent should:
+While Codex runs in the background, launch a Claude subagent using the Agent tool with `subagent_type="general-purpose"`. The subagent should:
 
 - Receive the same question and context
 - Be instructed to use only read-only tools (Read, Grep, Glob, WebSearch, WebFetch)
@@ -81,13 +72,13 @@ While Gemini and Codex run in the background, launch a Claude subagent using the
 
 ### Step 3: Cross-Validate
 
-Once all three oracle responses have returned, cross-validate:
+Once both oracle responses have returned, cross-validate:
 
-1. **Validate external findings** — For each finding from Gemini and Codex:
+1. **Validate external findings** — For each finding from Codex:
    - **Confirm** — Claude independently agrees the finding is valid and accurate.
    - **Dispute** — Claude believes the finding is incorrect or irrelevant. Note the reasoning.
    - **Enhance** — The finding is valid but the explanation or recommendation can be improved. Provide the improved version.
-2. **Add Claude's unique insights** — Include any findings from the Claude subagent that neither Gemini nor Codex identified.
+2. **Add Claude's unique insights** — Include any findings from the Claude subagent that Codex didn't identify.
 
 ### Step 4: Synthesize into Unified Report
 
@@ -97,11 +88,11 @@ Load `references/output-format.md` for the report template. Load `references/syn
 
 ## Rules
 
-- **Run all three oracles in parallel** — Gemini, Codex, and the Claude subagent are independent analyses of the same question. Running them concurrently saves significant time.
-- **Use the same question and context for all oracles** — comparing analyses of different questions would make synthesis meaningless.
-- **Wait for all three oracles before synthesizing** — Claude's cross-validation is what turns three outputs into one trustworthy report. All three must complete before synthesis begins.
-- **Write one unified analysis** — the report should read as a single analyst's assessment. Never structure findings by oracle source (no "Gemini found..." sections).
+- **Run both oracles in parallel** — Codex and the Claude subagent are independent analyses of the same question. Running them concurrently saves significant time.
+- **Use the same question and context for both oracles** — comparing analyses of different questions would make synthesis meaningless.
+- **Wait for both oracles before synthesizing** — Claude's cross-validation is what turns two outputs into one trustworthy report. Both must complete before synthesis begins.
+- **Write one unified analysis** — the report should read as a single analyst's assessment. Never structure findings by oracle source (no "Codex found..." sections).
 - **Organize findings by theme** — group related insights together, not by source or severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
 - **Research before reasoning** — Always check official documentation (via `context7`) and search for best practices, official blogs, and authoritative references (via WebSearch) before forming conclusions. Decisions grounded in current, official sources are far more trustworthy than those based on training knowledge alone.
-- **Always use the wrapper scripts** for external oracles — never call `codex` or `gemini` CLIs directly, because the scripts set the correct model and read-only mode.
-- If one external CLI is missing, run the available one + Claude subagent and synthesize normally.
+- **Always use the wrapper script** for Codex — never call `codex` CLI directly, because the script sets the correct model and read-only mode.
+- If Codex CLI is missing, run the Claude subagent alone and synthesize normally.

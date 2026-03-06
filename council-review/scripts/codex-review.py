@@ -17,7 +17,7 @@ Options:
     --focus <text>          Narrow the review to specific concerns
                             (ignored — Codex CLI does not support [PROMPT]
                             together with scope flags; the script accepts it
-                            for interface parity with gemini-review.py)
+                            for interface parity; accepted but ignored)
     --dry-run               Print the command without running Codex
 
 Notes:

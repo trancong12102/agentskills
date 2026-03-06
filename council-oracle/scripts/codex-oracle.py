@@ -12,7 +12,7 @@ Options:
     --dry-run               Print the command without running Codex
 
 Notes:
-    - Model is fixed to gpt-5.3-codex
+    - Model is fixed to gpt-5.4
     - Always runs in read-only sandbox mode (codex exec --sandbox read-only)
 """
 
@@ -21,7 +21,7 @@ import shutil
 import subprocess
 import sys
 
-MODEL = "gpt-5.3-codex"
+MODEL = "gpt-5.4"
 
 
 def fail(msg):

@@ -21,7 +21,7 @@ Options:
     --dry-run               Print the command without running Codex
 
 Notes:
-    - Model is fixed to gpt-5.3-codex
+    - Model is fixed to gpt-5.4
     - Codex CLI's [PROMPT] arg is mutually exclusive with --uncommitted,
       --base, and --commit. When --focus is provided, the script prints a
       warning and drops it instead of failing.
@@ -31,7 +31,7 @@ import shutil
 import subprocess
 import sys
 
-MODEL = "gpt-5.3-codex"
+MODEL = "gpt-5.4"
 
 
 def fail(msg):

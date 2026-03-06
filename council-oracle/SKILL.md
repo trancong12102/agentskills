@@ -43,7 +43,7 @@ Before launching the oracles, Claude must gather relevant context because Codex 
 3. **Research official sources before deciding** — Don't rely solely on training knowledge. Proactively:
    - Use the `context7` skill to fetch up-to-date official documentation for any libraries, frameworks, or tools involved in the question.
    - Use WebSearch to find official blog posts, best practices guides, RFCs, or authoritative references that inform the analysis.
-   - Include the findings as additional context files so all three oracles benefit from accurate, current information.
+   - Include the findings as additional context files so both oracles benefit from accurate, current information.
 4. Write the gathered context to temporary files that can be passed to the scripts via `--context-file`.
 5. Formulate a clear, specific question that captures the user's intent.
 

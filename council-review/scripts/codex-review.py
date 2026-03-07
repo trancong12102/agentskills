@@ -21,7 +21,7 @@ Options:
     --dry-run               Print the command without running Codex
 
 Notes:
-    - Model is fixed to gpt-5.4
+    - Model is fixed to gpt-5.4 (codex review does not support profiles)
     - Codex CLI's [PROMPT] arg is mutually exclusive with --uncommitted,
       --base, and --commit. When --focus is provided, the script prints a
       warning and drops it instead of failing.
@@ -30,8 +30,6 @@ Notes:
 import shutil
 import subprocess
 import sys
-
-MODEL = "gpt-5.4"
 
 
 def fail(msg):
@@ -94,7 +92,7 @@ def handle_uncommitted(args):
     if rest:
         fail(f"Unknown option: {rest[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "review", "--uncommitted", "-c", f"model={MODEL}"]
+    cmd = ["codex", "review", "--uncommitted", "-c", "model=gpt-5.4"]
     run_codex(cmd, dry_run)
 
 
@@ -116,7 +114,7 @@ def handle_branch(args):
     if filtered:
         fail(f"Unknown option: {filtered[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "review", "--base", base, "-c", f"model={MODEL}"]
+    cmd = ["codex", "review", "--base", base, "-c", "model=gpt-5.4"]
     run_codex(cmd, dry_run)
 
 
@@ -128,7 +126,7 @@ def handle_commit(args):
     if rest:
         fail(f"Unknown option: {rest[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "review", "--commit", sha, "-c", f"model={MODEL}"]
+    cmd = ["codex", "review", "--commit", sha, "-c", "model=gpt-5.4"]
     run_codex(cmd, dry_run)
 
 

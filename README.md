@@ -2,6 +2,18 @@
 
 A collection of reusable skills for AI coding agents, mainly for Claude Code.
 
+## Prerequisites
+
+The `oracle` and `council-review` skills require [Codex CLI](https://github.com/openai/codex) with an `oracle` profile. Add this to `~/.codex/config.toml`:
+
+```toml
+[profiles.oracle]
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+approval_policy = "never"
+sandbox_mode = "read-only"
+```
+
 ## Installation
 
 Install all skills:
@@ -16,6 +28,7 @@ Or install individual skills:
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s context7
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s council-review
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s deps-dev
+bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 ```
 
 ## Plugins

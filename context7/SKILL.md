@@ -1,6 +1,6 @@
 ---
 name: context7
-description: "Use this skill to fetch up-to-date documentation for any open-source library or framework. Trigger whenever the user asks to look up library docs, check an API, pull up documentation, find code examples, or verify how a library feature works — especially if they mention a specific library name, version migration, outdated docs, or say things like 'what's the current way to...' or 'the API might have changed'. Also trigger when installing or configuring a library. Do NOT use for general programming concepts, internal project code, or questions unrelated to a specific library."
+description: "Use this skill to fetch up-to-date documentation for any open-source library or framework. Trigger whenever the user asks to look up library docs, check an API, pull up documentation, find code examples, or verify how a library feature works — especially if they mention a specific library name, version migration, outdated docs, or say things like 'what's the current way to...' or 'the API might have changed'. Also trigger when the user needs setup or configuration docs for a library. Do NOT use for general programming concepts, internal project code, or questions unrelated to a specific library."
 ---
 
 # Context7

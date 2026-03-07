@@ -42,7 +42,7 @@ Scripts are in `scripts/` relative to this skill's directory and enforce the cor
 
 #### Codex — `scripts/codex-review.py` (background Bash task)
 
-Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes. **After `/review` finishes, you MUST wait for the Codex background task notification before moving on.** Do NOT proceed to Step 3 until Codex has completed.
+Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes.
 
 ```bash
 python3 scripts/codex-review.py uncommitted
@@ -55,10 +55,6 @@ python3 scripts/codex-review.py commit <SHA>
 While Codex runs in the background, trigger the `/review` command immediately on the same scope. This runs Claude Code's own independent review concurrently with the external reviewer, so by the time Codex finishes, Claude's review is already done too.
 
 **Do not output the `/review` results to the user.** Retain the results silently for use in Step 3 cross-validation. The user should only see the final unified report from Step 4.
-
-### IMPORTANT: Wait for All Reviews
-
-After `/review` completes, **stop and wait** for the Codex background task notification. Do not proceed to Step 3 until Codex has finished — even if the wait is 30 minutes. Do not synthesize partial results, do not summarize what you have so far, and do not ask the user whether to proceed without Codex. Simply wait.
 
 ### Step 3: Cross-Validate Findings
 
@@ -95,10 +91,10 @@ This applies to `codex-review.py`.
 
 - **Run both reviewers in parallel** — Codex and `/review` are independent reads of the same diff. Running them concurrently instead of sequentially saves the entire `/review` execution time.
 - **Use the same review scope for both reviewers** — comparing different scopes would make deduplication meaningless.
-- **Wait for both reviews before synthesizing — no exceptions** — Claude's own analysis is what turns two outputs into one trustworthy report, not just a merge. Both must complete before cross-validation begins. **Never proceed early**, even if Codex takes 30 minutes. Do not present partial results, offer to skip Codex, or ask the user if they want to continue without it.
+- **Wait for both reviews to complete before cross-validation** — the council's value depends on comparing complete outputs.
 - **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections).
 - **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵.
 - **Exclude low-confidence findings** — If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
-- **Always use the wrapper script** for Codex — never call `codex` CLI directly, because the script sets the correct model and read-only mode.
+- **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.
 - **Suppress intermediate outputs** — Do not display raw `/review` or Codex outputs to the user. The only review output the user should see is the final unified report.
 - If Codex CLI is missing, run Claude's review alone and synthesize normally.

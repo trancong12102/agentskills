@@ -1,6 +1,6 @@
 ---
 name: oracle
-description: "Use this skill when the user needs deep analysis, reasoning, or expert guidance on complex problems. Trigger on: 'oracle', 'think about this', 'analyze this deeply', 'second opinion', 'deep dive', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, trade-off evaluation, or complex why/how questions. Delegates to Codex CLI for deep reasoning. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
+description: "Use this skill when the user needs deep analysis, reasoning, or expert guidance on complex problems. Trigger on: 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from a separate model's deep reasoning. Delegates to Codex CLI. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
 ---
 
 # Oracle
@@ -40,9 +40,9 @@ Before launching Codex, gather relevant context because Codex CLI only sees what
 
 1. Understand the user's question and identify what parts of the codebase are relevant.
 2. Use Read, Grep, and Glob tools to read relevant files and code snippets.
-3. **Research official sources before deciding** — Don't rely solely on training knowledge. Proactively:
-   - Use the `context7` skill to fetch up-to-date official documentation for any libraries, frameworks, or tools involved in the question.
-   - Use WebSearch to find official blog posts, best practices guides, RFCs, or authoritative references that inform the analysis.
+3. **Research official sources when relevant** — When the question involves libraries, frameworks, or evolving best practices:
+   - Use the `context7` skill to fetch up-to-date official documentation.
+   - Use WebSearch to find official blog posts, best practices guides, RFCs, or authoritative references.
    - Include the findings as additional context files so Codex benefits from accurate, current information.
 4. Write the gathered context to temporary files that can be passed to the script via `--context-file`.
 5. Formulate a clear, specific question that captures the user's intent.
@@ -57,9 +57,7 @@ Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: 
 python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run]
 ```
 
-#### IMPORTANT: Wait for Codex
-
-After launching Codex, **stop and wait** for the background task notification. Do not proceed to Step 3 until Codex has finished — even if the wait is 30 minutes. Do not present partial results, do not summarize what you have so far, and do not ask the user whether to proceed without Codex. Simply wait.
+Wait for the Codex background task notification before moving to Step 3.
 
 ### Step 3: Present Results
 
@@ -70,7 +68,7 @@ After launching Codex, **stop and wait** for the background task notification. D
 ## Rules
 
 - **Do not start your own parallel analysis while Codex runs** — Codex is the analyst. Your role is to gather context, launch Codex, and present the results.
-- **Wait for Codex to complete before presenting — no exceptions.** Never proceed early, even if Codex takes 30 minutes. Do not present partial results, offer to skip Codex, or ask the user if they want to continue without it.
+- **Wait for Codex to complete before presenting results** — the oracle's value depends on Codex's deep reasoning output.
 - **Organize findings by theme** — group related insights together, not by severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
-- **Research before reasoning** — Always check official documentation (via `context7`) and search for best practices, official blogs, and authoritative references (via WebSearch) before forming conclusions. Decisions grounded in current, official sources are far more trustworthy than those based on training knowledge alone.
-- **Always use the wrapper script** for Codex — never call `codex` CLI directly, because the script sets the correct model and read-only mode.
+- **Research before reasoning** — Check official documentation (via `context7`) and search for authoritative references (via WebSearch) when the question involves libraries, frameworks, or evolving best practices.
+- **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.

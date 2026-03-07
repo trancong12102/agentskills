@@ -54,6 +54,8 @@ python3 scripts/codex-review.py commit <SHA>
 
 While Codex runs in the background, trigger the `/review` command immediately on the same scope. This runs Claude Code's own independent review concurrently with the external reviewer, so by the time Codex finishes, Claude's review is already done too.
 
+**Do not output the `/review` results to the user.** Retain the results silently for use in Step 3 cross-validation. The user should only see the final unified report from Step 4.
+
 ### IMPORTANT: Wait for All Reviews
 
 After `/review` completes, **stop and wait** for the Codex background task notification. Do not proceed to Step 3 until Codex has finished — even if the wait is 30 minutes. Do not synthesize partial results, do not summarize what you have so far, and do not ask the user whether to proceed without Codex. Simply wait.
@@ -97,4 +99,5 @@ This applies to `codex-review.py`.
 - **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections).
 - **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵, with higher confidence first within the same severity.
 - **Always use the wrapper script** for Codex — never call `codex` CLI directly, because the script sets the correct model and read-only mode.
+- **Suppress intermediate outputs** — Do not display raw `/review` or Codex outputs to the user. The only review output the user should see is the final unified report.
 - If Codex CLI is missing, run Claude's review alone and synthesize normally.

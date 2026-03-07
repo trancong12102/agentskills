@@ -29,7 +29,7 @@ All issues from all reviewers merged into a **single flat list**, deduplicated, 
 ````markdown
 #### <EMOJI> <Short title>
 
-**<CATEGORY>** · `file/path.ts:LINE` · Confidence: <HIGH|MEDIUM|LOW>
+**<CATEGORY>** · `file/path.ts:LINE` · Confidence: <HIGH|MEDIUM>
 
 Explanation of the issue and why it matters.
 
@@ -51,11 +51,10 @@ code here
 
 **Categories:** `Bug`, `Security`, `Performance`, `Maintainability`, `Edge Case`, `Testing`, `Style`
 
-**Confidence is derived from reviewer agreement (2 reviewers: Codex, Claude). Merge rules take precedence over these defaults when they specify a confidence level:**
+**Confidence is derived from reviewer agreement (2 reviewers: Codex, Claude). Merge rules take precedence over these defaults when they specify a confidence level. Low-confidence findings (disputed by Claude or purely circumstantial) are excluded from the report — the council's value is cross-validation, and findings that fail it are noise.**
 
 - **High** — Both reviewers flagged the same issue independently, or Claude confirmed a Codex finding
 - **Medium** — One external reviewer flagged it and Claude did not dispute it, or Claude found it alone with clear evidence
-- **Low** — Evidence is circumstantial or only one external reviewer flagged it with weak justification
 
 If no issues found: "No issues found."
 

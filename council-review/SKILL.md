@@ -97,7 +97,8 @@ This applies to `codex-review.py`.
 - **Use the same review scope for both reviewers** — comparing different scopes would make deduplication meaningless.
 - **Wait for both reviews before synthesizing — no exceptions** — Claude's own analysis is what turns two outputs into one trustworthy report, not just a merge. Both must complete before cross-validation begins. **Never proceed early**, even if Codex takes 30 minutes. Do not present partial results, offer to skip Codex, or ask the user if they want to continue without it.
 - **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections).
-- **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵, with higher confidence first within the same severity.
+- **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵.
+- **Exclude low-confidence findings** — If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
 - **Always use the wrapper script** for Codex — never call `codex` CLI directly, because the script sets the correct model and read-only mode.
 - **Suppress intermediate outputs** — Do not display raw `/review` or Codex outputs to the user. The only review output the user should see is the final unified report.
 - If Codex CLI is missing, run Claude's review alone and synthesize normally.

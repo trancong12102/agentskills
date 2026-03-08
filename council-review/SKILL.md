@@ -42,7 +42,7 @@ Scripts are in `scripts/` relative to this skill's directory and enforce the cor
 
 #### Codex — `scripts/codex-review.py` (background Bash task)
 
-Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes.
+Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. When it completes you will receive a notification; call `TaskOutput` with its task ID at that point to read the review.
 
 ```bash
 python3 scripts/codex-review.py uncommitted
@@ -52,7 +52,7 @@ python3 scripts/codex-review.py commit <SHA>
 
 #### Claude — `/review` skill (background Agent)
 
-Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. This isolates the review output from the main conversation and runs concurrently with Codex — both background tasks complete while the main agent waits.
+Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. The agent's output arrives directly in its completion notification — do not call `TaskOutput` for it. **Do not proceed to Step 3 until both tasks have completed.**
 
 ### Step 3: Cross-Validate Findings
 

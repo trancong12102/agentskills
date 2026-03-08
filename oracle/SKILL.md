@@ -5,7 +5,7 @@ description: "Use this skill when the user needs deep analysis, reasoning, or ex
 
 # Oracle
 
-Delegate deep analysis to Codex CLI — launch it with full context, wait for it to finish, then present the results.
+Delegate deep analysis to Codex CLI — launch it with a clear question, wait for it to finish, then present the results. Codex runs in a read-only sandbox with full codebase access, so it gathers its own context.
 
 ## Prerequisites
 
@@ -34,18 +34,13 @@ If Codex CLI is not installed, **stop and tell the user** to install it. Do not 
 
 **DO NOT read script source code.** Run scripts directly and use `--help` for usage.
 
-### Step 1: Gather Context
+### Step 1: Formulate Question
 
-Before launching Codex, gather relevant context because Codex CLI only sees what's explicitly passed to it.
+Codex CLI has full read access to the codebase and can explore files, grep code, and web search on its own. Your job is to craft a clear, specific question — not to gather context for it.
 
-1. Understand the user's question and identify what parts of the codebase are relevant.
-2. Use Read, Grep, and Glob tools to read relevant files and code snippets.
-3. **Research official sources when relevant** — When the question involves libraries, frameworks, or evolving best practices:
-   - Use the `context7` skill to fetch up-to-date official documentation.
-   - Use WebSearch to find official blog posts, best practices guides, RFCs, or authoritative references.
-   - Include the findings as additional context files so Codex benefits from accurate, current information.
-4. Write the gathered context to temporary files that can be passed to the script via `--context-file`.
-5. Formulate a clear, specific question that captures the user's intent.
+1. Understand the user's question and what they need analyzed.
+2. Formulate a clear, specific question that captures the user's intent — include relevant file paths, function names, or architectural areas to point Codex in the right direction.
+3. Optionally use `--context-file` for truly external context that Codex cannot access on its own (e.g., user-provided files outside the repo, paste content).
 
 ### Step 2: Run Codex
 
@@ -67,9 +62,8 @@ Wait for the Codex background task notification before moving to Step 3.
 
 ## Rules
 
-- **Do not start your own parallel analysis while Codex runs** — Codex is the analyst. Your role is to gather context, launch Codex, and present the results.
+- **Do not start your own parallel analysis while Codex runs** — Codex is the analyst. Your role is to formulate the question, launch Codex, and present the results.
 - **Wait for Codex to complete before presenting results** — the oracle's value depends on Codex's deep reasoning output.
 - **Organize findings by theme** — group related insights together, not by severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
-- **Research before reasoning** — Check official documentation (via `context7`) and search for authoritative references (via WebSearch) when the question involves libraries, frameworks, or evolving best practices.
 - **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead.
 - **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.

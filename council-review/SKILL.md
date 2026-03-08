@@ -50,10 +50,6 @@ python3 scripts/codex-review.py branch --base main
 python3 scripts/codex-review.py commit <SHA>
 ```
 
-The script writes the review to a temp file and prints only the file path to
-stdout. When the task completes, read that file path from stdout and use the
-Read tool to load the Codex review.
-
 #### Claude — `/review` skill (background Agent)
 
 Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. This isolates the review output from the main conversation and runs concurrently with Codex — both background tasks complete while the main agent waits.

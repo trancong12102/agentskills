@@ -86,13 +86,7 @@ def run_codex(cmd, dry_run):
     response = extract_response(raw.name)
     os.unlink(raw.name)
 
-    out = tempfile.NamedTemporaryFile(
-        prefix="codex-review-", suffix=".md", delete=False, mode="w"
-    )
-    out.write(response)
-    out.close()
-
-    print(out.name)
+    print(response)
     sys.exit(result.returncode)
 
 

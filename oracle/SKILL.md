@@ -52,7 +52,7 @@ Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: 
 python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run]
 ```
 
-Wait for the Codex background task notification before moving to Step 3.
+After launching the background task, **end your response immediately** and wait. Do not poll, read output files, or check process status. You will be notified automatically when Codex completes.
 
 ### Step 3: Present Results
 
@@ -65,4 +65,5 @@ Wait for the Codex background task notification before moving to Step 3.
 - **Wait for Codex to complete before presenting results** — the oracle's value depends on Codex's deep reasoning output.
 - **Organize findings by theme** — group related insights together, not by severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
 - **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead.
+- **Do not poll or probe background tasks** — Do not read output files, check process status, or run any commands while waiting. End your response after launching. You will be notified automatically when Codex completes.
 - **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.

@@ -54,9 +54,11 @@ python3 scripts/codex-review.py commit <SHA>
 
 Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. The agent's output arrives directly in its completion notification.
 
+After launching both background tasks, **end your turn immediately**. Do not output anything else, do not proceed to Step 3, and do not check on task progress. You will be notified automatically when each task completes.
+
 ### Step 3: Cross-Validate Findings
 
-Once both reviews have returned, cross-validate:
+Once you have received completion notifications for **both** tasks, cross-validate:
 
 1. **Validate external findings** — For each finding from Codex:
    - **Confirm** — Claude independently agrees the issue exists and is correctly described.
@@ -82,4 +84,3 @@ Load `references/output-format.md` for the report template. Load `references/mer
 - **Suppress intermediate outputs** — Do not display raw Codex or `/review` outputs to the user. Running `/review` in a subagent keeps its output out of the main conversation naturally. The only review output the user should see is the final unified report.
 - **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead. For background Agents, read the result directly from the completion notification.
 - **If a reviewer fails at runtime** — stop the review, report the error to the user, and do not produce a council report. A single-reviewer result lacks cross-validation and should not be presented as a council review.
-- **Do not poll or probe background tasks** — Do not read output files, check process status, resume agents, or run any commands while waiting for background tasks. End your response after launching them. You will be notified automatically when each task completes.

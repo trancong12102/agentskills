@@ -50,11 +50,9 @@ python3 scripts/codex-review.py branch --base main
 python3 scripts/codex-review.py commit <SHA>
 ```
 
-#### Claude — `/review` command
+#### Claude — `/review` skill (background Agent)
 
-While Codex runs in the background, trigger the `/review` command immediately on the same scope. This runs Claude Code's own independent review concurrently with the external reviewer, so by the time Codex finishes, Claude's review is already done too.
-
-**Do not output the `/review` results to the user.** Retain the results silently for use in Step 3 cross-validation. The user should only see the final unified report from Step 4.
+Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. This isolates the review output from the main conversation and runs concurrently with Codex — both background tasks complete while the main agent waits.
 
 ### Step 3: Cross-Validate Findings
 
@@ -96,5 +94,5 @@ This applies to `codex-review.py`.
 - **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵.
 - **Exclude low-confidence findings** — If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
 - **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.
-- **Suppress intermediate outputs** — Do not display raw `/review` or Codex outputs to the user. The only review output the user should see is the final unified report.
+- **Suppress intermediate outputs** — Do not display raw Codex or `/review` outputs to the user. Running `/review` in a subagent keeps its output out of the main conversation naturally. The only review output the user should see is the final unified report.
 - If Codex CLI is missing, run Claude's review alone and synthesize normally.

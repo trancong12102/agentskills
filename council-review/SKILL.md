@@ -91,7 +91,7 @@ This applies to `codex-review.py`.
 - **Use the same review scope for both reviewers** — comparing different scopes would make deduplication meaningless.
 - **Wait for both reviews to complete before cross-validation** — the council's value depends on comparing complete outputs.
 - **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." sections).
-- **Sort findings by severity** — 🔴 → 🟠 → 🟡 → 🟢 → 🔵.
+- **Sort findings by priority** — P0 → P1 → P2 → P3 → P4.
 - **Exclude low-confidence findings** — If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
 - **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.
 - **Suppress intermediate outputs** — Do not display raw Codex or `/review` outputs to the user. Running `/review` in a subagent keeps its output out of the main conversation naturally. The only review output the user should see is the final unified report.

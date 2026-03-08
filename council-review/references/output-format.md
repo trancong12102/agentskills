@@ -13,8 +13,8 @@
 Verdict values:
 
 - **Approved** — No issues or only informational notes
-- **Approved with suggestions** — No critical/high issues, but improvements recommended
-- **Request changes** — Critical or high-severity issues that should be fixed before merging
+- **Approved with suggestions** — No P0/P1 issues, but improvements recommended
+- **Request changes** — P0 or P1 issues that should be fixed before merging
 
 ## Changes Walkthrough
 
@@ -24,12 +24,12 @@ Verdict values:
 
 ## Findings
 
-All issues from all reviewers merged into a **single flat list**, deduplicated, sorted by severity (critical first). Each finding follows this format:
+All issues from all reviewers merged into a **single flat list**, deduplicated, sorted by priority (P0 first). Each finding follows this format:
 
 ````markdown
-#### <EMOJI> <Short title>
+#### [<PRIORITY>] <Short title>
 
-**<CATEGORY>** · `file/path.ts:LINE` · Confidence: <HIGH|MEDIUM>
+`<CATEGORY>` | `file/path.ts:LINE` | Confidence: <High|Medium>
 
 Explanation of the issue and why it matters.
 
@@ -39,15 +39,15 @@ code here
 \```
 ````
 
-**Severity emoji mapping:**
+**Priority levels:**
 
-| Emoji | Severity | Criteria                                                     |
-| ----- | -------- | ------------------------------------------------------------ |
-| 🔴    | Critical | Exploitable vulnerability, data loss, or crash in production |
-| 🟠    | High     | Likely bug or incident under realistic conditions            |
-| 🟡    | Medium   | Incorrect behavior under edge cases or degraded performance  |
-| 🟢    | Low      | Code quality issue that could escalate over time             |
-| 🔵    | Info     | Observation or suggestion, no action required                |
+| Priority | Criteria                                                     |
+| -------- | ------------------------------------------------------------ |
+| P0       | Exploitable vulnerability, data loss, or crash in production |
+| P1       | Likely bug or incident under realistic conditions            |
+| P2       | Incorrect behavior under edge cases or degraded performance  |
+| P3       | Code quality issue that could escalate over time             |
+| P4       | Observation or suggestion, no action required                |
 
 **Categories:** `Bug`, `Security`, `Performance`, `Maintainability`, `Edge Case`, `Testing`, `Style`
 

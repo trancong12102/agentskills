@@ -11,7 +11,7 @@ Delegate deep analysis to Codex CLI — launch it with a clear question, wait fo
 
 - **Codex CLI** (required): Install with `npm i -g @openai/codex`, authenticate with `codex login`
 
-If Codex CLI is not installed, **stop and tell the user** to install it. Do not fall back to Claude-only analysis.
+If Codex CLI is not installed, **stop and tell the user** to install it.
 
 ## When to Use
 
@@ -32,7 +32,7 @@ If Codex CLI is not installed, **stop and tell the user** to install it. Do not 
 
 ## Workflow
 
-**DO NOT read script source code.** Run scripts directly and use `--help` for usage.
+Do not read script source code. Run scripts directly and use `--help` for usage.
 
 ### Step 1: Formulate Question
 
@@ -46,7 +46,7 @@ Codex CLI has full read access to the codebase and can explore files, grep code,
 
 Scripts are in `scripts/` relative to this skill's directory. Run `<script> --help` for full usage.
 
-Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes; do not try to check on it mid-execution.
+Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: true`). Codex CLI may take up to 30 minutes.
 
 ```bash
 python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run]
@@ -57,8 +57,7 @@ Wait for the Codex background task notification before moving to Step 3.
 ### Step 3: Present Results
 
 1. Use the `Read` tool on the `output-file` path from the completion notification to retrieve the Codex analysis.
-2. Verify that cited file paths actually exist in the codebase.
-3. Present the results to the user — use your own judgment on formatting and what to highlight.
+2. Present the results to the user — use your own judgment on formatting and what to highlight.
 
 ## Rules
 

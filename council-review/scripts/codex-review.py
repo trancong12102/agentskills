@@ -27,9 +27,12 @@ Notes:
       warning and drops it instead of failing.
 """
 
+import json
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 def fail(msg):
@@ -46,12 +49,50 @@ def require_codex():
         fail("Codex CLI not found in PATH. Install with: npm i -g @openai/codex && codex login")
 
 
+def extract_response(raw_path):
+    """Extract agent_message text from Codex CLI JSONL output."""
+    messages = []
+    with open(raw_path, "r", errors="replace") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            item = event.get("item", {})
+            if item.get("type") == "agent_message":
+                text = item.get("text", "").strip()
+                if text:
+                    messages.append(text)
+    return "\n\n".join(messages)
+
+
 def run_codex(cmd, dry_run):
     if dry_run:
         print("=== DRY RUN ===")
         print(f"Command: {' '.join(cmd)}")
         return
-    result = subprocess.run(cmd)
+
+    raw = tempfile.NamedTemporaryFile(
+        prefix="codex-review-raw-", suffix=".jsonl", delete=False, mode="w"
+    )
+    try:
+        result = subprocess.run(cmd, stdout=raw)
+    finally:
+        raw.close()
+
+    response = extract_response(raw.name)
+    os.unlink(raw.name)
+
+    out = tempfile.NamedTemporaryFile(
+        prefix="codex-review-", suffix=".md", delete=False, mode="w"
+    )
+    out.write(response)
+    out.close()
+
+    print(out.name)
     sys.exit(result.returncode)
 
 
@@ -92,7 +133,7 @@ def handle_uncommitted(args):
     if rest:
         fail(f"Unknown option: {rest[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "review", "--uncommitted", "-c", "model=gpt-5.4"]
+    cmd = ["codex", "exec", "review", "--uncommitted", "--json", "-c", "model=gpt-5.4"]
     run_codex(cmd, dry_run)
 
 
@@ -114,7 +155,7 @@ def handle_branch(args):
     if filtered:
         fail(f"Unknown option: {filtered[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "review", "--base", base, "-c", "model=gpt-5.4"]
+    cmd = ["codex", "exec", "review", "--base", base, "--json", "-c", "model=gpt-5.4"]
     run_codex(cmd, dry_run)
 
 
@@ -126,7 +167,7 @@ def handle_commit(args):
     if rest:
         fail(f"Unknown option: {rest[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "review", "--commit", sha, "-c", "model=gpt-5.4"]
+    cmd = ["codex", "exec", "review", "--commit", sha, "--json", "-c", "model=gpt-5.4"]
     run_codex(cmd, dry_run)
 
 

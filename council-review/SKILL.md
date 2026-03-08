@@ -54,10 +54,6 @@ python3 scripts/codex-review.py commit <SHA>
 
 Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. The agent's output arrives directly in its completion notification.
 
-#### After launching both: end your response and wait
-
-Once both background tasks are launched, **end your response immediately**. Do not run any additional tool calls — no polling, no reading output files, no checking process status, no resuming agents. You will be automatically notified when each task completes. Only proceed to Step 3 after both notifications have arrived.
-
 ### Step 3: Cross-Validate Findings
 
 Once both reviews have returned, cross-validate:
@@ -73,21 +69,6 @@ Once both reviews have returned, cross-validate:
 After your own review and validation are complete, **merge, deduplicate, and rewrite** all findings into one coherent report as if written by a single reviewer. Do not copy-paste or concatenate raw outputs.
 
 Load `references/output-format.md` for the report template. Load `references/merge-rules.md` for how to reconcile findings across reviewers.
-
-## Error Handling: Retry on Argument Errors
-
-If a script exits with a non-zero code and stderr mentions argument conflicts (e.g. "cannot be used with", "unrecognized arguments", "invalid option"), **do not give up**. Follow this recovery sequence:
-
-1. **Read the error message** from the failed Bash output.
-2. **Run the script with `--help`** to get the correct usage.
-3. **Re-run with corrected arguments.** Common fixes:
-   - Drop the `--focus` flag — some CLI versions don't accept it with certain scopes.
-   - Move focus text from a positional argument to a named flag, or vice versa.
-   - Remove flags that conflict with the chosen subcommand.
-4. If the second attempt also fails with a different argument error, repeat steps 1-3 **once more** (max 2 retries).
-5. If it still fails after retries, log the error and continue with the remaining reviewers — a partial council review is better than none.
-
-This applies to `codex-review.py`.
 
 ## Rules
 

@@ -42,7 +42,7 @@ Scripts are in `scripts/` relative to this skill's directory and enforce the cor
 
 #### Codex — `scripts/codex-review.py` (background Bash task)
 
-Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. When it completes, you will receive a notification; use the `Read` tool on the `output-file` path from the notification to retrieve the review. Do not use `TaskOutput` — it cannot find background Bash task IDs and will fail.
+Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. When it completes, you will receive a notification; use the `Read` tool on the `output-file` path from the notification to retrieve the review.
 
 ```bash
 python3 scripts/codex-review.py uncommitted
@@ -52,7 +52,7 @@ python3 scripts/codex-review.py commit <SHA>
 
 #### Claude — `/review` skill (background Agent)
 
-Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. The agent's output arrives directly in its completion notification — do not call `TaskOutput` for it. **Do not proceed to Step 3 until both tasks have completed.**
+Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. The agent's output arrives directly in its completion notification. **Do not proceed to Step 3 until both tasks have completed.**
 
 ### Step 3: Cross-Validate Findings
 
@@ -95,4 +95,5 @@ This applies to `codex-review.py`.
 - **Exclude low-confidence findings** — If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
 - **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.
 - **Suppress intermediate outputs** — Do not display raw Codex or `/review` outputs to the user. Running `/review` in a subagent keeps its output out of the main conversation naturally. The only review output the user should see is the final unified report.
+- **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead. For background Agents, read the result directly from the completion notification.
 - If Codex CLI is missing, run Claude's review alone and synthesize normally.

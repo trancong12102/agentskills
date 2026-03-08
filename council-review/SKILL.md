@@ -42,7 +42,7 @@ Scripts are in `scripts/` relative to this skill's directory and enforce the cor
 
 #### Codex — `scripts/codex-review.py` (background Bash task)
 
-Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. When it completes, you will receive a notification; use the `Read` tool on the `output-file` path from the notification to retrieve the review.
+Launch as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. When it completes, you will receive a notification; use the `Read` tool on the `output-file` path from the notification to retrieve the review. Do not use `TaskOutput` — it cannot find background Bash task IDs and will fail.
 
 ```bash
 python3 scripts/codex-review.py uncommitted

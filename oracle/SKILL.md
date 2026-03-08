@@ -51,7 +51,7 @@ Before launching Codex, gather relevant context because Codex CLI only sees what
 
 Scripts are in `scripts/` relative to this skill's directory. Run `<script> --help` for full usage.
 
-Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes.
+Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: true`). **Codex CLI thinks deeply and may take up to 30 minutes** — do not treat a long wait as a failure. You will be notified automatically when it completes; do not try to check on it mid-execution.
 
 ```bash
 python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run]
@@ -61,7 +61,7 @@ Wait for the Codex background task notification before moving to Step 3.
 
 ### Step 3: Present Results
 
-1. Read the Codex output from the completed background task.
+1. Use the `Read` tool on the `output-file` path from the completion notification to retrieve the Codex analysis.
 2. Verify that cited file paths actually exist in the codebase.
 3. Present the results to the user — use your own judgment on formatting and what to highlight.
 
@@ -71,4 +71,5 @@ Wait for the Codex background task notification before moving to Step 3.
 - **Wait for Codex to complete before presenting results** — the oracle's value depends on Codex's deep reasoning output.
 - **Organize findings by theme** — group related insights together, not by severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
 - **Research before reasoning** — Check official documentation (via `context7`) and search for authoritative references (via WebSearch) when the question involves libraries, frameworks, or evolving best practices.
+- **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead.
 - **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.

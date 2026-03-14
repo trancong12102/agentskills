@@ -1,6 +1,6 @@
 ---
 name: deps-dev
-description: "Use this skill to look up the latest stable version of any open-source package across npm, PyPI, Go, Cargo, Maven, and NuGet. Trigger whenever the user asks 'what's the latest version of X', 'what version should I use', 'is X deprecated', 'how outdated is my package.json/requirements.txt/Cargo.toml', or needs version numbers for adding or updating dependencies. Also trigger when they mention pinning versions, checking if packages are maintained, or comparing current vs installed versions. Do NOT use for private/internal packages or for looking up documentation."
+description: "Look up the latest stable version of any open-source package across npm, PyPI, Go, Cargo, Maven, and NuGet. Use when the user asks 'what's the latest version of X', 'what version should I use', 'is X deprecated', 'how outdated is my package.json/requirements.txt/Cargo.toml', or needs version numbers for adding or updating dependencies. Also covers pinning versions, checking if packages are maintained, or comparing installed vs latest versions. Do NOT use for private/internal packages or for looking up documentation (use context7)."
 ---
 
 # Latest Package Version Lookup

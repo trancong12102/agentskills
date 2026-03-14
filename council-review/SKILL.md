@@ -1,6 +1,6 @@
 ---
 name: council-review
-description: "Use this skill for multi-model AI code review. Trigger whenever the user asks to review code changes, audit a diff, check code quality, review a PR, review commits, or review uncommitted changes before pushing or merging. Also trigger when they say 'code review', 'review my changes', 'check this before I merge', or want multiple perspectives on code. Runs Codex and Claude reviews in parallel, then synthesizes a unified report. Do NOT use for reviewing documentation, markdown, or non-code files, or for trivial single-line changes."
+description: "Multi-model AI code review — runs Codex and Claude reviews in parallel, then synthesizes a unified report. Use when the user asks to review code changes, audit a diff, check code quality, review a PR, review commits, or review uncommitted changes. Also covers 'code review', 'review my changes', 'check this before I merge', or wanting multiple perspectives on code. Do NOT use for documentation/markdown review or trivial single-line changes."
 ---
 
 # Council Review

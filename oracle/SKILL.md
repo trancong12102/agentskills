@@ -1,6 +1,6 @@
 ---
 name: oracle
-description: "Use this skill when the user needs deep analysis, reasoning, or expert guidance on complex problems. Trigger on: 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from a separate model's deep reasoning. Delegates to Codex CLI. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
+description: "Deep analysis and expert reasoning via a separate model (Codex CLI). Use when the user asks for 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from deep, independent reasoning. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
 ---
 
 # Oracle

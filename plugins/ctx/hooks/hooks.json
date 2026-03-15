@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "EnterPlanMode",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "BEFORE entering plan mode, consider whether this task would benefit from pre-planning analysis. If the request is ambiguous, complex, multi-part, or has unclear scope, first consult the ctx:metis agent to classify intent, surface hidden requirements, flag AI-slop risks, and generate clarifying questions. Skip metis only for simple, well-defined tasks with clear scope. If you decide to use metis, spawn it now and incorporate its analysis into your plan."
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "BEFORE exiting plan mode, review whether this plan is non-trivial (multi-step, touches multiple files, or has architectural impact). If so, launch BOTH reviewers IN PARALLEL before exiting:\n\n1. Spawn ctx:momus agent — pass the full plan text. Momus checks reference validity, task executability, blockers, and QA criteria.\n2. Invoke the oracle skill — ask it to review the plan for logical gaps, architectural risks, and feasibility from a deep reasoning perspective.\n\nWait for both to complete. If EITHER reviewer issues a REJECT verdict, DO NOT exit plan mode. Instead, address the blocking issues raised, improve the plan, and present the updated version. Only exit plan mode when both reviewers approve (or the plan is simple enough to skip review)."
+          }
+        ]
+      }
+    ]
+  }
+}

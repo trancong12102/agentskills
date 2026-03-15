@@ -9,7 +9,7 @@ The `oracle` and `council-review` skills require [Codex CLI](https://github.com/
 ```toml
 [profiles.oracle]
 model = "gpt-5.4"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
 approval_policy = "never"
 sandbox_mode = "read-only"
 ```

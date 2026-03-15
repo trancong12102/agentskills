@@ -1,0 +1,5 @@
+{
+  "name": "ctx",
+  "version": "0.1.0",
+  "description": "Context-gathering agents for codebase exploration and documentation lookup"
+}

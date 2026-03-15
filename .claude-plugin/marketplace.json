@@ -3,6 +3,7 @@
   "description": "Claude Code skills and hook plugins",
   "owner": { "name": "Cong Tran" },
   "plugins": [
-    { "name": "sound-notify", "source": "./plugins/sound-notify" }
+    { "name": "sound-notify", "source": "./plugins/sound-notify" },
+    { "name": "ctx", "source": "./plugins/ctx" }
   ]
 }

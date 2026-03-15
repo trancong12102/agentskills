@@ -33,14 +33,16 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 
 ## Plugins
 
-| Plugin                                 | Description                                                         |
-| -------------------------------------- | ------------------------------------------------------------------- |
-| [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question |
+| Plugin                                 | Description                                                                                        |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [ctx](./plugins/ctx)                   | Context-gathering agents — `finder` for codebase exploration, `librarian` for documentation lookup |
+| [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question                                |
 
 Install plugins in Claude Code:
 
 ```shell
 /plugin marketplace add trancong12102/agentskills
+/plugin install ctx@agentskills
 /plugin install sound-notify@agentskills
 ```
 

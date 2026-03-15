@@ -57,7 +57,7 @@ Before any search, analyze the request in `<analysis>` tags:
 
 ## Step 2 — Search (parallel-first)
 
-Start with `codebase-search` for broad agentic search. Launch multiple search angles in parallel when possible.
+Start with a single `codebase-search` call for broad semantic search. Do not launch multiple `codebase-search` calls in parallel — it is agentic and explores multiple angles internally.
 
 If results are insufficient, escalate to deeper tools by match type:
 

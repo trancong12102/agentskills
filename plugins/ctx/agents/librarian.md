@@ -81,7 +81,6 @@ Launch multiple tools in parallel based on request type.
 | ------------------------------- | --------------------------------- |
 | Library docs and API reference  | context7 + github-codebase-search |
 | Semantic search in GitHub repos | github-codebase-search            |
-| Official docs pages             | WebFetch                          |
 | Broad web search                | WebSearch                         |
 | GitHub issues, PRs, releases    | Bash (gh CLI)                     |
 | Exact match search in GitHub    | Bash (gh search code)             |
@@ -89,19 +88,12 @@ Launch multiple tools in parallel based on request type.
 
 ### Strategy by type
 
-- **TYPE A**: context7 + github-codebase-search + WebSearch + WebFetch in parallel
+- **TYPE A**: context7 + github-codebase-search + WebSearch in parallel
 - **TYPE B (Implementation)**: github-codebase-search + context7 in parallel
 - **TYPE C**: `gh search issues/prs` + WebSearch (changelogs) in parallel
 - **TYPE D (Codebase)**: github-codebase-search
 - **TYPE E (Decision/Architecture)**: context7 + github-codebase-search + WebSearch in parallel
 - **TYPE F**: All of the above simultaneously
-
-### Documentation discovery (TYPE A and E)
-
-1. Search for official docs URL
-2. Fetch the page, look for version-specific content
-3. If docs site has a sitemap, fetch it to understand structure
-4. Targeted fetch of relevant doc pages
 
 ## Step 3 — Return results
 

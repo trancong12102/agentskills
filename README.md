@@ -58,26 +58,12 @@ Then select **Enable auto-update** when prompted.
 
 The `ora` plugin ships four specialized subagents, two for context gathering and two for plan quality gates:
 
-| Agent           | Role         | Model  | Description                                                                                                                                                                                                                    |
-| --------------- | ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ora:Ariadne`   | Context      | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. Enhanced contextual grep with structured output.                                                                                                |
-| `ora:Clio`      | Context      | Sonnet | Documentation & remote code lookup — fetches official docs, searches public GitHub repos, finds best practices.                                                                                                                |
-| `ora:Metis`     | Pre-planning | Opus   | Analyzes requests before planning. Classifies intent (Refactoring / Build / Mid-sized / Collaborative / Architecture / Research), surfaces hidden requirements, flags AI-slop risks, and generates directives for the planner. |
-| `ora:Momus`     | Plan review  | Sonnet | Reviews plans after planning. Checks reference validity, task executability, critical blockers, and QA criteria. Strong approval bias — rejects only for true blockers (max 3 issues).                                         |
-
-### Plan quality hooks
-
-The plugin includes two hooks that create a plan → review → improve feedback loop:
-
-- **`PreToolUse:EnterPlanMode`** — Before entering plan mode, suggests consulting `ora:Metis` for complex or ambiguous requests.
-- **`PreToolUse:ExitPlanMode`** — Before exiting plan mode, triggers parallel review by `ora:Momus` and the `oracle` skill (GPT-5.4 via Codex CLI). If either reviewer rejects, the plan is refined before implementation begins.
-
-```txt
-Request → [metis] → Plan mode → Write plan → [momus + oracle] → Review
-                                                    ↓
-                                          Both OKAY → Implement
-                                          Any REJECT → Revise plan → Re-review
-```
+| Agent         | Role         | Model  | Description                                                                                                                                                                                                                    |
+| ------------- | ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ora:Ariadne` | Context      | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. Enhanced contextual grep with structured output.                                                                                                |
+| `ora:Clio`    | Context      | Sonnet | Documentation & remote code lookup — fetches official docs, searches public GitHub repos, finds best practices.                                                                                                                |
+| `ora:Metis`   | Pre-planning | Opus   | Analyzes requests before planning. Classifies intent (Refactoring / Build / Mid-sized / Collaborative / Architecture / Research), surfaces hidden requirements, flags AI-slop risks, and generates directives for the planner. |
+| `ora:Momus`   | Plan review  | Sonnet | Reviews plans after planning. Checks reference validity, task executability, critical blockers, and QA criteria. Strong approval bias — rejects only for true blockers (max 3 issues).                                         |
 
 ## License
 

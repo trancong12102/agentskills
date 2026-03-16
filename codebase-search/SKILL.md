@@ -67,6 +67,39 @@ python3 scripts/codebase-search.py search "trace the payment processing pipeline
 
 Run `python3 scripts/codebase-search.py --help` for full usage.
 
+### Example Output
+
+```
+Morph Fast Context subagent performed search on repository:
+
+Relevant context found:
+- plugins/ora/agents/ariadne.md:*
+- plugins/ora/agents/clio.md:*
+- plugins/ora/agents/metis.md:*
+
+Here is the content of files:
+
+<file path="plugins/ora/agents/ariadne.md">
+1| ---
+2| name: Ariadne
+3| description: |
+4|   Use this agent to explore and understand codebases...
+...
+35| tools: ["Read", "Glob", "Grep", "LSP", "Bash"]
+36| skills:
+37|   - codebase-search
+38| ---
+</file>
+
+<file path="plugins/ora/agents/clio.md">
+1| ---
+2| name: Clio
+...
+</file>
+```
+
+The output lists relevant files found and their full content. Use these results directly — do not re-search the same files with Grep/Read.
+
 ## Rules
 
 - **Write queries as natural language questions** — `"How does the auth middleware validate JWT tokens?"` works far better than `"auth JWT"`, because codebase search is an RL-trained agent that plans its own search strategy based on your question.

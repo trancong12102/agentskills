@@ -69,6 +69,32 @@ python3 scripts/github-codebase-search.py search "trace the build pipeline" --re
 
 Run `python3 scripts/github-codebase-search.py --help` for full usage.
 
+### Example Output
+
+```
+Morph Fast Context subagent performed search on repository:
+
+Relevant context found:
+- src/routes/middleware.ts:*
+- src/core/router.ts:50-120
+
+Here is the content of files:
+
+<file path="src/routes/middleware.ts">
+1| import { NextRequest } from 'next/server';
+2| export function middleware(request: NextRequest) {
+...
+</file>
+
+<file path="src/core/router.ts">
+50| function resolveMiddleware(chain: MiddlewareChain) {
+...
+120| }
+</file>
+```
+
+The output lists relevant files and their content from the GitHub repo. If a file path is wrong, you may see `Error: File not found` — retry with a more specific query.
+
 ## Rules
 
 - **Write queries as natural language questions** — `"How does the router resolve middleware chains?"` works far better than `"router middleware"`, because the search agent plans its own strategy based on your question.

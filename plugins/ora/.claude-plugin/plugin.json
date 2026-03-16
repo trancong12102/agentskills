@@ -1,5 +1,5 @@
 {
   "name": "ora",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Context-gathering agents for codebase exploration, documentation lookup, pre-planning analysis, and plan review"
 }

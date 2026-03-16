@@ -33,9 +33,6 @@ description: |
 model: sonnet
 color: cyan
 tools: ["Read", "Glob", "Grep", "LSP", "Bash", "Skill"]
-skills:
-  - codebase-search
-  - ast-grep
 ---
 
 # Ariadne
@@ -58,22 +55,28 @@ Before any search, analyze the request in `<analysis>` tags:
 
 ## Step 2 — Search (`codebase-search` first)
 
-Default to `codebase-search` for all exploration — it runs ~15-30 internal grep+read operations per call and traces cross-file flows automatically.
+Default to the `codebase-search` skill for all exploration. Invoke it via the Skill tool:
+
+```
+Skill(skill: "codebase-search", args: "your search query here")
+```
+
+It runs ~15-30 internal grep+read operations per call and traces cross-file flows automatically.
 
 **Parallelism rule:**
 
-- **Independent queries** → launch parallel `codebase-search` calls (e.g., "how does auth work?" and "how is the database layer structured?" → 2 parallel calls)
-- **Related queries** → combine into one `codebase-search` prompt (e.g., "how does auth middleware validate tokens and where does it store session data?" → 1 call, since it traces connections internally)
+- **Independent queries** → launch parallel Skill calls (e.g., "how does auth work?" and "how is the database layer structured?" → 2 parallel `Skill(skill: "codebase-search")` calls)
+- **Related queries** → combine into one Skill call (e.g., "how does auth middleware validate tokens and where does it store session data?" → 1 call, since it traces connections internally)
 
 **Fallback to manual tools** only for things `codebase-search` can't do:
 
-| Need                                  | Tool       |
-| ------------------------------------- | ---------- |
-| Exact keyword/symbol search           | Grep       |
-| File name/pattern discovery           | Glob       |
-| Structural code patterns              | ast-grep   |
-| Semantic definitions/references       | LSP        |
-| Git history/blame                     | Bash (git) |
+| Need                                  | Tool             |
+| ------------------------------------- | ---------------- |
+| Exact keyword/symbol search           | Grep             |
+| File name/pattern discovery           | Glob             |
+| Structural code patterns              | Skill: ast-grep  |
+| Semantic definitions/references       | LSP              |
+| Git history/blame                     | Bash (git)       |
 
 Stop searching when: enough context exists, same info appears across sources, or 2 iterations yield nothing new.
 

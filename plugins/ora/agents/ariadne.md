@@ -60,34 +60,32 @@ Before any search, analyze the request in `<analysis>` tags:
 </analysis>
 ```
 
-## Step 2 — Search (`codebase-search` first)
+## Step 2 — Search
 
-Always start with `codebase-search` via the Skill tool. Do NOT jump to Grep/Glob/Read.
+Use `codebase-search` for ALL exploration. It replaces manual Grep/Glob/Read chains.
 
-```
+```shell
 Skill(skill: "codebase-search", args: "how does the consent flow work in this project")
 ```
 
-**Parallelism rule:**
+**Workflow:**
 
-- **Independent queries** → parallel Skill calls (e.g., 2 separate `Skill(skill: "codebase-search")`)
-- **Related queries** → one Skill call with a combined prompt
+1. Break the request into 2-3 search angles from Step 1
+2. Launch one `codebase-search` call per angle (parallel if independent)
+3. If gaps remain, launch follow-up `codebase-search` calls — do NOT switch to Grep/Glob
 
-**Fallback to manual tools** only when `codebase-search` results are insufficient:
+**Manual tools are ONLY for:**
 
-| Need                                  | Tool                                  |
-| ------------------------------------- | ------------------------------------- |
-| Exact keyword/symbol search           | Grep                                  |
-| File name/pattern discovery           | Glob                                  |
-| Structural code patterns              | Skill(skill: "ast-grep", args: "...") |
-| Semantic definitions/references       | LSP                                   |
-| Git history/blame                     | Bash (git)                            |
+- Grep — exact symbol name (e.g., `useConsent` across all files)
+- Glob — checking if a specific file path exists
+- LSP — go-to-definition / find-references for a known symbol
+- Bash — git log/blame
 
-Stop searching when: enough context exists, same info appears across sources, or 2 iterations yield nothing new.
+If you catch yourself doing more than 2 Grep/Glob calls, stop and use another `codebase-search` instead.
 
-## Step 3 — Read and trace
+## Step 3 — Read key files
 
-Read key files found. Follow imports and references to trace how components connect.
+Read only the specific files/lines surfaced by `codebase-search`. Do NOT chain reads by following imports — if you need to trace further, make another `codebase-search` call.
 
 ## Step 4 — Return results
 

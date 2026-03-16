@@ -1,5 +1,5 @@
 {
-  "name": "ctx",
+  "name": "ora",
   "version": "0.4.0",
   "description": "Context-gathering agents for codebase exploration, documentation lookup, pre-planning analysis, and plan review"
 }

@@ -1,5 +1,5 @@
 ---
-name: momus
+name: Momus
 description: |
   Use this agent to review work plans for executability before implementation. Examples:
 

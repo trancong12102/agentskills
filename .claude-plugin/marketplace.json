@@ -4,6 +4,6 @@
   "owner": { "name": "Cong Tran" },
   "plugins": [
     { "name": "sound-notify", "source": "./plugins/sound-notify" },
-    { "name": "ctx", "source": "./plugins/ctx" }
+    { "name": "ora", "source": "./plugins/ora" }
   ]
 }

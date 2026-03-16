@@ -33,6 +33,8 @@ description: |
 model: sonnet
 color: cyan
 tools: ["Read", "Glob", "Grep", "LSP", "Bash"]
+skills:
+  - codebase-search
 ---
 
 # Ariadne

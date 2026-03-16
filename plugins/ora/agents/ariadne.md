@@ -80,6 +80,7 @@ Use `codebase-search` for ALL exploration. It replaces manual Grep/Glob/Read cha
 
 - Grep — exact symbol name (e.g., `useConsent` across all files)
 - Glob — checking if a specific file path exists
+- ast-grep — structural code patterns (e.g., all hooks of type X, fn shapes)
 - LSP — go-to-definition / find-references for a known symbol
 - Bash — git log/blame
 

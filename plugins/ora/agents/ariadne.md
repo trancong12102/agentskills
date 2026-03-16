@@ -32,7 +32,7 @@ description: |
 
 model: sonnet
 color: cyan
-tools: ["Read", "Glob", "Grep", "LSP", "Bash"]
+tools: ["Read", "Glob", "Grep", "LSP", "Bash", "Skill"]
 skills:
   - codebase-search
   - ast-grep

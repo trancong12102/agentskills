@@ -56,19 +56,24 @@ Before any search, analyze the request in `<analysis>` tags:
 </analysis>
 ```
 
-## Step 2 — Search (parallel-first)
+## Step 2 — Search (`codebase-search` first)
 
-Start with a single `codebase-search` call for broad semantic search. Do not launch multiple `codebase-search` calls in parallel — it is agentic and explores multiple angles internally.
+Default to `codebase-search` for all exploration — it runs ~15-30 internal grep+read operations per call and traces cross-file flows automatically.
 
-If results are insufficient, escalate to deeper tools by match type:
+**Parallelism rule:**
 
-| Need                                                 | Tool       |
-| ---------------------------------------------------- | ---------- |
-| Semantic search (definitions, references, types)     | LSP        |
-| Structural patterns (all hooks of type X, fn shapes) | ast-grep   |
-| Text patterns (strings, comments, config values)     | Grep       |
-| File discovery (name, extension, directory)          | Glob       |
-| History, evolution, blame                            | Bash (git) |
+- **Independent queries** → launch parallel `codebase-search` calls (e.g., "how does auth work?" and "how is the database layer structured?" → 2 parallel calls)
+- **Related queries** → combine into one `codebase-search` prompt (e.g., "how does auth middleware validate tokens and where does it store session data?" → 1 call, since it traces connections internally)
+
+**Fallback to manual tools** only for things `codebase-search` can't do:
+
+| Need                                  | Tool       |
+| ------------------------------------- | ---------- |
+| Exact keyword/symbol search           | Grep       |
+| File name/pattern discovery           | Glob       |
+| Structural code patterns              | ast-grep   |
+| Semantic definitions/references       | LSP        |
+| Git history/blame                     | Bash (git) |
 
 Stop searching when: enough context exists, same info appears across sources, or 2 iterations yield nothing new.
 

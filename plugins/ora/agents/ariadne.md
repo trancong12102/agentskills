@@ -58,29 +58,26 @@ Before any search, analyze the request in `<analysis>` tags:
 
 ## Step 2 — Search
 
-Use `codebase-search` for ALL exploration. It replaces manual Grep/Glob/Read chains.
+Start broad with `codebase-search`, then drill into details with manual tools.
 
 **Workflow:**
 
 1. Break the request into 2-3 search angles from Step 1
 2. Launch one `codebase-search` Bash call per angle (parallel if independent)
-3. If gaps remain, launch follow-up `codebase-search` calls — do NOT switch to Grep/Glob
+3. Read the files/lines surfaced by `codebase-search` to get full context
+4. Use Grep/Glob/LSP freely to trace connections, find usages, and fill gaps
 
-**Manual tools are ONLY for:**
+**Tool strengths:**
 
-- Grep — exact symbol name (e.g., `useConsent` across all files)
-- Glob — checking if a specific file path exists
-- ast-grep — structural code patterns (e.g., all hooks of type X, fn shapes)
+- `codebase-search` — broad semantic discovery (start here)
+- Grep — exact symbol name across all files (e.g., `useConsent`)
+- Glob — find files by path pattern
+- Read — get full file context for files surfaced by search
+- ast-grep — structural code patterns (e.g., all hooks of type X)
 - LSP — go-to-definition / find-references for a known symbol
 - Bash — git log/blame
 
-If you catch yourself doing more than 2 Grep/Glob calls, stop and use another `codebase-search` instead.
-
-## Step 3 — Read key files
-
-Read only the specific files/lines surfaced by `codebase-search`. Do NOT chain reads by following imports — if you need to trace further, make another `codebase-search` call.
-
-## Step 4 — Return results
+## Step 3 — Return results
 
 Return findings in this structure:
 

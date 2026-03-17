@@ -4,11 +4,20 @@ description: |
   Use this agent to analyze requests BEFORE planning to prevent AI failures. Examples:
 
   <example>
-  Context: User wants to build a complex feature
-  user: "Add authentication with OAuth, JWT, and role-based access control"
+  Context: User wants to upgrade SDK/framework version
+  user: "Upgrade from Expo SDK 53 to 54"
+  assistant: "I'll use the metis agent to analyze scope and risks before planning."
+  <commentary>
+  SDK upgrade touches multiple packages, has breaking changes, and needs migration research — metis classifies intent, surfaces hidden requirements, and produces directives.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User wants to build a feature touching multiple modules
+  user: "Add push notification consent flow with analytics tracking"
   assistant: "I'll use the metis agent to analyze this request before planning."
   <commentary>
-  Complex multi-part request with ambiguous scope — metis classifies intent, surfaces hidden requirements, and flags AI-slop risks before planning begins.
+  Multi-system feature (notifications + consent + analytics) with ambiguous scope — metis explores existing patterns and flags risks before planning begins.
   </commentary>
   </example>
 

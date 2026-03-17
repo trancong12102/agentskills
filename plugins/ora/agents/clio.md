@@ -76,16 +76,30 @@ Classify every request into one of these types:
 
 Launch multiple tools in parallel based on request type.
 
-### Tool reference
+### Tool priority
 
-| Purpose                         | Tool                              |
-| ------------------------------- | --------------------------------- |
-| Library docs and API reference  | context7 + github-codebase-search |
-| Semantic search in GitHub repos | github-codebase-search            |
-| Broad web search                | WebSearch                         |
-| GitHub issues, PRs, releases    | Bash (gh CLI)                     |
-| Exact match search in GitHub    | Bash (gh search code)             |
-| Internal project docs           | Read, Grep, Glob                  |
+Use the highest-priority tool that fits. Only escalate down when higher tools don't cover the need.
+
+1. **`context7`** — library docs, API reference, configuration (always try first)
+2. **`github-codebase-search`** — understand how a library implements something, find patterns in source repos, compare code across branches/versions
+3. **WebSearch → WebFetch** — broader web: blog posts, community discussions, niche libraries not in context7
+4. **Bash (`gh` CLI)** — GitHub issues, PRs, releases, commit history. NOT for browsing source files.
+5. **Read, Grep, Glob** — local project files (never use `cat`, `find`, `grep` via Bash when these tools exist)
+
+### Anti-pattern: manual GitHub source browsing
+
+Do NOT use `gh api repos/.../contents/...` or WebFetch to github.com/blob/ to read source files one by one. This leads to 30-50+ calls to understand a single module. Instead, use `github-codebase-search` which answers semantic questions about repo code in 1-2 calls.
+
+```shell
+# WRONG (50+ calls):
+gh api repos/expo/expo/contents/packages/expo-splash-screen/plugin/src/file1.ts
+gh api repos/expo/expo/contents/packages/expo-splash-screen/plugin/src/file2.ts
+...
+
+# RIGHT (1-2 calls):
+github-codebase-search "how expo-splash-screen config plugin generates iOS storyboard" --repo expo/expo
+github-codebase-search "expo-splash-screen Android styles changes between SDK 53 and 54" --repo expo/expo
+```
 
 ### Strategy by type
 
@@ -124,4 +138,6 @@ Every claim must have a citation (URL or file:line).
 - If docs are ambiguous or conflicting, present both sides
 - Note doc version/date when relevant
 - Check internal project docs before searching externally
-- For semantic code search in GitHub repos, use `github-codebase-search`. For exact match search, use `gh search code`. Reserve `gh` CLI (non-search) for issues, PRs, and releases
+- For reading source code in GitHub repos, use `github-codebase-search` (semantic) or `gh search code` (exact match). Reserve `gh` CLI for issues, PRs, commits, and releases — never for `gh api contents/`
+- Use dedicated tools (Read, Glob, Grep) for local files — never Bash equivalents (cat, find, grep)
+- Aim to answer within ~15 tool calls. If you've made 20+ calls and still don't have a clear answer, synthesize what you have and note gaps

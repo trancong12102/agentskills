@@ -1,3 +1,15 @@
 {
-  "hooks": {}
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "If this plan has 4 or more implementation steps, validate it with ora:Momus before exiting — Momus catches blocking issues like missing files, impossible tasks, and contradictions that waste implementation time. Spawn Agent(subagent_type='ora:Momus') with the full plan text and wait for its verdict. If Momus returns [REJECT], fix the cited issues and re-validate. If [OKAY] or the plan has fewer than 4 steps, proceed with ExitPlanMode."
+          }
+        ]
+      }
+    ]
+  }
 }

@@ -10,13 +10,22 @@ message=$(echo "$input" | jq -r '
 
 if [ -n "$TMUX" ]; then
   # Inside tmux: write directly to outer terminal TTY to bypass tmux interception
-  CLIENT_TTY=$(tmux display-message -p '#{client_tty}')
-  [ -z "$CLIENT_TTY" ] && exit 0
-  printf '\a' > "$CLIENT_TTY"
-  printf '\033]9;Claude Code: %s\007' "$message" > "$CLIENT_TTY"
+  TTY=$(tmux display-message -p '#{client_tty}')
 else
-  # Direct terminal: write to current TTY
-  TTY=$(tty 2>/dev/null || echo /dev/tty)
-  printf '\a' > "$TTY"
-  printf '\033]9;Claude Code: %s\007' "$message" > "$TTY"
+  # Direct terminal: find TTY from parent process tree (hook subprocesses lack a controlling TTY)
+  pid=$$
+  while [ "$pid" -gt 1 ] 2>/dev/null; do
+    t=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')
+    if [ -n "$t" ] && [ "$t" != "??" ]; then
+      TTY="/dev/$t"
+      break
+    fi
+    pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+  done
 fi
+
+[ -z "$TTY" ] && exit 0
+
+# Bell (dock bounce + badge) + OSC 9 (notification banner)
+printf '\a' > "$TTY"
+printf '\033]9;Claude Code: %s\007' "$message" > "$TTY"

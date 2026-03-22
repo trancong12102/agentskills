@@ -5,6 +5,6 @@
   "plugins": [
     { "name": "sound-notify", "source": "./plugins/sound-notify" },
     { "name": "ora", "source": "./plugins/ora" },
-    { "name": "tmux-notify", "source": "./plugins/tmux-notify" }
+    { "name": "terminal-notify", "source": "./plugins/terminal-notify" }
   ]
 }

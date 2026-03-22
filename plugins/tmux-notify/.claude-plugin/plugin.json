@@ -1,9 +1,0 @@
-{
-  "name": "tmux-notify",
-  "version": "1.0.0",
-  "description": "Send desktop notifications from Claude Code inside tmux to the outer terminal (Ghostty, iTerm2, etc.)",
-  "author": { "name": "Cong Tran" },
-  "repository": "https://github.com/trancong12102/agentskills",
-  "license": "MIT",
-  "keywords": ["notification", "tmux", "ghostty", "osc9", "desktop"]
-}

@@ -26,6 +26,13 @@ fi
 
 [ -z "$TTY" ] && exit 0
 
+# Kitty: skip notification if this pane/tab has focus
+if [ -n "$KITTY_LISTEN_ON" ] && [ -n "$KITTY_WINDOW_ID" ]; then
+  focused=$(kitten @ --to "$KITTY_LISTEN_ON" ls 2>/dev/null \
+    | jq --argjson wid "$KITTY_WINDOW_ID" '[.[].tabs[].windows[] | select(.id == $wid)][0].is_focused')
+  [ "$focused" = "true" ] && exit 0
+fi
+
 # Bell (dock bounce + badge)
 printf '\a' > "$TTY"
 

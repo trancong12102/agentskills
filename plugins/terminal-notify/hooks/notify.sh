@@ -26,6 +26,12 @@ fi
 
 [ -z "$TTY" ] && exit 0
 
-# Bell (dock bounce + badge) + OSC 9 (notification banner)
+# Bell (dock bounce + badge)
 printf '\a' > "$TTY"
-printf '\033]9;Claude Code: %s\007' "$message" > "$TTY"
+
+# Notification banner
+if [ -n "$KITTY_PID" ]; then
+  kitten notify "Claude Code" "$message"
+else
+  printf '\033]9;Claude Code: %s\007' "$message" > "$TTY"
+fi

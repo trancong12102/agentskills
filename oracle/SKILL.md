@@ -49,15 +49,39 @@ Scripts are in `scripts/` relative to this skill's directory. Run `<script> --he
 Launch `scripts/codex-oracle.py` as a background Bash task (`run_in_background: true`). Codex CLI may take up to 30 minutes.
 
 ```bash
-python3 scripts/codex-oracle.py --question "..." --context-file path1 --context-file path2 [--focus text] [--dry-run]
+# New session
+python3 scripts/codex-oracle.py --question "..." [--context-file path] [--focus text] [--dry-run]
+
+# Resume a previous session for follow-up
+python3 scripts/codex-oracle.py --session-id <id> --question "follow-up question..." [--context-file path] [--focus text]
 ```
 
 After launching the background task, **end your response immediately** and wait. Do not poll, read output files, or check process status. You will be notified automatically when Codex completes.
 
-### Step 3: Present Results
+### Step 3: Review Response
 
-1. Use the `Read` tool on the `output-file` path from the completion notification to retrieve the Codex analysis.
-2. Present the results to the user — use your own judgment on formatting and what to highlight.
+1. Read the Codex output from the background task completion notification.
+2. Capture the `oracle-session-id` from the last line — store it internally for follow-ups.
+3. Review the response yourself. Decide whether it fully answers the user's question or needs clarification/deeper analysis.
+
+### Step 4: Follow-up Loop (if needed)
+
+If the Codex response is incomplete, ambiguous, or you need it to drill deeper — send follow-ups before presenting anything to the user. Repeat as many times as needed.
+
+1. Use the stored `oracle-session-id` with `--session-id` to resume the session. Codex retains the full conversation history.
+2. Only send the new follow-up question — do not repeat prior questions or the system prompt.
+3. Launch as a background task, wait for completion, and review the new response.
+4. Loop back to decide: sufficient, or another follow-up needed?
+
+The session accumulates context with each round, making subsequent answers more informed. Start a new session (Step 1) only when the topic changes entirely.
+
+### Step 5: Present Results
+
+Once you have a complete, clear answer from the oracle (after one or more rounds):
+
+1. Synthesize all Codex responses into a single coherent answer for the user.
+2. Use your own judgment on formatting and what to highlight — you do not need to echo every detail from every round.
+3. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
 
 ## Rules
 

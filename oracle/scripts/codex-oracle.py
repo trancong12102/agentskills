@@ -7,14 +7,17 @@ Usage:
 
 Options:
     --question <text>       The question or analysis request (required)
+    --session-id <id>       Resume a previous Codex session for follow-up
     --context-file <path>   Add context file content to the prompt (repeatable)
     --focus <text>          Narrow the analysis to specific concerns
     --dry-run               Print the command without running Codex
 
 Notes:
     - Requires the 'oracle' profile in ~/.codex/config.toml
+    - Session IDs are returned in the output for follow-up queries
 """
 
+import json
 import os
 import shutil
 import subprocess
@@ -149,17 +152,53 @@ Your response goes directly to the user with no intermediate processing. Make yo
 </delivery>"""
 
 
-def run_codex(prompt, dry_run):
+def build_followup_prompt(question, focus, context_block):
+    """Build a lightweight prompt for session follow-ups (no system prompt)."""
+    parts = [question]
+    if focus:
+        parts.append(f"\nFocus on: {focus}")
+    if context_block:
+        parts.append(f"\nAdditional context:\n{context_block}")
+    return "\n".join(parts)
+
+
+def parse_thread_id(jsonl_output):
+    """Extract thread_id from Codex --json JSONL output."""
+    for line in jsonl_output.strip().split("\n"):
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+            if event.get("type") == "thread.started":
+                return event.get("thread_id")
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
+def run_codex(prompt, session_id, dry_run):
     output_file = tempfile.NamedTemporaryFile(
         prefix="codex-oracle-", suffix=".md", delete=False, mode="w"
     )
     output_file.close()
 
-    cmd = [
-        "codex", "exec", "-p", "oracle",
-        "-o", output_file.name,
-        "-",
-    ]
+    if session_id:
+        cmd = [
+            "codex", "exec", "resume", session_id,
+            "-m", "gpt-5.4",
+            "-c", 'model_reasoning_effort="high"',
+            "-c", 'approval_policy="never"',
+            "--json",
+            "-o", output_file.name,
+            "-",
+        ]
+    else:
+        cmd = [
+            "codex", "exec", "-p", "oracle",
+            "--json",
+            "-o", output_file.name,
+            "-",
+        ]
 
     if dry_run:
         print("=== DRY RUN ===")
@@ -171,17 +210,25 @@ def run_codex(prompt, dry_run):
         return
 
     result = subprocess.run(cmd, input=prompt, text=True, capture_output=True)
+
+    thread_id = parse_thread_id(result.stdout)
+
     try:
         with open(output_file.name, "r") as f:
             print(f.read())
     finally:
         os.unlink(output_file.name)
+
+    if thread_id:
+        print(f"\noracle-session-id: {thread_id}")
+
     sys.exit(result.returncode)
 
 
 def parse_args(args):
     question = ""
     focus = ""
+    session_id = ""
     dry_run = False
     context_files = []
     i = 0
@@ -190,6 +237,11 @@ def parse_args(args):
             if i + 1 >= len(args):
                 fail("--question requires a value")
             question = args[i + 1]
+            i += 2
+        elif args[i] == "--session-id":
+            if i + 1 >= len(args):
+                fail("--session-id requires a value")
+            session_id = args[i + 1]
             i += 2
         elif args[i] == "--focus":
             if i + 1 >= len(args):
@@ -209,7 +261,7 @@ def parse_args(args):
             sys.exit(0)
         else:
             fail(f"Unknown option: {args[i]}")
-    return question, focus, dry_run, context_files
+    return question, focus, session_id, dry_run, context_files
 
 
 def main():
@@ -219,14 +271,19 @@ def main():
         usage()
         sys.exit(1)
 
-    question, focus, dry_run, context_files = parse_args(sys.argv[1:])
+    question, focus, session_id, dry_run, context_files = parse_args(sys.argv[1:])
 
     if not question:
         fail("--question is required")
 
     context_block = build_context_block(context_files) if context_files else ""
-    prompt = build_prompt(question, focus, context_block)
-    run_codex(prompt, dry_run)
+
+    if session_id:
+        prompt = build_followup_prompt(question, focus, context_block)
+    else:
+        prompt = build_prompt(question, focus, context_block)
+
+    run_codex(prompt, session_id, dry_run)
 
 
 if __name__ == "__main__":

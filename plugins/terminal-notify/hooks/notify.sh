@@ -31,7 +31,7 @@ printf '\a' > "$TTY"
 
 # Notification banner
 if [ -n "$KITTY_PID" ]; then
-  kitten notify "Claude Code" "$message"
+  kitten notify --only-print-escape-code "Claude Code" "$message" > "$TTY"
 else
   printf '\033]9;Claude Code: %s\007' "$message" > "$TTY"
 fi

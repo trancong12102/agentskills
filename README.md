@@ -33,10 +33,10 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 
 ## Plugins
 
-| Plugin                                 | Description                                                                   |
-| -------------------------------------- | ----------------------------------------------------------------------------- |
-| [ora](./plugins/ora)                   | Context-gathering agents and plan quality gates (see [Agents](#agents) below) |
-| [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question           |
+| Plugin                                 | Description                                                                                    |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [ora](./plugins/ora)                   | 7 specialized subagents for exploration, planning, and execution (see [Agents](#agents) below) |
+| [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question                            |
 
 Install plugins in Claude Code:
 
@@ -56,14 +56,49 @@ Then select **Enable auto-update** when prompted.
 
 ## Agents
 
-The `ora` plugin ships four specialized subagents, two for context gathering and two for plan quality gates:
+The `ora` plugin ships 7 specialized subagents organized across three phases:
 
-| Agent         | Role         | Model  | Description                                                                                                                                                                                                                    |
-| ------------- | ------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ora:Ariadne` | Context      | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. Enhanced contextual grep with structured output.                                                                                                |
-| `ora:Clio`    | Context      | Sonnet | Documentation & remote code lookup — fetches official docs, searches public GitHub repos, finds best practices.                                                                                                                |
-| `ora:Metis`   | Pre-planning | Opus   | Analyzes requests before planning. Classifies intent (Refactoring / Build / Mid-sized / Collaborative / Architecture / Research), surfaces hidden requirements, flags AI-slop risks, and generates directives for the planner. |
-| `ora:Momus`   | Plan review  | Sonnet | Reviews plans after planning. Checks reference validity, task executability, critical blockers, and QA criteria. Strong approval bias — rejects only for true blockers (max 3 issues).                                         |
+### Research
+
+| Agent         | Model  | Description                                                                       |
+| ------------- | ------ | --------------------------------------------------------------------------------- |
+| `ora:Ariadne` | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.    |
+| `ora:Clio`    | Sonnet | External research — fetches docs, searches GitHub repos, looks up best practices. |
+
+### Planning
+
+| Agent            | Model  | Description                                                                                                                                                                                                                     |
+| ---------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ora:Prometheus` | Opus   | Interview-style planner — gathers codebase context, then asks targeted questions to clarify scope before producing a structured plan. Two-phase invocation: Phase 1 returns questions, Phase 2 synthesizes a plan from answers. |
+| `ora:Metis`      | Opus   | Pre-plan risk analysis — classifies intent, surfaces hidden requirements, flags AI-slop risks, and generates directives for the planner.                                                                                        |
+| `ora:Momus`      | Sonnet | Plan validation — checks reference validity, task executability, and critical blockers. Strong approval bias — rejects only for true blockers (max 3 issues). Auto-triggered by ExitPlanMode hook on plans with 4+ steps.       |
+
+### Execution
+
+| Agent            | Model | Description                                                                                                                                                                                                |
+| ---------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ora:Atlas`      | Opus  | Plan conductor — organizes tasks into parallel waves, assigns agents per task, and accumulates learnings between waves so each task benefits from what came before. Re-invoked between waves with results. |
+| `ora:Hephaestus` | Opus  | Autonomous deep worker — receives a goal, works independently in a worktree, returns finished code with a structured summary. First ora agent with write access.                                           |
+
+### Workflow
+
+Each step is optional — simple tasks skip straight to execution.
+
+```text
+User request
+  │
+  ├─ Unclear scope? ──▶ ora:Prometheus (interview)
+  │                          │
+  ├─ Complex task? ────▶ ora:Metis (risk analysis)
+  │                          │
+  ├─ Plan mode ────────▶ ora:Momus (validation, auto-triggered)
+  │                          │
+  ├─ Multi-task plan? ─▶ ora:Atlas (wave dispatch)
+  │                          │
+  └─ Execute ──────────▶ ora:Hephaestus (worktree)
+                         ora:Ariadne (research)
+                         Direct (simple tasks)
+```
 
 ## License
 

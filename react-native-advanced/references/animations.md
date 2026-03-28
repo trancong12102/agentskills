@@ -1,8 +1,8 @@
-# Animations & Gestures: Reanimated + Gesture Handler + Moti
+# Animations & Gestures: Reanimated + Gesture Handler
 
 Patterns and pitfalls for building fluid, gesture-driven animations in Expo apps. Covers
-Reanimated 4 (UI-thread animations), Gesture Handler 2 (gesture composition), and Moti
-(declarative animation layer).
+Reanimated 4 (UI-thread animations, CSS transitions) and Gesture Handler 2 (gesture
+composition).
 
 ---
 

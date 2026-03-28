@@ -4,6 +4,18 @@ A collection of reusable skills for AI coding agents, mainly for Claude Code.
 
 ## Prerequisites
 
+Some skills require API keys or external CLI authentication. Set them up before use:
+
+| Skill                    | Credential                 | How to get                                                                      |
+| ------------------------ | -------------------------- | ------------------------------------------------------------------------------- |
+| `context7`               | `CONTEXT7_API_KEY` env var | Sign up at [context7.com](https://context7.com)                                 |
+| `codebase-search`        | `MORPH_API_KEY` env var    | Sign up at [morphllm.com](https://morphllm.com)                                 |
+| `github-codebase-search` | `MORPH_API_KEY` env var    | Same as above                                                                   |
+| `oracle`                 | Codex CLI auth             | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex) |
+| `council-review`         | Codex CLI auth             | Same as above                                                                   |
+
+### Codex CLI setup
+
 The `oracle` and `council-review` skills require [Codex CLI](https://github.com/openai/codex) with an `oracle` profile. Add this to `~/.codex/config.toml`:
 
 ```toml
@@ -16,43 +28,34 @@ sandbox_mode = "read-only"
 
 ## Installation
 
-Install all skills:
+### Skills
 
 ```bash
+# All skills
 bunx skills add trancong12102/agentskills -g -y -a claude-code
-```
 
-Or install individual skills:
-
-```bash
+# Or individual skills
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s context7
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s council-review
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s deps-dev
 bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 ```
 
-## Plugins
+### Plugins
 
 | Plugin                                 | Description                                                                                    |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [ora](./plugins/ora)                   | 7 specialized subagents for exploration, planning, and execution (see [Agents](#agents) below) |
 | [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question                            |
 
-Install plugins in Claude Code:
-
 ```shell
 /plugin marketplace add trancong12102/agentskills
 /plugin install ora@agentskills
 /plugin install sound-notify@agentskills
-```
 
-Enable auto-update to get the latest plugin versions on startup:
-
-```shell
+# Enable auto-update
 /plugin marketplace update agentskills
 ```
-
-Then select **Enable auto-update** when prompted.
 
 ## Agents
 

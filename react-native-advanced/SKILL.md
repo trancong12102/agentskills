@@ -416,7 +416,7 @@ function MySheet() {
   fixed height.
 - **Always `dismiss()` before unmounting** — the native sheet outlives the React component.
 - **Standard `TextInput` works** — no special keyboard component needed (native handling).
-- **Standard `ScrollView`/`FlatList` works** with `scrollable` prop — auto-detected in v3.
+- **Standard `ScrollView`/`FlashList` works** with `scrollable` + `nestedScrollEnabled` — auto-detected in v3 (up to 2 levels deep).
 
 For full patterns, platform differences, and Expo Router integration, see
 `references/bottom-sheet.md`.

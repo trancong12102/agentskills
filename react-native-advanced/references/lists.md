@@ -1,17 +1,12 @@
 # FlashList + React Query — List Patterns
 
-## FlashList vs FlatList
+## Why FlashList
 
-| Concern        | FlatList               | FlashList                                 |
-| -------------- | ---------------------- | ----------------------------------------- |
-| Cell reuse     | No — creates new cells | Yes — recycles view instances             |
-| Memory usage   | Higher                 | Lower                                     |
-| Blank cells    | Common on fast scroll  | Rare (native view recycling)              |
-| Setup friction | None                   | Minimal (v2 handles sizing automatically) |
-| Heterogeneous  | Works, no hints        | Requires `getItemType` for best recycling |
+FlashList recycles native view instances instead of creating new cells on every mount.
+This means lower memory usage, fewer blank cells on fast scroll, and better frame rates.
+v2 handles sizing automatically — no `estimatedItemSize` needed.
 
-**Use FlatList** when: list is short (<50 items) or items need full unmount/remount
-lifecycle. **Use FlashList** for long, performance-critical lists.
+For heterogeneous lists, provide `getItemType` so the recycler matches cell types correctly.
 
 ---
 
@@ -59,7 +54,7 @@ function PostList() {
 
 ### Critical: guard against double-firing
 
-FlashList (and FlatList) can call `onEndReached` multiple times in quick succession.
+FlashList can call `onEndReached` multiple times in quick succession.
 The `!isFetchingNextPage` guard is essential — without it, duplicate page fetches produce
 duplicated items.
 
@@ -86,8 +81,8 @@ longer fires.
 
 ### overrideItemLayout — only `span` works
 
-In v2, `layout.size` is silently ignored. Only `layout.span` is supported for controlling
-how many columns an item spans:
+In v2, the `layout` object only exposes `span` — the `size` field was removed from the
+type entirely. Setting `layout.size` is a TypeScript error:
 
 ```typescript
 <FlashList
@@ -98,7 +93,24 @@ how many columns an item spans:
 />
 ```
 
-Do not set `layout.size` — it has no effect in v2.
+### MasonryFlashList → `masonry` prop
+
+`MasonryFlashList` is deprecated in v2. Use the `masonry` boolean prop on `FlashList`:
+
+```typescript
+<FlashList masonry numColumns={2} data={items} renderItem={renderItem} />
+```
+
+### New v2 hooks
+
+- **`useRecyclingState(defaultValue, deps)`** — state that resets when the cell is recycled
+  for a different item. Solves stale-state bugs from v1 cell reuse.
+- **`useLayoutState()`** — subscribe to layout changes without prop drilling.
+
+### `onStartReached` (v2)
+
+Symmetrical to `onEndReached` — fires when scrolling near the top. Use with
+`onStartReachedThreshold` for chat-style reverse-scroll pagination.
 
 ---
 

@@ -79,23 +79,26 @@ TrueSheet.dismissAll();
 
 ---
 
-## ScrollView / FlatList Integration
+## ScrollView / FlashList Integration
 
 ScrollViews are **auto-detected** in v3 — no ref wiring needed. Set `scrollable` and use
 standard RN scroll components directly:
 
 ```typescript
 <TrueSheet scrollable detents={[0.5, 1]}>
-  <FlatList data={items} renderItem={renderItem} />
+  <FlashList nestedScrollEnabled data={items} renderItem={renderItem} />
 </TrueSheet>
 ```
 
 `scrollable={true}` coordinates scroll vs. drag: scrolling down from top drags the sheet to
-a smaller detent; scrolling up expands it.
+a smaller detent; scrolling up expands it. `nestedScrollEnabled` is required for the scroll
+detection to work correctly, especially on Android.
 
 ### Gotchas
 
 - **Never combine `scrollable` with `'auto'` detent** — use fixed detents only.
+- **Auto-detection depth limit** — TrueSheet finds the scroll view up to 2 levels deep. If
+  FlashList is wrapped in more than one container View, `scrollable` will have no effect.
 - **Don't conditionally mount/unmount ScrollViews inside sheets on Android** — breaks scroll
   handling. Toggle visibility with `display: 'none'` or opacity instead.
 - **Pull-to-refresh on Android** fails when ScrollView content doesn't fill the sheet height.

@@ -1,3 +1,0 @@
-# Test
-
-- bad spacing\*

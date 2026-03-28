@@ -6,8 +6,8 @@
 | -------------- | ---------------------- | ----------------------------------------- |
 | Cell reuse     | No — creates new cells | Yes — recycles view instances             |
 | Memory usage   | Higher                 | Lower                                     |
-| Blank cells    | Common on fast scroll  | Rare; `onBlankArea` for monitoring        |
-| Setup friction | None                   | Requires `estimatedItemSize`              |
+| Blank cells    | Common on fast scroll  | Rare (native view recycling)              |
+| Setup friction | None                   | Minimal (v2 handles sizing automatically) |
 | Heterogeneous  | Works, no hints        | Requires `getItemType` for best recycling |
 
 **Use FlatList** when: list is short (<50 items) or items need full unmount/remount
@@ -46,7 +46,6 @@ function PostList() {
       data={items}
       renderItem={({ item }) => <PostCard post={item} />}
       keyExtractor={(item) => item.id}
-      estimatedItemSize={120}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.3}
       ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
@@ -75,28 +74,31 @@ Returning `null` does not signal "no next page" in React Query v5 — only `unde
 
 ---
 
-## estimatedItemSize
+## FlashList v2 — Key Changes
 
-The most impactful prop. Gives FlashList a hint for initial layout before actual sizes
-are measured.
+FlashList v2 is a ground-up rewrite. **New Architecture (Fabric) is required.**
 
-- **Too high** → fewer items render initially, blank areas on fast scroll
-- **Too low** → over-allocates cells at startup (minor perf cost)
-- Use the **median** item height, not the mean (outliers skew the mean)
-- FlashList warns in dev if estimate is significantly off — take the warning seriously
+### Automatic Sizing (v2)
 
-### overrideItemLayout — exact sizes when known
+`estimatedItemSize` is **deprecated and ignored** in v2 — FlashList handles sizing
+automatically. Remove it from your props. The dev warning about estimates being off no
+longer fires.
+
+### overrideItemLayout — only `span` works
+
+In v2, `layout.size` is silently ignored. Only `layout.span` is supported for controlling
+how many columns an item spans:
 
 ```typescript
 <FlashList
+  numColumns={3}
   overrideItemLayout={(layout, item) => {
-    layout.size = item.isHeader ? 80 : 60
+    layout.span = item.isHeader ? 3 : 1 // header spans full width
   }}
-  estimatedItemSize={60}
 />
 ```
 
-Eliminates estimation errors for items with known sizes.
+Do not set `layout.size` — it has no effect in v2.
 
 ---
 
@@ -129,7 +131,6 @@ know the type for optimal recycling:
     if (item.type === 'ad') return <Ad item={item} />
     return <Card item={item} />
   }}
-  estimatedItemSize={100}
 />
 ```
 

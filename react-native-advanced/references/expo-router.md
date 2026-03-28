@@ -17,8 +17,12 @@ Enable in `app.json`:
 }
 ```
 
-Types are auto-generated from the file system into `.expo/types/router.d.ts`. `Link`'s
-`href` and `router.push()` become type-safe — invalid routes cause TS errors.
+After enabling, run `npx expo customize tsconfig.json` to add the required `includes` fields
+so TypeScript picks up the generated types in `.expo/types/router.d.ts`. Without this step,
+type-safe routes won't work (especially in CI where the dev server doesn't auto-generate them).
+
+Types are auto-generated from the file system. `Link`'s `href` and `router.push()` become
+type-safe — invalid routes cause TS errors.
 
 ### Comparison with TanStack Router
 
@@ -117,10 +121,14 @@ export default function RootLayout() {
 }
 ```
 
-When `session` flips, Expo Router automatically redirects and cleans history. Deep links
-to protected screens fail gracefully when unauthenticated.
+When `session` flips, Expo Router automatically redirects and **removes all history entries**
+for the deactivated screens (not just a redirect). Deep links to protected screens fail
+gracefully when unauthenticated.
 
-### Pattern 2: Redirect in layout (v4 compatible)
+`.Protected` also works on other navigators: `Tabs.Protected`, `Drawer.Protected` — same
+`guard` prop pattern.
+
+### Pattern 2: Redirect in layout (legacy, v4 compatible)
 
 ```typescript
 // app/(app)/_layout.tsx

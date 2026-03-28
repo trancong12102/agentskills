@@ -150,7 +150,7 @@ persist(
 ### `devtools` — label actions for debuggability
 
 ```typescript
-increment: () => set((s) => ({ count: s.count + 1 }), undefined, 'count/increment'),
+increment: () => set((s) => ({ count: s.count + 1 }), false, 'count/increment'),
 ```
 
 ### `subscribeWithSelector` — subscribe to slices outside React

@@ -22,7 +22,7 @@ Streaming: use async generators in handlers (`async function*`).
 ```typescript
 // serverFns/posts.ts
 export const getPost = createServerFn({ method: "GET" })
-  .validator((data: { postId: string }) => data)
+  .inputValidator((data: { postId: string }) => data)
   .handler(async ({ data }) =>
     db.posts.findUnique({ where: { id: data.postId } }),
   );

@@ -11,16 +11,16 @@ MMKV is synchronous and runs on the native thread — ~30x faster than AsyncStor
 no async hydration gap.
 
 ```typescript
-import { MMKV } from "react-native-mmkv";
+import { createMMKV } from "react-native-mmkv";
 import { StateStorage, createJSONStorage } from "zustand/middleware";
 
 // Create at module level — NEVER inside a component or store factory
-const mmkv = new MMKV();
+const mmkv = createMMKV();
 
 const zustandStorage: StateStorage = {
   setItem: (name, value) => mmkv.set(name, value),
   getItem: (name) => mmkv.getString(name) ?? null, // must return null, not undefined
-  removeItem: (name) => mmkv.delete(name),
+  removeItem: (name) => mmkv.remove(name),
 };
 ```
 
@@ -54,7 +54,7 @@ export const useAppStore = create<AppState>()(
 For sensitive data (auth tokens, user PII):
 
 ```typescript
-const secureStorage = new MMKV({
+const secureStorage = createMMKV({
   id: "secure-storage",
   encryptionKey: "your-encryption-key", // or from Keychain/secure store
 });
@@ -62,11 +62,12 @@ const secureStorage = new MMKV({
 const secureZustandStorage: StateStorage = {
   setItem: (name, value) => secureStorage.set(name, value),
   getItem: (name) => secureStorage.getString(name) ?? null,
-  removeItem: (name) => secureStorage.delete(name),
+  removeItem: (name) => secureStorage.remove(name),
 };
 ```
 
-Use a separate MMKV instance with `encryptionKey` for auth stores.
+Use a separate `createMMKV` instance with `encryptionKey` for auth stores. v4 also supports
+`encryptionType: 'AES-256'` (default is `'AES-128'`).
 
 ---
 
@@ -202,6 +203,14 @@ or other non-React contexts:
 ```typescript
 import { createStore } from "zustand/vanilla";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { createMMKV } from "react-native-mmkv";
+
+const mmkv = createMMKV();
+const zustandStorage: StateStorage = {
+  setItem: (name, value) => mmkv.set(name, value),
+  getItem: (name) => mmkv.getString(name) ?? null,
+  removeItem: (name) => mmkv.remove(name),
+};
 
 export const authStore = createStore<AuthState>()(
   persist(
@@ -227,14 +236,17 @@ export const authStore = createStore<AuthState>()(
 1. **`getString` returns `undefined`** — Zustand's `StateStorage.getItem` must return
    `null` for missing keys. Always coerce: `mmkv.getString(name) ?? null`.
 
-2. **Creating MMKV instance inside a component** — each call creates a new native
-   instance. Declare at module level and reuse.
+2. **Creating MMKV instance inside a component** — each `createMMKV()` call creates a new
+   native instance. Declare at module level and reuse.
 
 3. **One MMKV instance per store** — do not share encrypted and unencrypted instances
-   across stores. Create separate instances for different security levels.
+   across stores. Create separate `createMMKV()` instances for different security levels.
 
 4. **Not using `partialize`** — persisting action functions causes serialization errors.
    Always exclude functions and derived state.
 
 5. **Persisting ephemeral UI state** — loading spinners, modal open/close, transient
    selections should not be persisted. Only persist data that must survive app restart.
+
+6. **MMKV v3 → v4 migration** — `new MMKV()` → `createMMKV()`, `.delete()` → `.remove()`.
+   These break at runtime, not compile time, if missed.

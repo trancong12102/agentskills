@@ -98,14 +98,41 @@ Pitfalls:
 
 | Reanimated 3                      | Reanimated 4                              |
 | --------------------------------- | ----------------------------------------- |
-| `runOnJS(fn)(args)`               | `scheduleOnRN(fn, args)`                  |
-| `runOnUI(fn)(args)`               | `scheduleOnUI(fn, args)`                  |
+| `runOnJS(fn)(args)`               | `scheduleOnRN(fn, ...args)` (variadic)    |
+| `runOnUI(fn)(args)`               | `scheduleOnUI(fn, ...args)` (variadic)    |
 | `useAnimatedGestureHandler`       | Gesture Handler 2 `Gesture` API (removed) |
 | `useScrollViewOffset`             | `useScrollOffset`                         |
 | Babel plugin: `reanimated/plugin` | `react-native-worklets/plugin`            |
 
 Reanimated 4 is **New Architecture only**. Expo SDK 53+ enables New Architecture by default.
 The Babel plugin is auto-configured by `babel-preset-expo` — do not add it manually.
+
+Import `scheduleOnRN`/`scheduleOnUI` from `react-native-worklets`, not `react-native-reanimated`:
+
+```typescript
+import { scheduleOnRN } from "react-native-worklets";
+```
+
+`runOnJS`/`runOnUI` remain as deprecated aliases in `react-native-reanimated`.
+
+### `.get()` / `.set()` — React Compiler Compatible
+
+Reanimated 4 adds `.get()` and `.set()` as alternatives to `.value` that work with the
+React Compiler (which may break the `.value` proxy):
+
+```typescript
+const x = useSharedValue(0);
+x.get(); // read (React Compiler-safe)
+x.set((v) => v + 1); // write with updater (React Compiler-safe)
+```
+
+Use `.get()`/`.set()` in new code when adopting the React Compiler.
+
+### `withSpring` — Threshold Change in v4
+
+`restDisplacementThreshold` and `restSpeedThreshold` are replaced by a single
+`energyThreshold` (default `6e-9`). Code passing the old threshold options silently uses
+wrong defaults.
 
 ### Performance
 
@@ -147,7 +174,7 @@ Gesture callbacks are worklets (UI thread). To call JS-thread functions:
 const pan = Gesture.Pan().onEnd(() => {
   "worklet";
   runOnJS(setIsOpen)(false); // Reanimated 3
-  // scheduleOnRN(setIsOpen, [false]) // Reanimated 4
+  // scheduleOnRN(setIsOpen, false) // Reanimated 4 (variadic, not array)
 });
 ```
 
@@ -170,43 +197,37 @@ const taps = Gesture.Exclusive(doubleTap, singleTap);
 
 ---
 
-## Moti — Declarative Animations
+## Reanimated 4 — CSS Transitions (Declarative)
 
-Moti is a thin layer over Reanimated that auto-generates `useAnimatedStyle` from props.
-All animations run on the UI thread — same performance as raw Reanimated.
-
-### When to Use Moti vs Raw Reanimated
-
-| Moti                            | Raw Reanimated                   |
-| ------------------------------- | -------------------------------- |
-| Entrance/exit animations        | Gesture-driven animations        |
-| State-driven style transitions  | Imperative animation chains      |
-| Loading spinners, pulse effects | Shared element transitions       |
-| Simple sequences                | Complex multi-step orchestration |
-
-Mixing is valid — `MotiView` wraps `Animated.View`, so you can pass `useAnimatedStyle`
-into its `style` prop while using Moti's declarative props for other properties.
-
-### Key Pattern — Per-Property Transition Config
+Reanimated 4 adds CSS-style declarative transitions that replace the need for libraries
+like Moti. State-driven style changes animate automatically:
 
 ```typescript
-import { MotiView } from 'moti'
-
-// Different animation types per property — the main reason to use Moti over raw Reanimated
-<MotiView
-  animate={{ opacity: 1, scale: 1 }}
-  transition={{
-    opacity: { type: 'timing', duration: 200 },
-    scale: { type: 'spring', damping: 15 },
+<Animated.View
+  style={{
+    backgroundColor: isActive ? "blue" : "gray",
+    opacity: isVisible ? 1 : 0,
+    transitionProperty: "backgroundColor, opacity",
+    transitionDuration: 300,
   }}
 />
 ```
 
-Use `from`/`animate`/`exit` props for state-driven animations, `transition.loop` for repeating.
+### When to Use Which API
 
-`moti/skeleton` provides a `Skeleton` component for loading states with built-in shimmer animation.
+| API                                      | Use for                                        |
+| ---------------------------------------- | ---------------------------------------------- |
+| CSS transitions (`transition*`)          | State-driven style changes (toggle, show/hide) |
+| Layout animations (`entering`/`exiting`) | Mount/unmount animations                       |
+| `useAnimatedStyle` + shared values       | Gesture-driven, scroll-driven, imperative      |
+| `withSpring`/`withTiming`                | Programmatic animations in worklets            |
 
-`AnimatePresence` wraps conditionally rendered `MotiView`s — use `exit` prop for unmount
-animations, requires a `key` prop.
+### CSS Transitions — Key Props
 
-Moti 0.30+ requires Reanimated 3. Projects using Reanimated 4 should verify compatibility.
+- `transitionProperty` — comma-separated list of animated properties
+- `transitionDuration` — milliseconds (number, not string)
+- `transitionDelay` — milliseconds
+- `transitionTimingFunction` — `'ease-in'`, `'ease-out'`, `'linear'`, or cubic-bezier
+
+CSS transitions are **Reanimated 4+ only** (New Architecture required). For Reanimated 3
+projects, use `useAnimatedStyle` with `withTiming`/`withSpring` for the same effect.

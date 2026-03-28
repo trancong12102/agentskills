@@ -77,7 +77,7 @@ Use expo-secure-store for **encryption keys**, use encrypted MMKV for **data**:
 ```typescript
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
-import { MMKV } from "react-native-mmkv";
+import { createMMKV } from "react-native-mmkv";
 
 // Generate and persist encryption key in hardware-backed storage
 let encryptionKey = SecureStore.getItem("mmkv-enc-key");
@@ -87,7 +87,7 @@ if (!encryptionKey) {
 }
 
 // Use MMKV with that key for sessions, large objects
-const secureStorage = new MMKV({ id: "secure-session", encryptionKey });
+const secureStorage = createMMKV({ id: "secure-session", encryptionKey });
 ```
 
 This avoids the 2048-byte limit while keeping secrets in hardware-backed storage.

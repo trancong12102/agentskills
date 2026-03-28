@@ -129,11 +129,11 @@ const persister = createAsyncStoragePersister({ storage: AsyncStorage })
 MMKV adapter for whole-cache:
 
 ```typescript
-const storage = new MMKV();
+const storage = createMMKV();
 const mmkvAdapter = {
   setItem: (key: string, value: string) => storage.set(key, value),
   getItem: (key: string) => storage.getString(key) ?? null,
-  removeItem: (key: string) => storage.delete(key),
+  removeItem: (key: string) => storage.remove(key),
 };
 const persister = createAsyncStoragePersister({ storage: mmkvAdapter });
 ```
@@ -187,8 +187,9 @@ Key behaviors:
 
 ## Common Pitfalls
 
-1. **`PersistQueryClientProvider` renders nothing until hydration** — shows `null` until
-   persisted cache loads. Use `onSuccess` callback to show the app only after hydration.
+1. **`PersistQueryClientProvider` hydration timing** — the provider renders children
+   immediately but queries remain idle until restoration completes. Use `useIsRestoring()`
+   from `@tanstack/react-query-persist-client` to gate UI that depends on hydrated data.
 
 2. **Hermes serialization cost** — very large cache payloads (hundreds of KB) cause jank
    on the JS thread during persist/hydrate. Use per-query persistence for large datasets.

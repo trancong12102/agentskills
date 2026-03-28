@@ -127,6 +127,12 @@ Use `z.output` (or `z.infer`) for validated data after parsing.
    `unknown` in v4 (was `number` in v3). Use `z.coerce.number<string>()` if you need
    a specific input type for type safety.
 
+6. **`z.record()` single-argument form removed** — `z.record(z.string())` no longer works
+   in v4. Must provide both key and value schemas: `z.record(z.string(), z.string())`.
+
+7. **`z.record()` with enum keys is now exhaustive** — `z.record(z.enum(['a','b']), z.number())`
+   produces `{ a: number; b: number }` in v4 (was `{ a?: number; b?: number }` in v3).
+
 ---
 
 ## v3 → v4 Gotchas That Cause Silent Bugs
@@ -161,6 +167,17 @@ schema.parse({});
 // v4: { a: "tuna" } ← default IS applied
 ```
 
+### `.prefault()` — v4 replacement for old `.default()` behavior
+
+`.default(val)` in v4 applies the default **after** parsing (must be output type).
+`.prefault(val)` applies **before** parsing (must be input type) — this is what v3's
+`.default()` did:
+
+```typescript
+z.string().transform(Number).prefault("0"); // input: "0" → parsed → output: 0
+z.string().transform(Number).default(0); // only applies if parsing returns undefined
+```
+
 ---
 
 ## v3 → v4 Key API Changes
@@ -175,4 +192,5 @@ schema.parse({});
 | `schema.merge(other)`                             | `schema.extend(other.shape)`                                        |
 | `z.lazy()` for recursive types                    | `z.object()` with getter: `get children() { return z.array(Self) }` |
 | `z.union([z.literal(1), z.literal(2)])`           | `z.literal([1, 2])`                                                 |
+| `z.record(valueSchema)` (single arg)              | `z.record(keySchema, valueSchema)` (both required)                  |
 | `schema._def`                                     | `schema._zod.def`                                                   |

@@ -39,9 +39,8 @@ Libraries map differently in React Native compared to web:
 | TanStack Virtual | FlashList          | Native view recycling, not DOM virtualization     |
 | localStorage     | MMKV               | Synchronous, native-thread, 30x faster            |
 | window events    | AppState/NetInfo   | Manual wiring required for focus/online managers  |
-| CSS animations   | Reanimated         | UI-thread worklets, shared values                 |
+| CSS animations   | Reanimated         | UI-thread worklets, CSS transitions (v4)          |
 | DOM events       | Gesture Handler    | Gesture composition API, UI-thread callbacks      |
-| Framer Motion    | Moti               | Declarative layer over Reanimated                 |
 | `<img>`          | expo-image         | SDWebImage/Glide, blurhash, disk caching          |
 | Web Push API     | expo-notifications | FCM/APNs, channels, background tasks              |
 | Service Workers  | expo-updates       | OTA updates, staged rollout, emergency rollback   |
@@ -251,7 +250,6 @@ function PostList() {
       data={items}
       renderItem={({ item }) => <PostCard post={item} />}
       keyExtractor={(item) => item.id}
-      estimatedItemSize={120}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.3}
       ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
@@ -304,15 +302,15 @@ first tap on Submit dismisses the keyboard instead of firing the press.
 MMKV is synchronous and runs on the native thread — no async hydration gap.
 
 ```typescript
-import { MMKV } from "react-native-mmkv";
+import { createMMKV } from "react-native-mmkv";
 import { StateStorage, createJSONStorage } from "zustand/middleware";
 
-const mmkv = new MMKV(); // create at module level — never inside a component
+const mmkv = createMMKV(); // create at module level — never inside a component
 
 const zustandStorage: StateStorage = {
   setItem: (name, value) => mmkv.set(name, value),
   getItem: (name) => mmkv.getString(name) ?? null, // must return null, not undefined
-  removeItem: (name) => mmkv.delete(name),
+  removeItem: (name) => mmkv.remove(name),
 };
 
 export const useAppStore = create<AppState>()(
@@ -337,7 +335,7 @@ pattern (hardware-backed key + encrypted MMKV), see `references/expo-essentials.
 ## Animations & Gestures
 
 Reanimated runs animations on the **UI thread** via worklets. Gesture Handler routes touch
-events to the same thread. Moti provides a declarative API on top of Reanimated.
+events to the same thread. Reanimated 4 adds CSS-style declarative transitions.
 
 ### Threading Model
 
@@ -374,11 +372,11 @@ const style = useAnimatedStyle(() => ({
 - **GestureHandlerRootView** must wrap the app root with `style={{ flex: 1 }}`
 - **Android modals** need their own `GestureHandlerRootView` (outside native root view)
 
-### When to Use Moti vs Raw Reanimated
+### Declarative vs Imperative
 
-Use **Moti** for entrance/exit animations, state-driven transitions, loading skeletons.
-Use **raw Reanimated** for gesture-driven animations, imperative chains, shared element
-transitions. Mixing is valid — `MotiView` wraps `Animated.View`.
+Use **CSS transitions** (Reanimated 4) for state-driven style changes (toggle colors,
+opacity, dimensions). Use **layout animations** (`entering`/`exiting` props) for mount/unmount.
+Use **worklets + shared values** for gesture-driven animations and imperative chains.
 
 For detailed patterns, see `references/animations.md`.
 
@@ -386,38 +384,42 @@ For detailed patterns, see `references/animations.md`.
 
 ## Bottom Sheets
 
-`@gorhom/bottom-sheet` is the standard. Built on Reanimated + Gesture Handler.
+`@lodev09/react-native-true-sheet` — a native bottom sheet backed by
+`UISheetPresentationController` (iOS) and `BottomSheetDialog` (Android). No Reanimated
+dependency. New Architecture only.
 
-### Minimal Example
+### Imperative Ref-Based Control
 
 ```typescript
-import BottomSheet from '@gorhom/bottom-sheet'
+import { TrueSheet } from "@lodev09/react-native-true-sheet";
 
 function MySheet() {
+  const sheet = useRef<TrueSheet>(null);
+
   return (
-    <BottomSheet snapPoints={['25%', '50%']} enableDynamicSizing={false}>
-      <BottomSheetView>
-        <Text>Content</Text>
-      </BottomSheetView>
-    </BottomSheet>
-  )
+    <>
+      <Button onPress={() => sheet.current?.present()} />
+      <TrueSheet ref={sheet} detents={[0.5, 1]}>
+        <MyContent />
+      </TrueSheet>
+    </>
+  );
 }
 ```
 
 ### Key Rules
 
-- **Always use `BottomSheetTextInput`** instead of `TextInput` inside sheets — keyboard
-  handling breaks silently otherwise.
-- **Always use library scrollables** (`BottomSheetScrollView`, `BottomSheetFlatList`) — plain
-  `ScrollView`/`FlatList` steal gestures.
-- **Set `enableDynamicSizing={false}`** when using fixed `snapPoints` — default `true`
-  injects an extra snap point, shifting all indices.
-- **Set `keyboardBlurBehavior="restore"`** — default `"none"` leaves the sheet elevated
-  after keyboard closes.
-- **Add backdrop manually** — defaults to `null` (no backdrop, background interactive).
-- **Set `enablePanDownToClose`** — defaults to `false` (users can't swipe to close).
+- **Imperative control only** — use `ref.present()`/`dismiss()`/`resize()`, not state props.
+- **Max 3 detents**, sorted smallest to largest. Use `'auto'` for content-fitting.
+- **Never combine `scrollable` with `'auto'` detent** — they conflict. Use fixed detents.
+- **Never use `flex: 1` on sheet content** — collapses to zero height. Use `flexGrow` or
+  fixed height.
+- **Always `dismiss()` before unmounting** — the native sheet outlives the React component.
+- **Standard `TextInput` works** — no special keyboard component needed (native handling).
+- **Standard `ScrollView`/`FlatList` works** with `scrollable` prop — auto-detected in v3.
 
-For full patterns and Expo Router integration, see `references/bottom-sheet.md`.
+For full patterns, platform differences, and Expo Router integration, see
+`references/bottom-sheet.md`.
 
 ---
 
@@ -537,8 +539,8 @@ Key conventions:
 5. **`getNextPageParam` returning `null`** — must return `undefined` to signal no next page.
    Coerce API nulls: `lastPage.nextCursor ?? undefined`.
 
-6. **FlashList without `estimatedItemSize`** — required prop. Use the median item height,
-   not the mean (outliers skew the mean).
+6. **FlashList v2 requires New Architecture** — v2 is a ground-up rewrite for Fabric.
+   `estimatedItemSize` is deprecated (ignored). `overrideItemLayout` only supports `span`.
 
 7. **MMKV `getString` returns `undefined`** — Zustand's `StateStorage.getItem` must return
    `null` for missing keys. Always coerce: `?? null`.
@@ -558,11 +560,11 @@ Key conventions:
 12. **GestureHandlerRootView missing `flex: 1`** — wrapper has zero height. Gestures appear
     to not work at all.
 
-13. **`TextInput` inside bottom sheet** — keyboard handling breaks silently. Must use
-    `BottomSheetTextInput`.
+13. **Unmounting `TrueSheet` while open** — the native sheet does NOT dismiss automatically.
+    Always call `dismiss()` before removing from tree.
 
-14. **`enableDynamicSizing` with fixed `snapPoints`** — extra snap point injected, all
-    indices shift. Set `enableDynamicSizing={false}`.
+14. **`auto` detent with `scrollable` in TrueSheet** — auto-sizing and scroll pinning
+    conflict. Use fixed detents when `scrollable={true}`.
 
 15. **Missing `setNotificationHandler`** — all foreground notifications silently suppressed.
     No error.
@@ -587,7 +589,7 @@ Key conventions:
 | `references/lists.md`           | FlashList + React Query, infinite scroll, performance     |
 | `references/zustand-rn.md`      | MMKV persist adapter, encryption, hydration patterns      |
 | `references/testing-rn.md`      | RNTL, testing Query/Router/Form/XState, MSW in RN         |
-| `references/animations.md`      | Reanimated, Gesture Handler, Moti patterns and gotchas    |
-| `references/bottom-sheet.md`    | @gorhom/bottom-sheet setup, keyboard, Expo Router         |
+| `references/animations.md`      | Reanimated, Gesture Handler patterns and gotchas          |
+| `references/bottom-sheet.md`    | react-native-true-sheet setup, detents, Expo Router       |
 | `references/notifications.md`   | expo-notifications permissions, listeners, background     |
 | `references/expo-essentials.md` | expo-image, expo-secure-store, expo-haptics, expo-updates |

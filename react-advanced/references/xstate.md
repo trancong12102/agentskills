@@ -60,7 +60,7 @@ entry: enqueueActions(({ context, enqueue, check }) => {
 
 ## React Integration
 
-### useMachine / useActor (identical in v5)
+### useMachine (preferred for new actors)
 
 ```typescript
 import { useMachine } from '@xstate/react'
@@ -219,7 +219,7 @@ const wizardMachine = setup({ ... }).createMachine({
 For independent concerns that need simultaneous tracking:
 
 ```typescript
-const playerMachine = createMachine({
+const playerMachine = setup({}).createMachine({
   type: "parallel",
   states: {
     track: {
@@ -333,6 +333,8 @@ needs `useEffect` to manage side effects — that is the signal.
 4. **React hooks inside machine services** — runtime error. Use `fromPromise` directly.
 5. **Over-engineering simple state** — XState adds boilerplate. Justify it with 3+ states,
    guards, async, or parallel needs.
+6. **Passing actorRef to `useActor`** — deprecated in `@xstate/react` v6. Use
+   `useSelector(actorRef, selector)` + `actorRef.send()` for existing actor refs.
 
 ---
 

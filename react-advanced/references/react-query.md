@@ -213,46 +213,6 @@ Do not put `select` results into `useState` — the most common derived-state an
 
 ---
 
-## Infinite Queries
-
-v5 requires `initialPageParam`:
-
-```typescript
-const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-  useInfiniteQuery({
-    queryKey: ["projects"],
-    queryFn: ({ pageParam }) => fetchProjects(pageParam),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    maxPages: 10, // cap stored pages to limit memory
-  });
-```
-
----
-
-## SSR with Streaming
-
-### Recommended: prefetch + HydrationBoundary
-
-```typescript
-// Server Component
-export default async function PostsPage() {
-  const queryClient = new QueryClient()
-  await queryClient.prefetchQuery(postsQueryOptions)
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Posts />
-    </HydrationBoundary>
-  )
-}
-```
-
-**Experimental: ReactQueryStreamedHydration** — zero-config streaming, use
-`useSuspenseQuery` in client components and results stream automatically. Set
-`staleTime > 0` to prevent immediate re-fetches after hydration.
-
----
-
 ## Common Pitfalls
 
 1. **staleTime: 0 (default)** — every mount triggers refetch. Set a meaningful global default.

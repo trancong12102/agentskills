@@ -38,21 +38,11 @@ const router = createRouter({
 
 ---
 
-## File-Based Routing Conventions
+## File-Based Routing — Non-Obvious Conventions
 
-| File pattern             | Meaning                                     |
-| ------------------------ | ------------------------------------------- |
-| `__root.tsx`             | Root layout (wraps everything)              |
-| `index.tsx`              | Index route for parent segment              |
-| `posts/$postId.tsx`      | Dynamic segment `/posts/:postId`            |
-| `posts.$postId.edit.tsx` | Flat notation for `/posts/:postId/edit`     |
-| `files/$.tsx`            | Splat/wildcard route                        |
-| `_pathlessLayout.tsx`    | Pathless layout (no URL segment)            |
-| `(app)/dashboard.tsx`    | Route group — folder is organizational only |
-| `-components/`           | Excluded from route tree (prefix `-`)       |
-
-Route groups `(name)/` organize files without affecting URLs. Pathless routes (`_` prefix)
-wrap children with layout/auth logic without adding URL segments.
+- `_pathlessLayout.tsx` — wraps children with layout/auth without adding a URL segment
+- `(app)/` — route group, organizational only, no URL impact
+- `-components/` — prefix `-` excludes from route tree (co-locate route-specific components)
 
 ---
 
@@ -214,29 +204,9 @@ const route = createRoute({
 
 ---
 
-## Navigation Patterns
+## Navigation — linkOptions
 
-### Link component
-
-```typescript
-<Link
-  to="/posts/$postId"
-  params={{ postId: post.id }}
-  activeProps={{ className: 'font-bold' }}
-  preload="intent"
->
-  {post.title}
-</Link>
-```
-
-### useNavigate
-
-```typescript
-const navigate = useNavigate({ from: "/posts" });
-navigate({ to: "/posts/$postId", params: { postId: id } });
-```
-
-### linkOptions — reusable type-safe config
+Use `linkOptions` for reusable, type-safe navigation configs shared across components:
 
 ```typescript
 const dashboardLink = linkOptions({ to: '/dashboard', search: { tab: 'overview' } })
@@ -264,19 +234,9 @@ export const Route = createFileRoute("/admin")({
 
 ## Pending & Error States
 
-```typescript
-export const Route = createFileRoute('/posts')({
-  loader: () => fetchPosts(),
-  pendingComponent: () => <PostsSkeleton />,
-  pendingMs: 1000,     // show pending only if loader > 1s
-  pendingMinMs: 500,   // once shown, keep for at least 500ms
-  errorComponent: ({ error }) => <ErrorPage message={error.message} />,
-  notFoundComponent: () => <p>Not found</p>,
-})
-```
-
-Use `router.invalidate()` (not `reset()`) when error came from a loader — it coordinates
-both router reload and error boundary reset together.
+Use `pendingMs`/`pendingMinMs` to control pending UI timing. Use `router.invalidate()`
+(not `reset()`) when error came from a loader — it coordinates both router reload and
+error boundary reset together.
 
 ---
 

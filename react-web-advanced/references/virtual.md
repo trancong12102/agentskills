@@ -1,39 +1,11 @@
 # TanStack Virtual v3 — Best Practices & Patterns
 
-## Core Concepts
+## Core Requirements
 
-`useVirtualizer` renders only items visible in the scroll window plus `overscan` extras.
-Two critical requirements:
-
-1. A **fixed-height scroll container** (`overflow: auto`, known height)
-2. A **spacer element** sized to `getTotalSize()` inside it
-
-```typescript
-const rowVirtualizer = useVirtualizer({
-  count: 10000,
-  getScrollElement: () => parentRef.current,
-  estimateSize: () => 35,
-  overscan: 5,
-})
-
-<div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
-  <div style={{ height: rowVirtualizer.getTotalSize(), position: 'relative' }}>
-    {rowVirtualizer.getVirtualItems().map((virtualRow) => (
-      <div
-        key={virtualRow.key}
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, width: '100%',
-          height: virtualRow.size,
-          transform: `translateY(${virtualRow.start}px)`,
-        }}
-      >
-        {data[virtualRow.index]}
-      </div>
-    ))}
-  </div>
-</div>
-```
+`useVirtualizer` renders only visible items plus `overscan` extras. Three structural
+requirements: (1) fixed-height outer container with `overflow: auto`, (2) inner spacer
+sized to `getTotalSize()`, (3) items positioned with `transform: translateY(start)` inside
+the spacer.
 
 ---
 
@@ -68,29 +40,10 @@ const virtualizer = useVirtualizer({
 
 ---
 
-## Horizontal and Grid Virtualization
+## Horizontal and Grid
 
-### Horizontal
-
-```typescript
-const columnVirtualizer = useVirtualizer({
-  horizontal: true,
-  count: 10000,
-  getScrollElement: () => parentRef.current,
-  estimateSize: () => 100,
-});
-// Position: transform: `translateX(${virtualCol.start}px)`
-```
-
-### Grid
-
-Combine row and column virtualizers on the same scroll container:
-
-```typescript
-transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`;
-```
-
-Outer div sized to `rowVirtualizer.getTotalSize()` x `columnVirtualizer.getTotalSize()`.
+Set `horizontal: true` and use `translateX` for horizontal lists. For grids, compose row +
+column virtualizers on the same scroll container with combined transforms.
 
 ---
 

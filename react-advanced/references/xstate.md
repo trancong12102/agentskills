@@ -32,12 +32,8 @@ const machine = setup({
 });
 ```
 
-### Actor types
-
-- `createMachine(...)` — full state machine / statechart
-- `fromPromise(async fn)` — one-shot async operations
-- `fromCallback(fn)` — subscriptions, DOM events, WebSockets
-- `fromObservable(fn)` — RxJS streams
+Actor types: `fromPromise` (async), `fromCallback` (bidirectional/subscriptions),
+`fromObservable` (streams), `createMachine` (nested machines).
 
 ### Guards combinators
 

@@ -11,7 +11,11 @@ integration. Pass schemas directly.
 
 ---
 
-## TanStack Router: Search Params
+## Search Params Validation
+
+**Web:** TanStack Router's `validateSearch` accepts Zod schemas directly (Standard Schema).
+**React Native:** Expo Router has no built-in validation — use a Zod wrapper hook (see
+`react-native-advanced`'s `references/expo-router.md`).
 
 ### `.catch()` vs `.default()` — always use `.catch()` for search params
 
@@ -73,61 +77,15 @@ const searchSchema = z.object({
 
 ## TanStack Form: Validation
 
-### Field-level validation
-
-```typescript
-<form.Field
-  name="email"
-  validators={{
-    onChange: z.email({ error: 'Invalid email' }),
-    onBlur: z.string().min(1, { error: 'Required' }),
-  }}
->
-  {(field) => (
-    <div>
-      <input
-        value={field.state.value}
-        onBlur={field.handleBlur}
-        onChange={(e) => field.handleChange(e.target.value)}
-      />
-      {field.state.meta.isTouched && field.state.meta.errors.map((err, i) => (
-        <span key={i} role="alert">
-          {typeof err === 'string' ? err : err?.message}
-        </span>
-      ))}
-    </div>
-  )}
-</form.Field>
-```
-
-### Error display gotcha — handle both string and object errors
-
-`field.state.meta.errors` contains `string | StandardSchemaV1Issue`. Always handle both:
+See `form.md` for TanStack Form field rendering and validation patterns. Key Zod-specific
+gotcha: `field.state.meta.errors` contains `string | StandardSchemaV1Issue`. Always handle
+both types:
 
 ```typescript
 const errorMessage = field.state.meta.errors
   .map((e) => (typeof e === "string" ? e : e?.message))
   .filter(Boolean)
   .join(", ");
-```
-
-### Cross-field validation with `.refine()`
-
-```typescript
-const form = useForm({
-  defaultValues: { password: "", confirmPassword: "" },
-  validators: {
-    onSubmit: z
-      .object({
-        password: z.string().min(8),
-        confirmPassword: z.string(),
-      })
-      .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords must match",
-        path: ["confirmPassword"],
-      }),
-  },
-});
 ```
 
 ---

@@ -3,6 +3,11 @@
 This reference focuses on testing patterns specific to this stack. For general Vitest,
 Testing Library, or MSW usage, consult their official docs.
 
+For platform-specific testing:
+
+- **Web:** see `react-web-advanced`'s `references/testing.md` (TanStack Router testing)
+- **React Native:** see `react-native-advanced`'s `references/testing-rn.md` (RNTL, Expo Router)
+
 ---
 
 ## Testing React Query
@@ -34,37 +39,8 @@ function createWrapper() {
 
 Never create `QueryClient` at module scope — it leaks cache between tests.
 
-### Testing loading → success → error states
-
-```typescript
-test('shows loading then data', async () => {
-  render(
-    <QueryClientProvider client={createTestQueryClient()}>
-      <UserList />
-    </QueryClientProvider>
-  )
-
-  expect(screen.getByText('Loading...')).toBeInTheDocument()
-  await screen.findByText('Alice')
-  expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
-})
-
-test('shows error state', async () => {
-  server.use(
-    http.get('/api/users', () =>
-      HttpResponse.json({ message: 'Error' }, { status: 500 })
-    )
-  )
-
-  render(
-    <QueryClientProvider client={createTestQueryClient()}>
-      <UserList />
-    </QueryClientProvider>
-  )
-
-  await screen.findByText(/error/i)
-})
-```
+Use `findBy*` queries (async) for data states, `getBy*` for immediate loading states.
+Override MSW handlers with `server.use()` for error scenarios.
 
 ### Testing custom hooks with `renderHook`
 
@@ -83,115 +59,10 @@ test("useUsers returns data", async () => {
 
 ---
 
-## Testing TanStack Router
-
-### `renderWithRouter` utility
-
-```typescript
-import {
-  createRouter, createRootRoute, createRoute,
-  RouterProvider, Outlet, createMemoryHistory,
-} from '@tanstack/react-router'
-
-const testRootRoute = createRootRoute({ component: () => <Outlet /> })
-
-function renderWithRouter(
-  routes: any[],
-  { initialLocation = '/', context = {} } = {},
-) {
-  const routeTree = testRootRoute.addChildren(routes)
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [initialLocation] }),
-    context,
-  })
-
-  return { ...render(<RouterProvider router={router} />), router }
-}
-```
-
-### Testing params, search params, and navigation
-
-```typescript
-test('reads route params', async () => {
-  const userRoute = createRoute({
-    getParentRoute: () => testRootRoute,
-    path: '/users/$userId',
-    component: function UserPage() {
-      const { userId } = userRoute.useParams()
-      return <div>User: {userId}</div>
-    },
-  })
-
-  renderWithRouter([userRoute], { initialLocation: '/users/42' })
-  await screen.findByText('User: 42')
-})
-
-test('navigates on click', async () => {
-  const user = userEvent.setup()
-
-  const homeRoute = createRoute({
-    getParentRoute: () => testRootRoute,
-    path: '/',
-    component: function Home() {
-      const navigate = homeRoute.useNavigate()
-      return <button onClick={() => navigate({ to: '/about' })}>Go</button>
-    },
-  })
-  const aboutRoute = createRoute({
-    getParentRoute: () => testRootRoute,
-    path: '/about',
-    component: () => <h1>About</h1>,
-  })
-
-  const { router } = renderWithRouter([homeRoute, aboutRoute])
-  await user.click(screen.getByRole('button', { name: /go/i }))
-
-  await waitFor(() => {
-    expect(router.state.location.pathname).toBe('/about')
-  })
-})
-```
-
----
-
 ## Testing TanStack Form
 
-### Test submission and validation through the UI
-
-```typescript
-test('submits with correct values', async () => {
-  const user = userEvent.setup()
-  const handleSubmit = vi.fn()
-
-  render(<ContactForm onSubmit={handleSubmit} />)
-
-  await user.type(screen.getByRole('textbox', { name: /name/i }), 'Alice')
-  await user.type(screen.getByRole('textbox', { name: /email/i }), 'alice@test.com')
-  await user.click(screen.getByRole('button', { name: /submit/i }))
-
-  await waitFor(() => {
-    expect(handleSubmit).toHaveBeenCalledWith({
-      name: 'Alice',
-      email: 'alice@test.com',
-    })
-  })
-})
-
-test('shows validation error then clears it', async () => {
-  const user = userEvent.setup()
-  render(<ContactForm onSubmit={vi.fn()} />)
-
-  const input = screen.getByRole('textbox', { name: /name/i })
-  await user.type(input, 'ab')
-  await user.tab()  // trigger onBlur
-  await screen.findByRole('alert')
-
-  await user.clear(input)
-  await user.type(input, 'alice')
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-})
-```
+Use `userEvent.setup()` for realistic event simulation. Key pattern: `user.tab()` triggers
+`onBlur` validation — use this to test field-level validators without submitting.
 
 ---
 
@@ -265,38 +136,6 @@ import { waitFor } from "xstate";
 const snapshot = await waitFor(actor, (s) => s.matches("success"), {
   timeout: 5000,
 });
-```
-
----
-
-## Shared Test Wrapper — Combining Providers
-
-```typescript
-// src/test/test-utils.tsx
-export function renderWithProviders(
-  routes: any[],
-  { initialLocation = '/' } = {},
-) {
-  const queryClient = createTestQueryClient()
-  const rootRoute = createRootRoute({ component: () => <Outlet /> })
-  const routeTree = rootRoute.addChildren(routes)
-
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [initialLocation] }),
-    context: { queryClient },
-  })
-
-  return {
-    ...render(
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    ),
-    router,
-    queryClient,
-  }
-}
 ```
 
 ---

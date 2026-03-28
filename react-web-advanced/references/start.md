@@ -6,23 +6,8 @@ Router's type-safe routing.
 
 ## Server Functions — `createServerFn`
 
-Type-safe RPC that executes on the server, callable from client or server:
-
-```typescript
-import { createServerFn } from "@tanstack/react-start";
-
-export const getUser = createServerFn({ method: "GET" }).handler(async () => {
-  return db.users.findFirst();
-});
-
-// With validation + middleware
-export const getTodos = createServerFn({ method: "GET" })
-  .inputValidator(zodValidator(z.object({ userId: z.string() })))
-  .middleware([authMiddleware])
-  .handler(async ({ data, context }) => {
-    return db.todos.findMany({ where: { userId: data.userId } });
-  });
-```
+Type-safe RPC: `createServerFn({ method }).inputValidator(schema).middleware([...]).handler(fn)`.
+Chain is fully type-safe — `data` and `context` types flow through.
 
 ### createServerFn vs createServerOnlyFn
 
@@ -30,17 +15,7 @@ export const getTodos = createServerFn({ method: "GET" })
 - `createServerOnlyFn` — throws error if called from client. For sensitive operations
   (reading `process.env.SECRET`, direct DB writes)
 
-### Streaming server functions
-
-```typescript
-// Async generator (cleaner)
-const streamingFn = createServerFn().handler(async function* () {
-  for (const msg of messages) {
-    await sleep(500);
-    yield msg;
-  }
-});
-```
+Streaming: use async generators in handlers (`async function*`).
 
 ### Integration with React Query
 
@@ -64,63 +39,19 @@ export const postQueryOptions = (postId: string) =>
 
 ## Middleware
 
-### Request middleware (wraps server function calls)
+Chain via `.middleware([mw1, mw2])` on server functions. Two types:
 
-```typescript
-import { createMiddleware } from "@tanstack/react-start";
-
-const authMiddleware = createMiddleware().server(async ({ next, request }) => {
-  const session = await auth.getSession({ headers: request.headers });
-  if (!session) throw new Error("Unauthorized");
-  return await next({ context: { session } });
-});
-```
-
-### Function middleware with client + server sides
-
-```typescript
-const authMiddleware = createMiddleware({ type: "function" })
-  .client(async ({ next }) => {
-    return next({ headers: { Authorization: `Bearer ${getToken()}` } });
-  })
-  .server(async ({ next }) => {
-    // server-side logic
-    return await next();
-  });
-```
-
-Middleware chains compose via `.middleware([mw1, mw2])`.
+- **Request middleware** (`createMiddleware().server(fn)`) — wraps handler, reads headers,
+  injects context (auth sessions, tracing)
+- **Function middleware** (`createMiddleware({ type: "function" })`) — has `.client()` side
+  (runs in browser before request, injects headers) and `.server()` side
 
 ---
 
 ## SSR Patterns
 
-TanStack Start defaults to streaming SSR. The HTML shell renders immediately and
-deferred data streams in.
-
-Root route setup:
-
-```typescript
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    ],
-  }),
-  component: () => (
-    <html>
-      <head><HeadContent /></head>
-      <body>
-        <Outlet />
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-Use `defer`/`Await` from TanStack Router for streaming deferred data in loaders.
+Start defaults to streaming SSR — HTML shell renders immediately, deferred data streams in.
+Use `defer`/`Await` from TanStack Router for non-blocking loader data.
 
 ---
 
@@ -144,22 +75,3 @@ Key differences:
 - No implicit caching layers — use React Query or explicit `staleTime`
 - Type safety is first-class — search params, path params, loader data, route context
 - Data fetching in `loader` functions runs before rendering (no waterfalls)
-
----
-
-## Configuration
-
-```typescript
-// vite.config.ts
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-
-export default defineConfig({
-  plugins: [
-    tanstackStart({
-      srcDirectory: "src",
-      router: { routesDirectory: "routes" },
-    }),
-    viteReact(),
-  ],
-});
-```

@@ -106,6 +106,105 @@ export const postQueryOptions = (postId: string) =>
 
 ---
 
+## Zustand Integration Patterns
+
+### Zustand + XState — shared UI state read from machines
+
+Use `createStore` (vanilla) so XState actions can read/write without React:
+
+```typescript
+// stores/ui.ts
+import { createStore } from "zustand/vanilla";
+
+export const uiStore = createStore<UiState>()((set) => ({
+  sidebarOpen: false,
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+}));
+```
+
+```typescript
+// machines/layout.ts — read/write Zustand from XState actions
+import { uiStore } from "../stores/ui";
+
+const layoutMachine = setup({
+  actions: {
+    closeSidebar: () => {
+      uiStore.setState({ sidebarOpen: false });
+    },
+    readSidebar: () => {
+      const { sidebarOpen } = uiStore.getState();
+      // use value...
+    },
+  },
+}).createMachine({
+  /* ... */
+});
+```
+
+### Zustand + TanStack Router — auth guard in loaders
+
+```typescript
+// stores/auth.ts
+import { createStore } from "zustand/vanilla";
+
+export const authStore = createStore<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      user: null,
+      setAuth: (token, user) => set({ token, user }),
+      clear: () => set({ token: null, user: null }),
+    }),
+    { name: "auth" },
+  ),
+);
+```
+
+```typescript
+// routes/__root.tsx — read auth in beforeLoad
+export const Route = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: () => {
+    const { token } = authStore.getState();
+    return { isAuthenticated: !!token };
+  },
+});
+
+// routes/(app)/dashboard.tsx — redirect if not authenticated
+export const Route = createFileRoute("/(app)/dashboard")({
+  beforeLoad: ({ context }) => {
+    if (!context.isAuthenticated) throw redirect({ to: "/login" });
+  },
+});
+```
+
+### Zustand + React Query — do not duplicate
+
+Zustand and React Query serve different purposes. Never store API data in Zustand:
+
+```typescript
+// BAD — duplicating server data in Zustand
+const useStore = create((set) => ({
+  users: [],
+  fetchUsers: async () => {
+    const users = await api.getUsers();
+    set({ users }); // now you own caching, refetch, invalidation
+  },
+}));
+
+// GOOD — Zustand for client UI state only
+const useUiStore = create<UiState>()((set) => ({
+  selectedUserId: null,
+  setSelectedUser: (id) => set({ selectedUserId: id }),
+}));
+
+// React Query for server data
+const { data: users } = useSuspenseQuery(usersQueryOptions);
+const selectedId = useUiStore((s) => s.selectedUserId);
+const selectedUser = users.find((u) => u.id === selectedId);
+```
+
+---
+
 ## XState Integration Patterns
 
 ### Pattern 1: Component-scoped machine
@@ -281,46 +380,13 @@ errorComponent: ({ error, reset }) => {
 
 ## Testing Strategies
 
-### React Query tests
-
-Fresh `QueryClient` per test, retries disabled:
-
-```typescript
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-}
-```
-
-Use MSW for network-level mocking instead of mocking `queryFn`.
-
-### XState tests
-
-Pure TypeScript — test without React:
-
-```typescript
-const actor = createActor(checkoutMachine);
-actor.start();
-actor.send({ type: "NEXT" });
-expect(actor.getSnapshot().matches("shipping")).toBe(true);
-```
-
-### TanStack Router tests
-
-Memory history for testing navigation:
-
-```typescript
-const router = createRouter({
-  routeTree,
-  history: createMemoryHistory({ initialEntries: ["/posts/1"] }),
-  context: { queryClient: createTestQueryClient() },
-});
-```
+See `references/testing.md` for comprehensive testing patterns — Vitest setup, Testing
+Library queries, MSW v2, and specific patterns for testing React Query, TanStack Router,
+TanStack Form, and XState machines.
 
 ---
 
-## Common Anti-Patterns
+## Common Pitfalls
 
 1. **React Query AND XState for same data** — RQ owns server data. XState orchestrates
    UI flows only. Machine context holds UI state, not raw server data.

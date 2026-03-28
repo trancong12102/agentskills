@@ -1,6 +1,6 @@
 ---
 name: react-advanced
-description: "Advanced React patterns and conventions for data fetching, tables, forms, routing, state machines, and performance optimization. Use when tackling complex React problems — not simple component questions, but multi-concern tasks like server-driven tables with filtering, multi-step wizards, eliminating useEffect, Suspense architecture, or choosing between state management approaches."
+description: "Advanced React patterns and conventions for data fetching, tables, forms, routing, state machines, client state management, schema validation, and testing. Use when tackling complex React problems — not simple component questions, but multi-concern tasks like server-driven tables with filtering, multi-step wizards, eliminating useEffect, Suspense architecture, choosing between state management approaches (Zustand vs XState vs useState), schema validation with Zod, or testing TanStack/XState code."
 ---
 
 # React Advanced: Modern Patterns & Conventions
@@ -20,7 +20,7 @@ use these tools, not their full API surface.
 3. [Architecture: Which Library Owns What](#architecture-which-library-owns-what)
 4. [Performance Patterns](#performance-patterns)
 5. [Component Composition](#component-composition)
-6. [Common Anti-Patterns](#common-anti-patterns)
+6. [Common Pitfalls](#common-pitfalls)
 7. [File Organization](#file-organization)
 8. [Reference Files](#reference-files)
 
@@ -72,13 +72,15 @@ These are the **only** legitimate cases:
 in the browser) are fundamentally different concerns. Mixing them causes stale data bugs,
 duplication, and synchronization nightmares.
 
-| Concern          | Owner           | Examples                                      |
-| ---------------- | --------------- | --------------------------------------------- |
-| Server data      | React Query     | Users, posts, products, orders                |
-| URL state        | TanStack Router | Path params, search params, hash              |
-| Complex UI flows | XState          | Multi-step wizards, auth flows, drag-and-drop |
-| Form fields      | TanStack Form   | Input values, validation errors, submission   |
-| Simple local UI  | `useState`      | Toggle, accordion expanded, input focus       |
+| Concern           | Owner           | Examples                                                    |
+| ----------------- | --------------- | ----------------------------------------------------------- |
+| Server data       | React Query     | Users, posts, products, orders                              |
+| URL state         | TanStack Router | Path params, search params, hash                            |
+| Complex UI flows  | XState          | Multi-step wizards, auth flows, drag-and-drop               |
+| Shared client UI  | Zustand         | Theme, sidebar, selected items, global filters, preferences |
+| Form fields       | TanStack Form   | Input values, validation errors, submission                 |
+| Schema validation | Zod             | Search params, form validators, API contracts               |
+| Simple local UI   | `useState`      | Toggle, accordion expanded, input focus                     |
 
 ### Decision flowchart
 
@@ -90,8 +92,10 @@ Is the data from a server / API?
     NO -> Is it a complex multi-state flow (3+ states, async, guards)?
       YES -> XState (useMachine / createActorContext)
       NO -> Is it a form field?
-        YES -> TanStack Form
-        NO -> useState / useReducer
+        YES -> TanStack Form (with Zod validators)
+        NO -> Is it shared across components / trees?
+          YES -> Zustand (create store + selectors)
+          NO -> useState / useReducer
 ```
 
 ### When to reach for XState over useState/useReducer
@@ -118,9 +122,12 @@ Do not use XState for simple toggles, single boolean flags, or counter state. Th
 | Full-stack boundary | TanStack Start      | Server functions (`createServerFn`), SSR, streaming |
 | Server state        | React Query         | Fetching, caching, invalidation, background refetch |
 | Complex UI state    | XState              | State machines, actor model, flow orchestration     |
+| Shared client UI    | Zustand             | Cross-component UI state, preferences, selections   |
 | Form lifecycle      | TanStack Form       | Field values, validation, submission                |
+| Schema validation   | Zod                 | Search params, form validators, API contracts       |
 | Data display        | TanStack Table      | Headless sorting, filtering, pagination, grouping   |
 | Large lists         | TanStack Virtual    | Virtualized rendering for 1000+ items               |
+| Testing             | Vitest + TL + MSW   | Unit, component, integration, machine testing       |
 | Simple local state  | useState/useReducer | Toggles, local inputs, component-scoped values      |
 
 ### The golden rule: `queryOptions` as single source of truth
@@ -245,7 +252,7 @@ if-statements is a signal to invert control.
 
 ---
 
-## Common Anti-Patterns
+## Common Pitfalls
 
 1. **Derived state in useEffect** — computing values in an effect and storing in useState
    causes double renders. Compute during render or use `useMemo`.
@@ -269,7 +276,8 @@ if-statements is a signal to invert control.
    forcing React to unmount/remount. Define at module level.
 
 8. **Context for high-frequency state** — Context re-renders all consumers on every
-   change. Use local state or Zustand selectors for rapidly-changing values.
+   change. Use Zustand with selectors for shared rapidly-changing values (see
+   `references/zustand.md`), or local state if component-scoped.
 
 9. **Not using `.catch()` on Zod search param schemas** — `.default()` only handles
    missing keys; `.catch()` also handles invalid values from malformed URLs.
@@ -294,6 +302,7 @@ src/
   queries/                 # queryOptions definitions — one file per entity
   mutations/               # useMutation wrappers
   machines/                # XState machine definitions (pure TS, no React)
+  stores/                  # Zustand stores (use createStore for vanilla access)
   serverFns/               # TanStack Start server functions
   components/
     ui/                    # Design system primitives
@@ -301,6 +310,12 @@ src/
   lib/
     query-client.ts        # QueryClient singleton
     router.ts              # Router singleton
+  test/
+    setup.ts               # Vitest setup (jest-dom, MSW server lifecycle)
+    test-utils.tsx          # Shared wrappers (renderWithProviders, re-exports)
+    mocks/
+      handlers.ts          # Default MSW handlers
+      node.ts              # MSW setupServer
 ```
 
 Key conventions:
@@ -309,6 +324,9 @@ Key conventions:
 - `queries/` files export `queryOptions` objects, not hooks
 - Route-specific components use `-` prefix directories to avoid route tree inclusion
 - Pathless route groups `(name)/` for organization without URL impact
+- Zustand stores use `createStore` (vanilla) when accessed from XState or Router loaders
+- Co-locate test files next to source (`.test.ts` / `.test.tsx`)
+- Machine tests are pure TypeScript — no DOM environment needed
 
 ---
 
@@ -316,13 +334,16 @@ Key conventions:
 
 Read the relevant reference file when working with a specific library:
 
-| File                        | When to read                                                   |
-| --------------------------- | -------------------------------------------------------------- |
-| `references/react-query.md` | Query patterns, mutations, cache, Suspense integration         |
-| `references/router.md`      | Routing, search params, loaders, code splitting, navigation    |
-| `references/start.md`       | Server functions, SSR, middleware, deployment                  |
-| `references/table.md`       | Column defs, sorting, filtering, pagination, server-side ops   |
-| `references/form.md`        | Field validation, arrays, schema validation, performance       |
-| `references/virtual.md`     | Virtualization, dynamic heights, infinite scroll, grids        |
-| `references/xstate.md`      | State machines, actors, auth flows, wizards, React integration |
-| `references/integration.md` | Combining all libraries, data flow, testing strategies         |
+| File                        | When to read                                                          |
+| --------------------------- | --------------------------------------------------------------------- |
+| `references/react-query.md` | Query patterns, mutations, cache, Suspense integration                |
+| `references/router.md`      | Routing, search params, loaders, code splitting, navigation           |
+| `references/start.md`       | Server functions, SSR, middleware, deployment                         |
+| `references/table.md`       | Column defs, sorting, filtering, pagination, server-side ops          |
+| `references/form.md`        | Field validation, arrays, schema validation, performance              |
+| `references/virtual.md`     | Virtualization, dynamic heights, infinite scroll, grids               |
+| `references/xstate.md`      | State machines, actors, auth flows, wizards, React integration        |
+| `references/zustand.md`     | Shared client UI state, selectors, slices, middleware, vanilla stores |
+| `references/zod.md`         | Schema validation, v4 API, Router/Form integration, error handling    |
+| `references/testing.md`     | Vitest setup, Testing Library, MSW, testing Query/Router/Form/XState  |
+| `references/integration.md` | Combining all libraries, data flow, Zustand patterns                  |

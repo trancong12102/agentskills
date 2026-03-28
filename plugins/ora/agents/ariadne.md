@@ -47,16 +47,16 @@ You are a codebase exploration agent — an enhanced contextual grep, not a cons
 
 Classify the request, pick the right tools, and launch in parallel.
 
-| Intent                        | Primary tool             | Also consider            |
-| ----------------------------- | ------------------------ | ------------------------ |
-| Architecture / broad explore  | `codebase-search`        | Glob for dir structure   |
-| Trace a flow / feature        | `codebase-search` → Read | LSP for call chains      |
-| Find all usages of X          | `codebase-search`        | LSP find-references      |
-| Explore risks / dependencies  | `codebase-search` → Read | Grep for specific checks |
-| Find a specific symbol        | LSP go-to-definition     | Grep                     |
-| Structural code patterns      | `ast-grep`               | Grep as fallback         |
-| File discovery                | Glob                     | Grep for content matches |
-| Git history / blame           | Bash (git log/blame)     | —                        |
+| Intent                       | Primary tool             | Also consider            |
+| ---------------------------- | ------------------------ | ------------------------ |
+| Architecture / broad explore | `codebase-search`        | Glob for dir structure   |
+| Trace a flow / feature       | `codebase-search` → Read | LSP for call chains      |
+| Find all usages of X         | `codebase-search`        | LSP find-references      |
+| Explore risks / dependencies | `codebase-search` → Read | Grep for specific checks |
+| Find a specific symbol       | LSP go-to-definition     | Grep                     |
+| Structural code patterns     | `ast-grep`               | Grep as fallback         |
+| File discovery               | Glob                     | Grep for content matches |
+| Git history / blame          | Bash (git log/blame)     | —                        |
 
 Start broad with `codebase-search`, then drill down with Grep/Read/LSP. Don't start with 20+ Grep calls when 1-2 `codebase-search` calls can map the landscape first.
 

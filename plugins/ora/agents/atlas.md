@@ -78,6 +78,7 @@ You receive:
 ### Wave 1 (parallel)
 
 **Task 1.1**: [title]
+
 - Agent: `ora:Hephaestus` | isolation: worktree
 - Prompt: |
   [Full task prompt including goal, relevant files, conventions to follow.
@@ -85,18 +86,21 @@ You receive:
 - Capture: [what learnings to extract from results]
 
 **Task 1.2**: [title]
+
 - Agent: `ora:Ariadne`
 - Prompt: |
   [Research prompt]
 - Capture: [what to extract]
 
 ### After Wave 1
+
 - Extract: [specific things to look for in results]
 - Feed forward: [what to include in Wave 2 prompts]
 
 ### Wave 2 (depends on Wave 1)
 
 **Task 2.1**: [title]
+
 - Agent: `ora:Hephaestus` | isolation: worktree
 - Prompt: |
   [Task prompt — include placeholder: "## Learnings from prior waves" where accumulated learnings will be injected]
@@ -105,6 +109,7 @@ You receive:
 [... more waves as needed]
 
 ### Completion Criteria
+
 - [How to verify the entire plan is done]
 ```
 
@@ -116,26 +121,32 @@ When re-invoked with wave results and accumulated learnings:
 ## Wave N Results Synthesis
 
 ### Learnings Update
+
 [Compressed summary — keep only the top 10 most relevant learnings]
 
 #### Conventions Discovered
+
 - [pattern]: [where found, when to apply]
 
 #### Gotchas
+
 - [issue]: [workaround or avoidance strategy]
 
 #### Decisions Made
+
 - [decision]: [rationale, impact on remaining tasks]
 
 ### Next Wave Dispatch
 
 **Task N.1**: [title]
+
 - Agent: [agent type]
 - Prompt: |
   [Full prompt with learnings already woven in — not just appended]
 - Capture: [what to extract]
 
 ### Remaining Waves
+
 [Updated overview of what's left, adjusted based on learnings]
 ```
 

@@ -45,11 +45,11 @@ Fetches documentation snippets relevant to the topic, truncated to a token budge
 
 **Choosing `--max-tokens`:**
 
-| Scenario | Tokens | Why |
-|----------|--------|-----|
-| Quick lookup (one function signature) | 2000 | Keeps output focused, faster response |
-| Typical usage (API patterns, examples) | 5000 (default) | Good balance of depth and brevity |
-| Broad exploration (migration guide, full API surface) | 8000–10000 | Needed when topic spans multiple sections |
+| Scenario                                              | Tokens         | Why                                       |
+| ----------------------------------------------------- | -------------- | ----------------------------------------- |
+| Quick lookup (one function signature)                 | 2000           | Keeps output focused, faster response     |
+| Typical usage (API patterns, examples)                | 5000 (default) | Good balance of depth and brevity         |
+| Broad exploration (migration guide, full API surface) | 8000–10000     | Needed when topic spans multiple sections |
 
 Run `python3 scripts/context7.py --help` for full usage.
 

@@ -5,12 +5,12 @@
 Always use `setup().createMachine()` for full TypeScript inference:
 
 ```typescript
-import { setup, fromPromise, assign } from 'xstate'
+import { setup, fromPromise, assign } from "xstate";
 
 const machine = setup({
   types: {
     context: {} as { count: number },
-    events: {} as { type: 'inc' } | { type: 'dec' },
+    events: {} as { type: "inc" } | { type: "dec" },
   },
   actions: {
     increment: assign({ count: ({ context }) => context.count + 1 }),
@@ -20,16 +20,16 @@ const machine = setup({
   },
   actors: {
     fetchData: fromPromise(async ({ input }: { input: { id: string } }) => {
-      return fetch(`/api/${input.id}`).then(r => r.json())
+      return fetch(`/api/${input.id}`).then((r) => r.json());
     }),
   },
 }).createMachine({
   context: { count: 0 },
   on: {
-    inc: { actions: 'increment' },
-    dec: { guard: 'isPositive', actions: 'decrement' },
+    inc: { actions: "increment" },
+    dec: { guard: "isPositive", actions: "decrement" },
   },
-})
+});
 ```
 
 ### Actor types
@@ -53,11 +53,11 @@ guards: {
 
 ```typescript
 entry: enqueueActions(({ context, enqueue, check }) => {
-  enqueue.assign({ count: context.count + 1 })
-  if (check('someGuard')) {
-    enqueue.sendTo('childActor', { type: 'UPDATE' })
+  enqueue.assign({ count: context.count + 1 });
+  if (check("someGuard")) {
+    enqueue.sendTo("childActor", { type: "UPDATE" });
   }
-})
+});
 ```
 
 ---
@@ -81,6 +81,7 @@ function Counter() {
 ### Where to define machines
 
 Always at **module level**, outside React components:
+
 ```typescript
 // machines/counterMachine.ts
 export const counterMachine = setup({ ... }).createMachine({ ... })
@@ -104,34 +105,34 @@ Machines eliminate race conditions by making side effects lifecycle-bound:
 const userMachine = setup({
   actors: {
     fetchUser: fromPromise(async ({ input }: { input: { userId: string } }) => {
-      const res = await fetch(`/api/users/${input.userId}`)
-      return res.json()
+      const res = await fetch(`/api/users/${input.userId}`);
+      return res.json();
     }),
   },
 }).createMachine({
-  initial: 'idle',
+  initial: "idle",
   context: { user: undefined, error: undefined },
   states: {
-    idle: { on: { FETCH: 'loading' } },
+    idle: { on: { FETCH: "loading" } },
     loading: {
       invoke: {
-        src: 'fetchUser',
+        src: "fetchUser",
         input: ({ context }) => ({ userId: context.userId }),
         onDone: {
-          target: 'success',
+          target: "success",
           actions: assign({ user: ({ event }) => event.output }),
         },
         onError: {
-          target: 'failure',
+          target: "failure",
           actions: assign({ error: ({ event }) => event.error }),
         },
       },
-      on: { CANCEL: 'idle' },  // auto-cancels invoked actor on transition
+      on: { CANCEL: "idle" }, // auto-cancels invoked actor on transition
     },
     success: {},
-    failure: { on: { RETRY: 'loading' } },
+    failure: { on: { RETRY: "loading" } },
   },
-})
+});
 ```
 
 When the machine leaves `loading` (e.g., via `CANCEL`), the invoked actor is automatically
@@ -146,45 +147,64 @@ stopped. No AbortController needed.
 ```typescript
 const authMachine = setup({
   actors: {
-    checkAuth: fromPromise(async () => { /* check stored tokens */ }),
-    loginUser: fromPromise(async ({ input }) => { /* login API */ }),
+    checkAuth: fromPromise(async () => {
+      /* check stored tokens */
+    }),
+    loginUser: fromPromise(async ({ input }) => {
+      /* login API */
+    }),
   },
 }).createMachine({
-  id: 'auth',
-  initial: 'initializing',
+  id: "auth",
+  initial: "initializing",
   context: { user: null, error: null },
   states: {
     initializing: {
       invoke: {
-        src: 'checkAuth',
-        onDone: { target: 'authenticated', actions: assign({ user: ({ event }) => event.output }) },
-        onError: 'unauthenticated',
+        src: "checkAuth",
+        onDone: {
+          target: "authenticated",
+          actions: assign({ user: ({ event }) => event.output }),
+        },
+        onError: "unauthenticated",
       },
     },
     unauthenticated: {
-      initial: 'idle',
+      initial: "idle",
       states: {
-        idle: { on: { LOGIN: 'loading' } },
+        idle: { on: { LOGIN: "loading" } },
         loading: {
           invoke: {
-            src: 'loginUser',
-            input: ({ event }) => ({ email: event.email, password: event.password }),
-            onDone: { target: '#auth.authenticated', actions: assign({ user: ({ event }) => event.output }) },
-            onError: { target: 'idle', actions: assign({ error: ({ event }) => event.error.message }) },
+            src: "loginUser",
+            input: ({ event }) => ({
+              email: event.email,
+              password: event.password,
+            }),
+            onDone: {
+              target: "#auth.authenticated",
+              actions: assign({ user: ({ event }) => event.output }),
+            },
+            onError: {
+              target: "idle",
+              actions: assign({ error: ({ event }) => event.error.message }),
+            },
           },
         },
       },
     },
     authenticated: {
-      on: { LOGOUT: { target: 'unauthenticated', actions: assign({ user: null }) } },
+      on: {
+        LOGOUT: { target: "unauthenticated", actions: assign({ user: null }) },
+      },
     },
   },
-})
+});
 ```
 
 ### Multi-step wizard
 
 Steps are states. Context accumulates form data:
+
 ```typescript
 const wizardMachine = setup({ ... }).createMachine({
   initial: 'step1',
@@ -201,14 +221,27 @@ const wizardMachine = setup({ ... }).createMachine({
 ### Parallel states
 
 For independent concerns that need simultaneous tracking:
+
 ```typescript
 const playerMachine = createMachine({
-  type: 'parallel',
+  type: "parallel",
   states: {
-    track: { initial: 'paused', states: { paused: { on: { PLAY: 'playing' } }, playing: { on: { STOP: 'paused' } } } },
-    volume: { initial: 'normal', states: { normal: { on: { MUTE: 'muted' } }, muted: { on: { UNMUTE: 'normal' } } } },
+    track: {
+      initial: "paused",
+      states: {
+        paused: { on: { PLAY: "playing" } },
+        playing: { on: { STOP: "paused" } },
+      },
+    },
+    volume: {
+      initial: "normal",
+      states: {
+        normal: { on: { MUTE: "muted" } },
+        muted: { on: { UNMUTE: "normal" } },
+      },
+    },
   },
-})
+});
 // state.value = { track: 'playing', volume: 'muted' }
 ```
 
@@ -247,35 +280,36 @@ Never call React hooks inside a machine. The correct bridge pattern:
 
 ```typescript
 function CheckoutFlow() {
-  const [snapshot, send] = useMachine(checkoutMachine)
-  const { data: cart } = useSuspenseQuery(cartQueryOptions)
+  const [snapshot, send] = useMachine(checkoutMachine);
+  const { data: cart } = useSuspenseQuery(cartQueryOptions);
 
   // Bridge: push server state into machine via events
   useEffect(() => {
-    if (cart) send({ type: 'CART_LOADED', cart })
-  }, [cart, send])
+    if (cart) send({ type: "CART_LOADED", cart });
+  }, [cart, send]);
 
   // Machine triggers mutations via actions
   const submitOrder = useMutation({
     mutationFn: createOrder,
-    onSuccess: () => send({ type: 'ORDER_CONFIRMED' }),
-    onError: (err) => send({ type: 'ORDER_FAILED', error: err.message }),
-  })
+    onSuccess: () => send({ type: "ORDER_CONFIRMED" }),
+    onError: (err) => send({ type: "ORDER_FAILED", error: err.message }),
+  });
 }
 ```
 
 ### With TanStack Router
 
 Auth machine as global context, Router reads synchronously:
+
 ```typescript
-export const Route = createFileRoute('/_authenticated')({
+export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context }) => {
-    const snapshot = context.authActor.getSnapshot()
-    if (!snapshot.matches('authenticated')) {
-      throw redirect({ to: '/login' })
+    const snapshot = context.authActor.getSnapshot();
+    if (!snapshot.matches("authenticated")) {
+      throw redirect({ to: "/login" });
     }
   },
-})
+});
 ```
 
 ---
@@ -309,21 +343,23 @@ needs `useEffect` to manage side effects — that is the signal.
 ## Testing
 
 Machines are pure TypeScript — test without React:
-```typescript
-import { createActor } from 'xstate'
 
-test('checkout flow', () => {
-  const actor = createActor(checkoutMachine)
-  actor.start()
-  expect(actor.getSnapshot().matches('cart')).toBe(true)
-  actor.send({ type: 'NEXT' })
-  expect(actor.getSnapshot().matches('shipping')).toBe(true)
-})
+```typescript
+import { createActor } from "xstate";
+
+test("checkout flow", () => {
+  const actor = createActor(checkoutMachine);
+  actor.start();
+  expect(actor.getSnapshot().matches("cart")).toBe(true);
+  actor.send({ type: "NEXT" });
+  expect(actor.getSnapshot().matches("shipping")).toBe(true);
+});
 ```
 
 For React integration, inject mock services via `provide`:
+
 ```typescript
 checkoutMachine.provide({
   actors: { submitOrder: fromPromise(mockSubmit) },
-})
+});
 ```

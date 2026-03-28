@@ -29,14 +29,14 @@ Requires `MORPH_API_KEY` environment variable.
 **Is the code on GitHub and not cloned locally?** Use github-codebase-search.
 **Is it in the local repo?** Use codebase-search.
 
-| Task | Tool |
-|------|------|
-| How does Next.js resolve API routes? | github-codebase-search |
-| How does our auth middleware work? | codebase-search |
+| Task                                          | Tool                   |
+| --------------------------------------------- | ---------------------- |
+| How does Next.js resolve API routes?          | github-codebase-search |
+| How does our auth middleware work?            | codebase-search        |
 | How does Prisma handle migrations internally? | github-codebase-search |
-| Where is the database config in our repo? | codebase-search |
-| What does React's reconciler do with fibers? | github-codebase-search |
-| What does the React docs say about useEffect? | context7 |
+| Where is the database config in our repo?     | codebase-search        |
+| What does React's reconciler do with fibers?  | github-codebase-search |
+| What does the React docs say about useEffect? | context7               |
 
 ## Workflow
 
@@ -71,7 +71,7 @@ Run `python3 scripts/github-codebase-search.py --help` for full usage.
 
 ### Example Output
 
-```
+```text
 Morph Fast Context subagent performed search on repository:
 
 Relevant context found:

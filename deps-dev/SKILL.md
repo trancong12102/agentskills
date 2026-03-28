@@ -9,14 +9,14 @@ Query the deps.dev API to get the latest stable version of open-source packages.
 
 ## Supported Ecosystems
 
-| Ecosystem | System ID | Example Package |
-| --------- | --------- | --------------- |
-| npm | `npm` | `express`, `@types/node` |
-| PyPI | `pypi` | `requests`, `django` |
-| Go | `go` | `github.com/gin-gonic/gin` |
-| Cargo | `cargo` | `serde`, `tokio` |
-| Maven | `maven` | `org.springframework:spring-core` |
-| NuGet | `nuget` | `Newtonsoft.Json` |
+| Ecosystem | System ID | Example Package                   |
+| --------- | --------- | --------------------------------- |
+| npm       | `npm`     | `express`, `@types/node`          |
+| PyPI      | `pypi`    | `requests`, `django`              |
+| Go        | `go`      | `github.com/gin-gonic/gin`        |
+| Cargo     | `cargo`   | `serde`, `tokio`                  |
+| Maven     | `maven`   | `org.springframework:spring-core` |
+| NuGet     | `nuget`   | `Newtonsoft.Json`                 |
 
 ## When to Use
 
@@ -62,10 +62,10 @@ python3 scripts/get-versions.py go github.com/gin-gonic/gin
 
 TSV with header. One line per package:
 
-```
-package	version	published	status
-express	5.0.0	2024-09-10	ok
-lodash	4.17.21	2021-02-20	ok
+```text
+package version published status
+express 5.0.0 2024-09-10 ok
+lodash 4.17.21 2021-02-20 ok
 ```
 
 Status values: `ok`, `deprecated`, `not found`, `error: <detail>`.

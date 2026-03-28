@@ -1,0 +1,11 @@
+pre-commit:
+  commands:
+    prettier-md:
+      glob: "*.md"
+      run: bunx prettier --write {staged_files}
+      stage_fixed: true
+
+    markdownlint-md:
+      glob: "*.md"
+      run: bunx markdownlint-cli2 --fix {staged_files}
+      stage_fixed: true

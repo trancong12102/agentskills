@@ -18,6 +18,7 @@ If only one CLI is installed, fall back to the available reviewer with a warning
 - Reviewing uncommitted changes before committing
 - Auditing a branch diff before opening a PR
 - Reviewing a specific commit for regressions
+
 ## When NOT to Use
 
 - Reviewing documentation, markdown, or non-code files
@@ -34,6 +35,7 @@ If the scope is not already clear, use AskUserQuestion to ask:
 - **Uncommitted changes** (default) — staged, unstaged, and untracked changes
 - **Branch diff** — compare current branch against a base branch
 - **Specific commit** — audit a single changeset
+
 ### Step 2: Run Both Reviews in Parallel
 
 Both reviewers read the same diff independently — neither depends on the other's output. Launch them both at once in a single message to eliminate sequential wait time.

@@ -76,6 +76,7 @@ const form = useForm({
 ### Cross-field validation
 
 Use `onChangeListenTo` to re-run when another field changes:
+
 ```typescript
 <form.Field
   name="confirm_password"
@@ -123,23 +124,25 @@ Use `mode="array"` on the parent field. Array mutation methods: `pushValue`, `re
 ## Server-Side Validation (TanStack Start)
 
 ```typescript
-import { createServerValidate } from '@tanstack/react-form/server'
+import { createServerValidate } from "@tanstack/react-form/server";
 
 const serverValidate = createServerValidate({
   validators: {
     onSubmitAsync: async ({ value }) => {
-      const errors = await validateOnDB(value)
-      return errors ? {
-        form: 'Invalid data',
-        fields: {
-          age: 'Must be 13+',
-          'socials[0].url': 'URL does not exist',
-          'details.email': 'Required',
-        },
-      } : null
+      const errors = await validateOnDB(value);
+      return errors
+        ? {
+            form: "Invalid data",
+            fields: {
+              age: "Must be 13+",
+              "socials[0].url": "URL does not exist",
+              "details.email": "Required",
+            },
+          }
+        : null;
     },
   },
-})
+});
 ```
 
 ---
@@ -149,6 +152,7 @@ const serverValidate = createServerValidate({
 ### form.Subscribe with selector
 
 The core optimization primitive — only re-renders when selected slice changes:
+
 ```typescript
 <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
   {([canSubmit, isSubmitting]) => (
@@ -162,7 +166,7 @@ The core optimization primitive — only re-renders when selected slice changes:
 ### useStore for imperative access
 
 ```typescript
-const firstName = useStore(form.store, (state) => state.values.firstName)
+const firstName = useStore(form.store, (state) => state.values.firstName);
 ```
 
 Each `form.Field` is already optimized — subscribes only to its own state slice.

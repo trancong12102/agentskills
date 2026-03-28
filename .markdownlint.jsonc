@@ -1,0 +1,13 @@
+{
+  // Disable rules that conflict with Prettier
+  "extends": "markdownlint/style/prettier",
+
+  // Allow multiple top-level headings (skills often have structured sections)
+  "MD025": false,
+
+  // Allow inline HTML (common in markdown docs)
+  "MD033": false,
+
+  // Allow bare URLs
+  "MD034": false
+}

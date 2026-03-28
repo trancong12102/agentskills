@@ -9,20 +9,19 @@ Router's type-safe routing.
 Type-safe RPC that executes on the server, callable from client or server:
 
 ```typescript
-import { createServerFn } from '@tanstack/react-start'
+import { createServerFn } from "@tanstack/react-start";
 
-export const getUser = createServerFn({ method: 'GET' })
-  .handler(async () => {
-    return db.users.findFirst()
-  })
+export const getUser = createServerFn({ method: "GET" }).handler(async () => {
+  return db.users.findFirst();
+});
 
 // With validation + middleware
-export const getTodos = createServerFn({ method: 'GET' })
+export const getTodos = createServerFn({ method: "GET" })
   .inputValidator(zodValidator(z.object({ userId: z.string() })))
   .middleware([authMiddleware])
   .handler(async ({ data, context }) => {
-    return db.todos.findMany({ where: { userId: data.userId } })
-  })
+    return db.todos.findMany({ where: { userId: data.userId } });
+  });
 ```
 
 ### createServerFn vs createServerOnlyFn
@@ -37,26 +36,28 @@ export const getTodos = createServerFn({ method: 'GET' })
 // Async generator (cleaner)
 const streamingFn = createServerFn().handler(async function* () {
   for (const msg of messages) {
-    await sleep(500)
-    yield msg
+    await sleep(500);
+    yield msg;
   }
-})
+});
 ```
 
 ### Integration with React Query
 
 ```typescript
 // serverFns/posts.ts
-export const getPost = createServerFn({ method: 'GET' })
+export const getPost = createServerFn({ method: "GET" })
   .validator((data: { postId: string }) => data)
-  .handler(async ({ data }) => db.posts.findUnique({ where: { id: data.postId } }))
+  .handler(async ({ data }) =>
+    db.posts.findUnique({ where: { id: data.postId } }),
+  );
 
 // queries/posts.ts
 export const postQueryOptions = (postId: string) =>
   queryOptions({
-    queryKey: ['posts', postId],
+    queryKey: ["posts", postId],
     queryFn: () => getPost({ data: { postId } }),
-  })
+  });
 ```
 
 ---
@@ -66,28 +67,26 @@ export const postQueryOptions = (postId: string) =>
 ### Request middleware (wraps server function calls)
 
 ```typescript
-import { createMiddleware } from '@tanstack/react-start'
+import { createMiddleware } from "@tanstack/react-start";
 
-const authMiddleware = createMiddleware().server(
-  async ({ next, request }) => {
-    const session = await auth.getSession({ headers: request.headers })
-    if (!session) throw new Error('Unauthorized')
-    return await next({ context: { session } })
-  }
-)
+const authMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const session = await auth.getSession({ headers: request.headers });
+  if (!session) throw new Error("Unauthorized");
+  return await next({ context: { session } });
+});
 ```
 
 ### Function middleware with client + server sides
 
 ```typescript
-const authMiddleware = createMiddleware({ type: 'function' })
+const authMiddleware = createMiddleware({ type: "function" })
   .client(async ({ next }) => {
-    return next({ headers: { Authorization: `Bearer ${getToken()}` } })
+    return next({ headers: { Authorization: `Bearer ${getToken()}` } });
   })
   .server(async ({ next }) => {
     // server-side logic
-    return await next()
-  })
+    return await next();
+  });
 ```
 
 Middleware chains compose via `.middleware([mw1, mw2])`.
@@ -100,6 +99,7 @@ TanStack Start defaults to streaming SSR. The HTML shell renders immediately and
 deferred data streams in.
 
 Root route setup:
+
 ```typescript
 export const Route = createRootRoute({
   head: () => ({
@@ -126,18 +126,19 @@ Use `defer`/`Await` from TanStack Router for streaming deferred data in loaders.
 
 ## How Start Differs from Next.js & Remix
 
-| Feature | Next.js App Router | TanStack Start |
-|---|---|---|
-| Component model | Server Components (opt-in client) | Client components (SSR by default) |
-| RSC support | Production-ready | Actively developing, not default yet |
-| Data fetching | `async` Server Components + `fetch` | Route `loader` + `createServerFn` |
-| Type safety | Partial (no search param inference) | Full end-to-end TS |
-| Server functions | Server Actions (form-first) | `createServerFn` — callable anywhere |
-| Caching | Complex implicit `fetch` cache | React Query or route `staleTime` |
-| Build system | Webpack/Turbopack | Vite + Vinxi (Nitro) |
-| Deployment | Vercel-optimized | Node, Bun, CF Workers, Vercel, Netlify |
+| Feature          | Next.js App Router                  | TanStack Start                         |
+| ---------------- | ----------------------------------- | -------------------------------------- |
+| Component model  | Server Components (opt-in client)   | Client components (SSR by default)     |
+| RSC support      | Production-ready                    | Actively developing, not default yet   |
+| Data fetching    | `async` Server Components + `fetch` | Route `loader` + `createServerFn`      |
+| Type safety      | Partial (no search param inference) | Full end-to-end TS                     |
+| Server functions | Server Actions (form-first)         | `createServerFn` — callable anywhere   |
+| Caching          | Complex implicit `fetch` cache      | React Query or route `staleTime`       |
+| Build system     | Webpack/Turbopack                   | Vite + Vinxi (Nitro)                   |
+| Deployment       | Vercel-optimized                    | Node, Bun, CF Workers, Vercel, Netlify |
 
 Key differences:
+
 - No `"use client"` / `"use server"` boundary confusion — normal React components that
   SSR and hydrate. Server-exclusive logic is explicit via `createServerFn`
 - No implicit caching layers — use React Query or explicit `staleTime`
@@ -150,15 +151,15 @@ Key differences:
 
 ```typescript
 // vite.config.ts
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 export default defineConfig({
   plugins: [
     tanstackStart({
-      srcDirectory: 'src',
-      router: { routesDirectory: 'routes' },
+      srcDirectory: "src",
+      router: { routesDirectory: "routes" },
     }),
     viteReact(),
   ],
-})
+});
 ```

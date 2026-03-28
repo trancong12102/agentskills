@@ -29,6 +29,7 @@ use these tools, not their full API surface.
 ## The useEffect Ban
 
 Do not use `useEffect` for:
+
 - **Data fetching** — use React Query (`useSuspenseQuery` / `useQuery`) or route loaders
 - **Derived state** — compute during render or use `useMemo`
 - **Syncing state with props** — use the prop directly, or reset with React `key`
@@ -50,16 +51,16 @@ These are the **only** legitimate cases:
 
 ### What to use instead
 
-| Instead of useEffect for... | Use |
-|---|---|
-| Fetching data | `useSuspenseQuery` + route loader prefetch |
-| Consuming a Promise | `use()` hook (React 19+) + `<Suspense>` |
-| Derived/computed values | Direct computation or `useMemo` |
-| External store subscription | `useSyncExternalStore` |
-| Deferring expensive renders | `useDeferredValue` / `useTransition` |
-| Complex async orchestration | XState `invoke` with `fromPromise` |
-| Resetting state on prop change | React `key` prop on the component |
-| User-triggered side effects | Event handlers directly |
+| Instead of useEffect for...    | Use                                        |
+| ------------------------------ | ------------------------------------------ |
+| Fetching data                  | `useSuspenseQuery` + route loader prefetch |
+| Consuming a Promise            | `use()` hook (React 19+) + `<Suspense>`    |
+| Derived/computed values        | Direct computation or `useMemo`            |
+| External store subscription    | `useSyncExternalStore`                     |
+| Deferring expensive renders    | `useDeferredValue` / `useTransition`       |
+| Complex async orchestration    | XState `invoke` with `fromPromise`         |
+| Resetting state on prop change | React `key` prop on the component          |
+| User-triggered side effects    | Event handlers directly                    |
 
 ---
 
@@ -71,17 +72,17 @@ These are the **only** legitimate cases:
 in the browser) are fundamentally different concerns. Mixing them causes stale data bugs,
 duplication, and synchronization nightmares.
 
-| Concern | Owner | Examples |
-|---|---|---|
-| Server data | React Query | Users, posts, products, orders |
-| URL state | TanStack Router | Path params, search params, hash |
-| Complex UI flows | XState | Multi-step wizards, auth flows, drag-and-drop |
-| Form fields | TanStack Form | Input values, validation errors, submission |
-| Simple local UI | `useState` | Toggle, accordion expanded, input focus |
+| Concern          | Owner           | Examples                                      |
+| ---------------- | --------------- | --------------------------------------------- |
+| Server data      | React Query     | Users, posts, products, orders                |
+| URL state        | TanStack Router | Path params, search params, hash              |
+| Complex UI flows | XState          | Multi-step wizards, auth flows, drag-and-drop |
+| Form fields      | TanStack Form   | Input values, validation errors, submission   |
+| Simple local UI  | `useState`      | Toggle, accordion expanded, input focus       |
 
 ### Decision flowchart
 
-```
+```text
 Is the data from a server / API?
   YES -> React Query (queryOptions + useSuspenseQuery)
   NO -> Is it in the URL?
@@ -96,6 +97,7 @@ Is the data from a server / API?
 ### When to reach for XState over useState/useReducer
 
 Use XState when:
+
 - There are **3+ mutually exclusive states** with defined transitions
 - **Async side effects** must be cancelled on state change (race conditions)
 - The logic has **guards** (conditions that gate transitions)
@@ -110,16 +112,16 @@ Do not use XState for simple toggles, single boolean flags, or counter state. Th
 
 ## Architecture: Which Library Owns What
 
-| Layer | Library | Responsibility |
-|---|---|---|
-| Routing + URL state | TanStack Router | Type-safe navigation, search params, route loaders |
-| Full-stack boundary | TanStack Start | Server functions (`createServerFn`), SSR, streaming |
-| Server state | React Query | Fetching, caching, invalidation, background refetch |
-| Complex UI state | XState | State machines, actor model, flow orchestration |
-| Form lifecycle | TanStack Form | Field values, validation, submission |
-| Data display | TanStack Table | Headless sorting, filtering, pagination, grouping |
-| Large lists | TanStack Virtual | Virtualized rendering for 1000+ items |
-| Simple local state | useState/useReducer | Toggles, local inputs, component-scoped values |
+| Layer               | Library             | Responsibility                                      |
+| ------------------- | ------------------- | --------------------------------------------------- |
+| Routing + URL state | TanStack Router     | Type-safe navigation, search params, route loaders  |
+| Full-stack boundary | TanStack Start      | Server functions (`createServerFn`), SSR, streaming |
+| Server state        | React Query         | Fetching, caching, invalidation, background refetch |
+| Complex UI state    | XState              | State machines, actor model, flow orchestration     |
+| Form lifecycle      | TanStack Form       | Field values, validation, submission                |
+| Data display        | TanStack Table      | Headless sorting, filtering, pagination, grouping   |
+| Large lists         | TanStack Virtual    | Virtualized rendering for 1000+ items               |
+| Simple local state  | useState/useReducer | Toggles, local inputs, component-scoped values      |
 
 ### The golden rule: `queryOptions` as single source of truth
 
@@ -127,20 +129,20 @@ Define query options once, import everywhere — loaders, components, invalidati
 
 ```typescript
 // queries/posts.ts
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions } from "@tanstack/react-query";
 
 export const postsQueryOptions = queryOptions({
-  queryKey: ['posts'],
+  queryKey: ["posts"],
   queryFn: fetchPosts,
   staleTime: 30_000,
-})
+});
 
 export const postQueryOptions = (postId: string) =>
   queryOptions({
-    queryKey: ['posts', postId],
+    queryKey: ["posts", postId],
     queryFn: () => fetchPost(postId),
     staleTime: 30_000,
-  })
+  });
 ```
 
 ### Route loader + React Query integration pattern
@@ -199,16 +201,18 @@ not as performance tools.
 ### Avoid waterfall requests
 
 - Prefetch all independent data in route loaders using `Promise.all`:
+
   ```typescript
   loader: async ({ context: { queryClient }, params }) => {
     await Promise.all([
       queryClient.ensureQueryData(userQueryOptions(params.id)),
       queryClient.ensureQueryData(permissionsQueryOptions(params.id)),
-    ])
+    ]);
     // Fire-and-forget for non-critical
-    queryClient.prefetchQuery(activityQueryOptions(params.id))
-  }
+    queryClient.prefetchQuery(activityQueryOptions(params.id));
+  };
   ```
+
 - Never fetch data in `useEffect` that could go in a route loader
 - Parent and child route loaders run concurrently by default
 
@@ -277,7 +281,7 @@ if-statements is a signal to invert control.
 
 ## File Organization
 
-```
+```text
 src/
   routes/                  # TanStack Router file-based routes
     __root.tsx             # Root layout, router context type
@@ -300,6 +304,7 @@ src/
 ```
 
 Key conventions:
+
 - Machine definitions are pure TypeScript — no React imports, testable in isolation
 - `queries/` files export `queryOptions` objects, not hooks
 - Route-specific components use `-` prefix directories to avoid route tree inclusion
@@ -311,13 +316,13 @@ Key conventions:
 
 Read the relevant reference file when working with a specific library:
 
-| File | When to read |
-|---|---|
-| `references/react-query.md` | Query patterns, mutations, cache, Suspense integration |
-| `references/router.md` | Routing, search params, loaders, code splitting, navigation |
-| `references/start.md` | Server functions, SSR, middleware, deployment |
-| `references/table.md` | Column defs, sorting, filtering, pagination, server-side ops |
-| `references/form.md` | Field validation, arrays, schema validation, performance |
-| `references/virtual.md` | Virtualization, dynamic heights, infinite scroll, grids |
-| `references/xstate.md` | State machines, actors, auth flows, wizards, React integration |
-| `references/integration.md` | Combining all libraries, data flow, testing strategies |
+| File                        | When to read                                                   |
+| --------------------------- | -------------------------------------------------------------- |
+| `references/react-query.md` | Query patterns, mutations, cache, Suspense integration         |
+| `references/router.md`      | Routing, search params, loaders, code splitting, navigation    |
+| `references/start.md`       | Server functions, SSR, middleware, deployment                  |
+| `references/table.md`       | Column defs, sorting, filtering, pagination, server-side ops   |
+| `references/form.md`        | Field validation, arrays, schema validation, performance       |
+| `references/virtual.md`     | Virtualization, dynamic heights, infinite scroll, grids        |
+| `references/xstate.md`      | State machines, actors, auth flows, wizards, React integration |
+| `references/integration.md` | Combining all libraries, data flow, testing strategies         |

@@ -29,6 +29,7 @@ root.render(
 ```
 
 Root route:
+
 ```typescript
 interface RouterContext { queryClient: QueryClient }
 
@@ -50,22 +51,22 @@ results independently, causing React Query's staleTime to be ignored during prel
 // queries/posts.ts
 export const postQueryOptions = (postId: string) =>
   queryOptions({
-    queryKey: ['posts', postId],
+    queryKey: ["posts", postId],
     queryFn: () => fetchPost(postId),
     staleTime: 30_000,
-  })
+  });
 ```
 
 ### 2. Prefetch in route loader
 
 ```typescript
-export const Route = createFileRoute('/posts/$postId')({
+export const Route = createFileRoute("/posts/$postId")({
   loader: async ({ context: { queryClient }, params }) => {
-    queryClient.prefetchQuery(commentsQueryOptions(params.postId))  // non-blocking
-    await queryClient.ensureQueryData(postQueryOptions(params.postId))  // blocking
+    queryClient.prefetchQuery(commentsQueryOptions(params.postId)); // non-blocking
+    await queryClient.ensureQueryData(postQueryOptions(params.postId)); // blocking
   },
   component: PostDetail,
-})
+});
 ```
 
 ### 3. Consume in component
@@ -89,16 +90,18 @@ function PostDetail() {
 
 ```typescript
 // serverFns/posts.ts
-export const getPost = createServerFn({ method: 'GET' })
+export const getPost = createServerFn({ method: "GET" })
   .validator((data: { postId: string }) => data)
-  .handler(async ({ data }) => db.posts.findUnique({ where: { id: data.postId } }))
+  .handler(async ({ data }) =>
+    db.posts.findUnique({ where: { id: data.postId } }),
+  );
 
 // queries/posts.ts
 export const postQueryOptions = (postId: string) =>
   queryOptions({
-    queryKey: ['posts', postId],
+    queryKey: ["posts", postId],
     queryFn: () => getPost({ data: { postId } }),
-  })
+  });
 ```
 
 ---
@@ -108,6 +111,7 @@ export const postQueryOptions = (postId: string) =>
 ### Pattern 1: Component-scoped machine
 
 For self-contained UI flows (checkout wizard, multi-step form):
+
 ```typescript
 function CheckoutPage() {
   const [snapshot, send] = useMachine(checkoutMachine)
@@ -123,6 +127,7 @@ function CheckoutPage() {
 ### Pattern 2: Shared machine via createActorContext
 
 For app-wide state (auth, notifications):
+
 ```typescript
 export const AuthMachineContext = createActorContext(authMachine)
 
@@ -139,18 +144,18 @@ const user = AuthMachineContext.useSelector((s) => s.context.user)
 
 ```typescript
 function CheckoutFlow() {
-  const [snapshot, send] = useMachine(checkoutMachine)
-  const { data: cart } = useSuspenseQuery(cartQueryOptions)
+  const [snapshot, send] = useMachine(checkoutMachine);
+  const { data: cart } = useSuspenseQuery(cartQueryOptions);
 
   useEffect(() => {
-    if (cart) send({ type: 'CART_LOADED', cart })
-  }, [cart, send])
+    if (cart) send({ type: "CART_LOADED", cart });
+  }, [cart, send]);
 
   const submitOrder = useMutation({
     mutationFn: createOrder,
-    onSuccess: () => send({ type: 'ORDER_CONFIRMED' }),
-    onError: (err) => send({ type: 'ORDER_FAILED', error: err.message }),
-  })
+    onSuccess: () => send({ type: "ORDER_CONFIRMED" }),
+    onError: (err) => send({ type: "ORDER_FAILED", error: err.message }),
+  });
 }
 ```
 
@@ -279,11 +284,12 @@ errorComponent: ({ error, reset }) => {
 ### React Query tests
 
 Fresh `QueryClient` per test, retries disabled:
+
 ```typescript
 function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  })
+  });
 }
 ```
 
@@ -292,22 +298,24 @@ Use MSW for network-level mocking instead of mocking `queryFn`.
 ### XState tests
 
 Pure TypeScript — test without React:
+
 ```typescript
-const actor = createActor(checkoutMachine)
-actor.start()
-actor.send({ type: 'NEXT' })
-expect(actor.getSnapshot().matches('shipping')).toBe(true)
+const actor = createActor(checkoutMachine);
+actor.start();
+actor.send({ type: "NEXT" });
+expect(actor.getSnapshot().matches("shipping")).toBe(true);
 ```
 
 ### TanStack Router tests
 
 Memory history for testing navigation:
+
 ```typescript
 const router = createRouter({
   routeTree,
-  history: createMemoryHistory({ initialEntries: ['/posts/1'] }),
+  history: createMemoryHistory({ initialEntries: ["/posts/1"] }),
   context: { queryClient: createTestQueryClient() },
-})
+});
 ```
 
 ---

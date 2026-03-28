@@ -4,6 +4,7 @@
 
 `useVirtualizer` renders only items visible in the scroll window plus `overscan` extras.
 Two critical requirements:
+
 1. A **fixed-height scroll container** (`overflow: auto`, known height)
 2. A **spacer element** sized to `getTotalSize()` inside it
 
@@ -77,15 +78,16 @@ const columnVirtualizer = useVirtualizer({
   count: 10000,
   getScrollElement: () => parentRef.current,
   estimateSize: () => 100,
-})
+});
 // Position: transform: `translateX(${virtualCol.start}px)`
 ```
 
 ### Grid
 
 Combine row and column virtualizers on the same scroll container:
+
 ```typescript
-transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`
+transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`;
 ```
 
 Outer div sized to `rowVirtualizer.getTotalSize()` x `columnVirtualizer.getTotalSize()`.
@@ -95,29 +97,39 @@ Outer div sized to `rowVirtualizer.getTotalSize()` x `columnVirtualizer.getTotal
 ## Infinite Scrolling with React Query
 
 ```typescript
-const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-  queryKey: ['items'],
-  queryFn: ({ pageParam }) => fetchPage(pageParam),
-  getNextPageParam: (lastPage) => lastPage.nextOffset,
-  initialPageParam: 0,
-})
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  useInfiniteQuery({
+    queryKey: ["items"],
+    queryFn: ({ pageParam }) => fetchPage(pageParam),
+    getNextPageParam: (lastPage) => lastPage.nextOffset,
+    initialPageParam: 0,
+  });
 
-const allRows = data?.pages.flatMap((p) => p.rows) ?? []
+const allRows = data?.pages.flatMap((p) => p.rows) ?? [];
 
 const rowVirtualizer = useVirtualizer({
   count: hasNextPage ? allRows.length + 1 : allRows.length,
   getScrollElement: () => parentRef.current,
   estimateSize: () => 100,
   overscan: 5,
-})
+});
 
 useEffect(() => {
-  const lastItem = rowVirtualizer.getVirtualItems().at(-1)
-  if (!lastItem) return
-  if (lastItem.index >= allRows.length - 1 && hasNextPage && !isFetchingNextPage) {
-    fetchNextPage()
+  const lastItem = rowVirtualizer.getVirtualItems().at(-1);
+  if (!lastItem) return;
+  if (
+    lastItem.index >= allRows.length - 1 &&
+    hasNextPage &&
+    !isFetchingNextPage
+  ) {
+    fetchNextPage();
   }
-}, [rowVirtualizer.getVirtualItems(), hasNextPage, isFetchingNextPage, allRows.length])
+}, [
+  rowVirtualizer.getVirtualItems(),
+  hasNextPage,
+  isFetchingNextPage,
+  allRows.length,
+]);
 ```
 
 ---
@@ -130,22 +142,24 @@ useEffect(() => {
 - **`contain: 'strict'`** on scroll container — significant CSS performance win for large
   lists, prevents layout recalculations from propagating outside.
 - **`useWindowVirtualizer`** — when browser window is the scroll container:
+
   ```typescript
   const virtualizer = useWindowVirtualizer({
     count: 10000,
     estimateSize: () => 35,
     scrollMargin: listRef.current?.offsetTop ?? 0,
-  })
+  });
   ```
 
 ### Sticky headers
 
 Override `rangeExtractor` to force header indices into render range:
+
 ```typescript
 rangeExtractor: (range) => {
-  const next = new Set([activeStickyIndex, ...defaultRangeExtractor(range)])
-  return [...next].sort((a, b) => a - b)
-}
+  const next = new Set([activeStickyIndex, ...defaultRangeExtractor(range)]);
+  return [...next].sort((a, b) => a - b);
+};
 ```
 
 ### Scroll restoration

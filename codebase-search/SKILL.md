@@ -29,13 +29,13 @@ Requires `MORPH_API_KEY` environment variable.
 **Can you write the grep pattern yourself?** Use Grep — it's faster.
 **Can't write the pattern because the question is conceptual?** Use codebase-search.
 
-| Task | Tool |
-|------|------|
-| Find all imports of `AuthService` | Grep |
-| How does AuthService validate tokens? | codebase-search |
-| Find files named `*.config.ts` | Glob |
-| How is the config system structured? | codebase-search |
-| Find `TODO` comments | Grep |
+| Task                                        | Tool            |
+| ------------------------------------------- | --------------- |
+| Find all imports of `AuthService`           | Grep            |
+| How does AuthService validate tokens?       | codebase-search |
+| Find files named `*.config.ts`              | Glob            |
+| How is the config system structured?        | codebase-search |
+| Find `TODO` comments                        | Grep            |
 | What's left unfinished in the payment flow? | codebase-search |
 
 ## Workflow
@@ -69,7 +69,7 @@ Run `python3 scripts/codebase-search.py --help` for full usage.
 
 ### Example Output
 
-```
+```text
 Morph Fast Context subagent performed search on repository:
 
 Relevant context found:

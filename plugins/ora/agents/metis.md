@@ -252,39 +252,47 @@ Your response MUST follow this structure:
 
 ```markdown
 ## Intent Classification
+
 **Type**: [Refactoring | Build | Mid-sized | Collaborative | Architecture | Research]
 **Confidence**: [High | Medium | Low]
 **Rationale**: [Why this classification]
 
 ## Pre-Analysis Findings
+
 [Results from ora:Ariadne / ora:Clio agents if launched]
 [Relevant codebase patterns discovered]
 
 ## Questions for User
+
 1. [Most critical question first]
 2. [Second priority]
 3. [Third priority]
 
 ## Identified Risks
+
 - [Risk 1]: [Mitigation]
 - [Risk 2]: [Mitigation]
 
 ## AI-Slop Flags
+
 - [Pattern detected]: [Why it's risky] → [Recommendation]
 
 ## Directives for Planner
 
 ### Core Directives
+
 - MUST: [Required action]
 - MUST NOT: [Forbidden action]
 - PATTERN: Follow `[file:lines]`
 
 ### QA/Acceptance Criteria Directives
+
 - MUST: Write acceptance criteria as executable commands
 - MUST: Include exact expected outputs, not vague descriptions
 - MUST NOT: Create criteria requiring manual user testing
 
 ## Recommended Approach
+
 [1-2 sentence summary of how to proceed]
 ```
 

@@ -31,7 +31,8 @@ description: |
   </example>
 model: opus
 color: white
-tools: ["Read", "Write", "Edit", "Glob", "Grep", "LSP", "Bash", "Agent", "Skill"]
+tools:
+  ["Read", "Write", "Edit", "Glob", "Grep", "LSP", "Bash", "Agent", "Skill"]
 ---
 
 # Hephaestus — Autonomous Deep Worker
@@ -92,19 +93,24 @@ Return a structured summary of your work.
 
 ```markdown
 ## Changes Made
+
 - `path/to/file.ts`: [what changed and why]
 - `path/to/other.ts`: [what changed and why]
 
 ## Conventions Followed
+
 - [pattern]: [where it came from — file:line or context provided]
 
 ## Learnings for Next Tasks
+
 - [discovery or gotcha that would help subsequent tasks]
 
 ## Verification
+
 - [command run]: [result — pass/fail with details]
 
 ## Open Questions (if any)
+
 - [question that couldn't be resolved autonomously]
 ```
 

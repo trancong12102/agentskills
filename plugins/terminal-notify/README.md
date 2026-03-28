@@ -12,6 +12,7 @@ Desktop notifications for Claude Code — works in any terminal that supports OS
 | **ExitPlanMode**    | Claude exits plan mode                |
 
 Each notification sends:
+
 - **Bell** — dock bounce + badge (macOS)
 - **OSC 9** — desktop notification banner with the last response (truncated to 100 chars)
 

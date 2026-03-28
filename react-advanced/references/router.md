@@ -6,9 +6,12 @@ The type system is built on the route tree. Every route links to its parent via
 `getParentRoute`, enabling TypeScript to infer params, search, and loader data end-to-end.
 
 Register the router for global inference:
+
 ```typescript
-declare module '@tanstack/react-router' {
-  interface Register { router: typeof router }
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
 }
 ```
 
@@ -18,35 +21,35 @@ Without this registration, all navigation and hooks are typed as `any`.
 
 ```typescript
 interface MyRouterContext {
-  queryClient: QueryClient
+  queryClient: QueryClient;
 }
 
 const rootRoute = createRootRouteWithContext<MyRouterContext>()({
   component: App,
-})
+});
 
 const router = createRouter({
   routeTree,
   context: { queryClient },
-  defaultPreload: 'intent',
+  defaultPreload: "intent",
   defaultPreloadStaleTime: 0, // Let React Query manage staleness
-})
+});
 ```
 
 ---
 
 ## File-Based Routing Conventions
 
-| File pattern | Meaning |
-|---|---|
-| `__root.tsx` | Root layout (wraps everything) |
-| `index.tsx` | Index route for parent segment |
-| `posts/$postId.tsx` | Dynamic segment `/posts/:postId` |
-| `posts.$postId.edit.tsx` | Flat notation for `/posts/:postId/edit` |
-| `files/$.tsx` | Splat/wildcard route |
-| `_pathlessLayout.tsx` | Pathless layout (no URL segment) |
-| `(app)/dashboard.tsx` | Route group — folder is organizational only |
-| `-components/` | Excluded from route tree (prefix `-`) |
+| File pattern             | Meaning                                     |
+| ------------------------ | ------------------------------------------- |
+| `__root.tsx`             | Root layout (wraps everything)              |
+| `index.tsx`              | Index route for parent segment              |
+| `posts/$postId.tsx`      | Dynamic segment `/posts/:postId`            |
+| `posts.$postId.edit.tsx` | Flat notation for `/posts/:postId/edit`     |
+| `files/$.tsx`            | Splat/wildcard route                        |
+| `_pathlessLayout.tsx`    | Pathless layout (no URL segment)            |
+| `(app)/dashboard.tsx`    | Route group — folder is organizational only |
+| `-components/`           | Excluded from route tree (prefix `-`)       |
 
 Route groups `(name)/` organize files without affecting URLs. Pathless routes (`_` prefix)
 wrap children with layout/auth logic without adding URL segments.
@@ -60,17 +63,17 @@ Search params are **always validated** through `validateSearch`. Without it, the
 ### With Zod (recommended)
 
 ```typescript
-import { z } from 'zod'
+import { z } from "zod";
 
 const productSearchSchema = z.object({
   page: z.number().catch(1),
-  filter: z.string().catch(''),
-  sort: z.enum(['newest', 'oldest', 'price']).catch('newest'),
-})
+  filter: z.string().catch(""),
+  sort: z.enum(["newest", "oldest", "price"]).catch("newest"),
+});
 
-export const Route = createFileRoute('/shop/products')({
+export const Route = createFileRoute("/shop/products")({
   validateSearch: productSearchSchema,
-})
+});
 ```
 
 Always use `.catch(fallback)` instead of `.default(value)`. `.default()` only handles
@@ -79,16 +82,19 @@ missing keys; `.catch()` also handles type coercion failures from malformed URLs
 ### With Valibot (Standard Schema, no adapter needed)
 
 ```typescript
-import * as v from 'valibot'
+import * as v from "valibot";
 
 const schema = v.object({
   page: v.optional(v.fallback(v.number(), 1), 1),
-  sort: v.optional(v.fallback(v.picklist(['newest', 'oldest', 'price']), 'newest'), 'newest'),
-})
+  sort: v.optional(
+    v.fallback(v.picklist(["newest", "oldest", "price"]), "newest"),
+    "newest",
+  ),
+});
 
-export const Route = createFileRoute('/shop/products/')({
+export const Route = createFileRoute("/shop/products/")({
   validateSearch: schema,
-})
+});
 ```
 
 Access in components via `Route.useSearch()` — fully typed to the validated shape.
@@ -120,12 +126,13 @@ function PostPage() {
 ### loaderDeps — reactive loader inputs
 
 Only the extracted deps trigger re-load, not any other search param change:
+
 ```typescript
-export const Route = createFileRoute('/posts')({
+export const Route = createFileRoute("/posts")({
   validateSearch: productSearchSchema,
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ deps }) => fetchPosts(deps),
-})
+});
 ```
 
 ### Deferred/streaming data
@@ -169,19 +176,19 @@ Split route into critical config (loader, params) and non-critical rendering (co
 
 ```typescript
 // routes/posts.tsx — critical config only
-export const Route = createFileRoute('/posts')({
+export const Route = createFileRoute("/posts")({
   loader: ({ context: { queryClient } }) =>
     queryClient.ensureQueryData(postsQueryOptions),
-})
+});
 ```
 
 ```typescript
 // routes/posts.lazy.tsx — rendering only
-export const Route = createLazyFileRoute('/posts')({
+export const Route = createLazyFileRoute("/posts")({
   component: Posts,
   pendingComponent: PostsSkeleton,
   errorComponent: PostsError,
-})
+});
 ```
 
 ### Code-based: `.lazy()`
@@ -189,20 +196,20 @@ export const Route = createLazyFileRoute('/posts')({
 ```typescript
 const postsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/posts',
+  path: "/posts",
   loader: ({ context }) => context.queryClient.ensureQueryData(postsQuery),
-}).lazy(() => import('./posts.lazy').then(d => d.Route))
+}).lazy(() => import("./posts.lazy").then((d) => d.Route));
 ```
 
 ### lazyRouteComponent for component-only splits
 
 ```typescript
-import { lazyRouteComponent } from '@tanstack/react-router'
+import { lazyRouteComponent } from "@tanstack/react-router";
 
 const route = createRoute({
   ...opts,
-  component: lazyRouteComponent(() => import('../pages/PostsIndex')),
-})
+  component: lazyRouteComponent(() => import("../pages/PostsIndex")),
+});
 ```
 
 ---
@@ -225,8 +232,8 @@ const route = createRoute({
 ### useNavigate
 
 ```typescript
-const navigate = useNavigate({ from: '/posts' })
-navigate({ to: '/posts/$postId', params: { postId: id } })
+const navigate = useNavigate({ from: "/posts" });
+navigate({ to: "/posts/$postId", params: { postId: id } });
 ```
 
 ### linkOptions — reusable type-safe config
@@ -243,14 +250,14 @@ const dashboardLink = linkOptions({ to: '/dashboard', search: { tab: 'overview' 
 Context layers merge down the tree: router-level -> per-route `beforeLoad` -> children.
 
 ```typescript
-export const Route = createFileRoute('/admin')({
+export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ context }) => {
-    const user = await context.auth.getUser()
-    if (!user.isAdmin) throw redirect({ to: '/login' })
-    return { user }  // merged into context for this route and children
+    const user = await context.auth.getUser();
+    if (!user.isAdmin) throw redirect({ to: "/login" });
+    return { user }; // merged into context for this route and children
   },
   loader: ({ context }) => fetchAdminData(context.user.id),
-})
+});
 ```
 
 ---
@@ -280,11 +287,12 @@ both router reload and error boundary reset together.
    Install `@tanstack/eslint-plugin-router` with `create-route-property-order` rule.
 
 2. **Returning entire search in loaderDeps** — invalidates cache on any param change:
+
    ```typescript
    // Bad
-   loaderDeps: ({ search }) => search
+   loaderDeps: ({ search }) => search;
    // Good
-   loaderDeps: ({ search }) => ({ page: search.page })
+   loaderDeps: ({ search }) => ({ page: search.page });
    ```
 
 3. **useLoaderData in notFoundComponent** — not valid. Use `Route.useParams()` or

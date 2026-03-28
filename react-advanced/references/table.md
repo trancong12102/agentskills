@@ -46,6 +46,7 @@ const columns = [
 ```
 
 Three column types:
+
 - `accessor` — bound to data field; participates in sorting, filtering
 - `display` — renders UI only (checkboxes, actions)
 - `group` — header grouping; purely visual
@@ -68,12 +69,13 @@ const table = useReactTable({
   onSortingChange: setSorting,
   onColumnFiltersChange: setColumnFilters,
   onPaginationChange: setPagination,
-})
+});
 ```
 
 ### Row selection
 
 Provide `getRowId` for stable IDs across page changes:
+
 ```typescript
 const table = useReactTable({
   ...opts,
@@ -81,7 +83,7 @@ const table = useReactTable({
   state: { rowSelection },
   onRowSelectionChange: setRowSelection,
   enableRowSelection: true,
-})
+});
 ```
 
 ---
@@ -100,20 +102,21 @@ const table = useReactTable({
   manualSorting: true,
   manualPagination: true,
   manualFiltering: true,
-  rowCount: serverData.totalRows,  // table derives pageCount
+  rowCount: serverData.totalRows, // table derives pageCount
   state: { sorting, pagination, columnFilters },
   onSortingChange: setSorting,
   onPaginationChange: setPagination,
   onColumnFiltersChange: setColumnFilters,
-})
+});
 ```
 
 Combine with React Query:
+
 ```typescript
 const { data } = useQuery({
-  queryKey: ['users', columnFilters, sorting, pagination],
+  queryKey: ["users", columnFilters, sorting, pagination],
   queryFn: () => fetchUsers({ columnFilters, sorting, pagination }),
-})
+});
 ```
 
 ---
@@ -132,17 +135,18 @@ const { data } = useQuery({
 Integrate TanStack Virtual's `useVirtualizer` with `table.getRowModel().rows`:
 
 ```typescript
-const { rows } = table.getRowModel()
+const { rows } = table.getRowModel();
 const rowVirtualizer = useVirtualizer({
   count: rows.length,
   getScrollElement: () => parentRef.current,
   estimateSize: () => 35,
   overscan: 10,
-})
+});
 
-const virtualRows = rowVirtualizer.getVirtualItems()
-const paddingTop = virtualRows[0]?.start ?? 0
-const paddingBottom = rowVirtualizer.getTotalSize() - (virtualRows.at(-1)?.end ?? 0)
+const virtualRows = rowVirtualizer.getVirtualItems();
+const paddingTop = virtualRows[0]?.start ?? 0;
+const paddingBottom =
+  rowVirtualizer.getTotalSize() - (virtualRows.at(-1)?.end ?? 0);
 ```
 
 See `virtual.md` for full virtualization patterns.
@@ -150,6 +154,7 @@ See `virtual.md` for full virtualization patterns.
 ### Column resizing performance
 
 For smooth 60fps resizing:
+
 - Compute all column widths via CSS variables upfront
 - Memoize table body during active resizing
 - Avoid calling `column.getSize()` per-cell on every render
@@ -159,6 +164,7 @@ For smooth 60fps resizing:
 ## Common Pitfalls
 
 1. **Column/data stability (most common bug)**:
+
    ```typescript
    // BAD — new reference every render -> infinite re-renders
    function MyTable() {

@@ -1,11 +1,11 @@
 ---
 name: codebase-search
-description: "Semantic codebase search — use as the first step when exploring or scanning a codebase broadly. Understands code intent and traces cross-file flows. Use when the user needs to understand how code works, trace data flows, explore unfamiliar codebases, or answer conceptual questions ('how does X work', 'where is Y configured', 'trace the flow of Z'). Do NOT use for targeted keyword/symbol searches (use Grep) or file lookups (use Glob)."
+description: "Semantic local search — searches across all project files: code, config, docs, markdown, YAML, JSON, and any text. Use as the first step when exploring or scanning a project broadly. Understands intent and traces cross-file flows. Use when you need to understand how something works, trace data flows, explore unfamiliar projects, find information in local files, or answer conceptual questions ('how does X work', 'where is Y configured', 'trace the flow of Z'). Do NOT use for targeted keyword/symbol searches (use Grep) or file lookups (use Glob)."
 ---
 
 # codebase-search
 
-Semantic codebase search powered by MorphLLM — an RL-trained subagent that runs ~15-30 internal grep+read operations to answer natural language questions about code. Unlike simple grep, it understands intent and traces cross-file flows.
+Semantic local search powered by MorphLLM — an RL-trained subagent that runs ~15-30 internal grep+read operations to answer natural language questions about any project files (code, config, docs, markdown, YAML, JSON, and other text files). Unlike simple grep, it understands intent and traces cross-file flows.
 
 Requires `MORPH_API_KEY` environment variable.
 
@@ -13,9 +13,10 @@ Requires `MORPH_API_KEY` environment variable.
 
 - Understanding how a feature works across multiple files (e.g., "how does the auth middleware validate tokens?")
 - Tracing data flow end-to-end (e.g., "what happens when a user clicks checkout?")
-- Exploring unfamiliar codebases where you don't know what to grep for
+- Exploring unfamiliar projects where you don't know what to grep for
 - Answering architectural questions (e.g., "how is the database layer organized?")
 - Debugging cross-file interactions where the connection isn't obvious
+- Finding information in non-code files — config, docs, markdown, YAML, JSON (e.g., "how are the plugin hooks configured?")
 
 ## When NOT to Use
 

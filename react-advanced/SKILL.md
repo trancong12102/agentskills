@@ -52,6 +52,36 @@ These are the **only** legitimate cases:
 4. **Bridging React Query data into XState** — the `useEffect` bridge pattern for
    pushing server state into a machine via events (see `references/xstate.md`)
 
+### useMountEffect for mount-only effects
+
+When you have a legitimate mount-only effect (cases 1–3 above), use a `useMountEffect`
+helper instead of raw `useEffect(fn, [])`:
+
+```typescript
+// utils/useMountEffect.ts
+import { useEffect, type EffectCallback } from "react";
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+const useMountEffect = (effect: EffectCallback) => useEffect(effect, []);
+
+export default useMountEffect;
+```
+
+Usage:
+
+```typescript
+useMountEffect(() => {
+  const plugin = $.myPlugin(ref.current);
+  return () => {
+    plugin.destroy();
+  };
+});
+```
+
+Why: raw `useEffect(fn, [])` triggers the `react-hooks/exhaustive-deps` lint rule and
+makes the developer prove the empty array is intentional. `useMountEffect` makes the
+"run once on mount" intent explicit in code and silences the warning correctly.
+
 ### What to use instead
 
 | Instead of useEffect for...    | Use                                        |

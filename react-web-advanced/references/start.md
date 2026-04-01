@@ -46,12 +46,16 @@ Chain via `.middleware([mw1, mw2])` on server functions. Two types:
 - **Function middleware** (`createMiddleware({ type: "function" })`) — has `.client()` side
   (runs in browser before request, injects headers) and `.server()` side
 
+For auth session middleware that reads cookies and injects user context, see
+`ssr-auth.md` — it covers the SSR-specific cookie lifecycle that middleware depends on.
+
 ---
 
 ## SSR Patterns
 
 Start defaults to streaming SSR — HTML shell renders immediately, deferred data streams in.
-Use `defer`/`Await` from TanStack Router for non-blocking loader data.
+Use `defer`/`Await` from TanStack Router for non-blocking loader data. For SSR with
+cookie-based auth (session cookies, Vite proxy in dev, CORS), see `ssr-auth.md`.
 
 ---
 

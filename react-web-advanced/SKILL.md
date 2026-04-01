@@ -199,6 +199,22 @@ Key conventions:
 7. **`useLoaderData` in `notFoundComponent`** — not valid. Use `Route.useParams()` or
    pass data via `throw notFound({ data: ... })`.
 
+8. **Building all pages before verifying auth flow** — implement and verify the auth flow
+   first (login → session cookie → protected route guard → redirect) end-to-end before
+   building feature pages. Auth integration bugs hide behind each other (7+ layers deep).
+   See `references/ssr-auth.md`.
+
+9. **`defaultPreload: "intent"` triggering auth checks on hover** — with intent preloading,
+   `beforeLoad` fires on every link hover. If `beforeLoad` does auth validation, every hover
+   triggers a session check. Disable intent preloading during auth debugging, or make auth
+   checks cache-aware (`queryClient.getQueryData(sessionKey)` before fetching).
+
+10. **Blanket `invalidateQueries()` cascading through auth hooks** —
+    `queryClient.invalidateQueries()` with no key filter invalidates everything, including
+    session queries. Auth reactive hooks refetch, components re-render, `beforeLoad` re-runs.
+    Always scope invalidation to the specific entity query key.
+    See `references/ssr-auth.md` for patterns.
+
 ---
 
 ## Reference Files
@@ -211,4 +227,5 @@ Read the relevant reference file when working with a specific library:
 | `references/start.md`       | Server functions, SSR, middleware, deployment               |
 | `references/virtual.md`     | Virtualization, dynamic heights, infinite scroll, grids     |
 | `references/integration.md` | Router+Query wiring, auth guards, Suspense placement        |
+| `references/ssr-auth.md`    | SSR cookie auth, Vite proxy, CORS, env vars, HMR stability  |
 | `references/testing.md`     | Testing Router routes, renderWithProviders                  |

@@ -64,6 +64,10 @@ export const Route = createFileRoute("/(app)/dashboard")({
 });
 ```
 
+This pattern works for client-side SPAs with token-based auth. For SSR apps with
+cookie-based auth, the session check should happen server-side in `beforeLoad` via
+`createServerFn`, not from a client store. See `ssr-auth.md` for the SSR-safe pattern.
+
 ---
 
 ## TanStack Table + Virtual + React Query

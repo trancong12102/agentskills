@@ -56,6 +56,14 @@ The auth client should always call `/api/...` (relative path, no host). Never us
 absolute URL like `http://localhost:6781` from the client — that bypasses the proxy and
 creates cross-origin cookie issues.
 
+### When to use server functions vs direct client calls
+
+Most calls should go **direct from client → API**. The browser sends cookies
+automatically — no server function needed for mutations or client-side data fetching.
+
+Server functions are only needed for **SSR session checks** in `beforeLoad`, because
+during SSR the code runs on the server where there is no browser to send cookies.
+
 ### SSR circular fetch prevention
 
 During SSR, `createServerFn` runs on the Vite dev server. If the server function fetches
@@ -67,18 +75,35 @@ Browser → Vite (SSR) → server function → fetch("/api/...") → Vite (proxy
                                                 └── but if URL is the SSR URL ─┘  DEADLOCK
 ```
 
-**Fix:** Server-side code must call the API directly, bypassing the proxy:
+**Fix:** Server-side code must bypass the proxy. Two approaches:
+
+**Preferred: `getRequestHeaders()`** — when auth runs in the same process (monolith):
 
 ```typescript
 // serverFns/auth.ts
+import { createServerFn } from "@tanstack/react-start";
+import { getRequestHeaders } from "@tanstack/react-start/server";
+
+export const getSession = createServerFn({ method: "GET" }).handler(
+  async () => {
+    return auth.api.getSession({ headers: getRequestHeaders() });
+  },
+);
+```
+
+`getRequestHeaders()` uses `AsyncLocalStorage` — cookies are available automatically.
+No manual forwarding needed.
+
+**Alternative: internal URL** — when auth is a separate service:
+
+```typescript
 const API_INTERNAL = process.env.API_INTERNAL_URL ?? "http://localhost:6781";
 
 export const getSession = createServerFn({ method: "GET" }).handler(
   async () => {
-    const request = getRequest();
-    // Forward cookies from the browser request to the API
+    const headers = getRequestHeaders();
     const res = await fetch(`${API_INTERNAL}/api/auth/get-session`, {
-      headers: { cookie: request.headers.get("cookie") ?? "" },
+      headers: { cookie: headers.get("cookie") ?? "" },
     });
     return res.json();
   },
@@ -88,9 +113,8 @@ export const getSession = createServerFn({ method: "GET" }).handler(
 Key rules:
 
 - Client-side: relative paths (`/api/...`) → goes through Vite proxy
-- Server-side (SSR): absolute internal URL → bypasses proxy, hits API directly
-- Always forward the `cookie` header from the incoming request when making server-to-server
-  auth calls
+- Server-side (SSR): `getRequestHeaders()` for same-process, internal URL for separate service
+- Always forward the `cookie` header when making cross-service auth calls
 
 ---
 
@@ -138,7 +162,7 @@ Common traps:
 - `import.meta.env.API_URL` is `undefined` — Vite only exposes vars prefixed with `VITE_`
 - `define: { "import.meta.env.API_URL": ... }` uses **string replacement** — bracket
   notation `import.meta.env["API_URL"]` won't match the dot-notation define key
-- Never put auth secrets (`BETTER_AUTH_SECRET`, DB credentials) in `VITE_*` vars
+- Never put auth secrets (session encryption keys, DB credentials) in `VITE_*` vars
 
 ---
 
@@ -163,21 +187,138 @@ Use `beforeLoad` with a server-validated session check instead:
 export const sessionQueryOptions = queryOptions({
   queryKey: ["auth", "session"],
   queryFn: () => getSession(), // createServerFn that reads cookie
-  staleTime: 300_000,
+  staleTime: 5 * 60 * 1000,   // 5 min — prevents refetch on every navigation
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
 });
 
-// routes/(authed).tsx
-export const Route = createFileRoute("/(authed)")({
+// routes/__root.tsx — fetch session once, inject into context
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: async ({ context: { queryClient } }) => {
     const session = await queryClient.ensureQueryData(sessionQueryOptions);
-    if (!session?.user) throw redirect({ to: "/login" });
     return { session };
+  },
+});
+
+// routes/_authed.tsx — guard layout, single place for all protected routes
+export const Route = createFileRoute("/_authed")({
+  beforeLoad: ({ context }) => {
+    if (!context.session?.user) throw redirect({ to: "/sign-in" });
+    return { user: context.session.user };
+  },
+  component: () => <Outlet />,
+});
+```
+
+**Critical:** `beforeLoad` re-runs on **every** client-side navigation. Without
+`staleTime` and `refetchOnMount: false`, every link click triggers a server round-trip
+for session validation. `ensureQueryData` returns cached data instantly when fresh.
+
+Reactive auth hooks remain useful for **UI rendering** (showing user avatar, org name) —
+just never use them as the source of truth for route access control.
+
+For Better Auth specifically, see `better-auth-start.md` — it has additional patterns
+for the nanostores signal system that causes re-render loops with TanStack Router.
+
+---
+
+## Preventing FOUC with `_authed` Layout Route
+
+Use a pathless layout route (`_authed`) as a single auth guard for all protected pages.
+Because `beforeLoad` runs before rendering, the redirect happens server-side on first
+load — unauthenticated HTML is never sent to the browser.
+
+```text
+routes/
+  __root.tsx       ← fetchSession in beforeLoad, injects into context
+  _authed.tsx      ← checks context.session, throws redirect if absent
+  _authed/
+    dashboard.tsx
+    settings.tsx
+  sign-in.tsx      ← never nested under _authed
+```
+
+The login route should only redirect **away** if the user is already authenticated:
+
+```typescript
+// routes/sign-in.tsx
+export const Route = createFileRoute("/sign-in")({
+  beforeLoad: ({ context }) => {
+    if (context.session?.user) throw redirect({ to: "/" });
   },
 });
 ```
 
-Reactive auth hooks remain useful for **UI rendering** (showing user avatar, org name) —
-just never use them as the source of truth for route access control.
+This prevents the `login ↔ dashboard` infinite redirect loop — login never guards
+against unauthenticated users (they're supposed to be there).
+
+---
+
+## Hydration Mismatch Prevention
+
+The dehydrated query state is embedded as JSON in the HTML. Components that read auth
+state from route context (`Route.useRouteContext()`) render identically server and client.
+
+**Patterns that cause mismatches:**
+
+- Reading `localStorage` directly in render (server has no `localStorage`)
+- Using auth reactive hooks (`useSession()`) that return `null` on server, data on client
+- Branching on `typeof window` in render
+
+**Fixes:**
+
+Use `ssr: "data-only"` for routes where component rendering unavoidably differs:
+
+```typescript
+export const Route = createFileRoute("/_authed/dashboard")({
+  ssr: "data-only", // loader runs server-side, component renders client-only
+});
+```
+
+For isolated client-only UI elements, use `useHydrated()`:
+
+```typescript
+import { useHydrated } from "@tanstack/react-router";
+
+function TimezoneDisplay() {
+  const hydrated = useHydrated();
+  if (!hydrated) return <Skeleton />;
+  return <span>{Intl.DateTimeFormat().resolvedOptions().timeZone}</span>;
+}
+```
+
+---
+
+## Cloudflare Workers Environment
+
+Workers don't have `process.env` at runtime. Access bindings via `cloudflare:workers`
+— only inside `createServerFn` handlers (not directly in `beforeLoad` or `loader`):
+
+```typescript
+import { env } from "cloudflare:workers";
+
+const getConfig = createServerFn({ method: "GET" }).handler(async () => {
+  return { secret: env.AUTH_SECRET }; // typed via wrangler types
+});
+```
+
+### Vite plugin order
+
+```typescript
+// vite.config.ts
+plugins: [
+  cloudflare({ viteEnvironment: { name: "ssr" } }), // FIRST
+  tanstackStart(),
+  react(),
+];
+```
+
+### Required compatibility flags
+
+```jsonc
+// wrangler.jsonc
+{ "compatibility_flags": ["nodejs_compat"] } // TanStack Start uses Node APIs
+```
 
 ---
 
@@ -230,6 +371,7 @@ If behavior differs between Playwright (fast, no HMR) and the browser (slow, wit
 2. **Blanket `invalidateQueries()` after mutations** — invalidates session queries too,
    triggering auth hook refetches that cascade through every component using `useSession`.
    Always scope: `invalidateQueries({ queryKey: ["specific-entity"] })`.
+   See `integration.md` for query key namespacing patterns.
 
 3. **Auth reactive hooks in `beforeLoad`** — hooks cannot run in loader context. Use
    server-validated session checks via `createServerFn`.
@@ -238,8 +380,18 @@ If behavior differs between Playwright (fast, no HMR) and the browser (slow, wit
    explicitly list every client origin.
 
 5. **`getRequest().url` as fetch target in SSR** — during SSR on Vite dev server, the
-   request URL routes back through the proxy, creating an infinite loop. Use an internal
-   base URL for server-to-server calls.
+   request URL routes back through the proxy, creating an infinite loop. Use
+   `getRequestHeaders()` for same-process or internal URL for separate service.
 
 6. **Auth client module not HMR-safe** — global listeners and stores accumulate on each
    hot update. Use `import.meta.hot.dispose` or isolate outside HMR boundary.
+
+7. **`beforeLoad` re-runs on every client navigation** — without `staleTime` on the
+   session query, every link click triggers a server round-trip. Use `ensureQueryData`
+   with `staleTime: 5 * 60 * 1000` and `refetchOnMount: false`.
+
+8. **Login ↔ dashboard redirect loop** — login route must never guard against
+   unauthenticated users. Only redirect away if the user IS authenticated.
+
+9. **`cloudflare:workers` import in isomorphic code** — fails during client build.
+   Only import inside `createServerFn` handlers or `.server()` middleware blocks.

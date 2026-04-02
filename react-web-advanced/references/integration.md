@@ -64,9 +64,10 @@ export const Route = createFileRoute("/(app)/dashboard")({
 });
 ```
 
-This pattern works for client-side SPAs with token-based auth. For SSR apps with
-cookie-based auth, the session check should happen server-side in `beforeLoad` via
+This pattern works for **client-side SPAs with token-based auth only**. For SSR apps
+with cookie-based auth, the session check should happen server-side in `beforeLoad` via
 `createServerFn`, not from a client store. See `ssr-auth.md` for the SSR-safe pattern.
+For Better Auth specifically, see `better-auth-start.md`.
 
 ---
 
@@ -100,6 +101,79 @@ coordinates both router reload and error boundary reset together.
 
 ---
 
+## Query Key Namespacing for Auth Safety
+
+Never put auth and data queries in the same key namespace. Blanket `invalidateQueries()`
+after data mutations will cascade into session queries, triggering re-render storms.
+
+```typescript
+// Auth namespace — never auto-invalidated by data mutations
+["auth", "session"][("auth", "activeOrg", orgId)][("auth", "orgs")][
+  // Org-scoped data namespace — invalidated on org switch
+  ("org", orgId, "projects")
+][("org", orgId, "projects", projectId)][("org", orgId, "members")][
+  ("org", orgId, "apiKeys")
+][
+  // Global data namespace
+  "posts"
+][("posts", postId)];
+```
+
+Global mutation handler that excludes auth:
+
+```typescript
+const queryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: (q) => q.queryKey[0] !== "auth",
+      });
+    },
+  }),
+});
+```
+
+---
+
+## Org-Scoped Queries and Switching
+
+Embed `orgId` at a predictable position in query keys so org switch can target them:
+
+```typescript
+// queries/org-data.ts
+export const orgKeys = {
+  all: (orgId: string) => ["org", orgId] as const,
+  projects: (orgId: string) => [...orgKeys.all(orgId), "projects"] as const,
+  project: (orgId: string, projectId: string) =>
+    [...orgKeys.projects(orgId), projectId] as const,
+  members: (orgId: string) => [...orgKeys.all(orgId), "members"] as const,
+  apiKeys: (orgId: string) => [...orgKeys.all(orgId), "apiKeys"] as const,
+};
+```
+
+On org switch, use `removeQueries` (not `invalidateQueries`) to prevent stale cross-org
+data from being shown briefly:
+
+```typescript
+function switchOrg(prevOrgId: string, nextOrgId: string) {
+  // Hard remove all org-scoped data — no stale cross-org leakage
+  queryClient.removeQueries({ queryKey: orgKeys.all(prevOrgId) });
+  // Auth queries preserved — user identity doesn't change on org switch
+}
+```
+
+**What to preserve on org switch:**
+
+- `["auth", "session"]` — user identity unchanged
+- `["auth", "orgs"]` — org list unchanged
+- Global reference data (countries, currencies, etc.)
+
+**What must be removed:**
+
+- Everything under `["org", prevOrgId, ...]` — members, projects, settings, API keys
+
+---
+
 ## Common Pitfalls
 
 1. **React Query AND XState for the same data** — React Query owns server data. XState
@@ -109,3 +183,9 @@ coordinates both router reload and error boundary reset together.
 
 3. **SSR hydration mismatch with XState** — machine initial context must be deterministic.
    Pass initial data as `input` from route props, not from `window` or browser-only APIs.
+
+4. **Blanket `invalidateQueries()` nukes auth namespace** — always scope invalidation
+   to the specific entity key, or use a `predicate` to exclude `["auth", ...]`.
+
+5. **Org switch without `removeQueries`** — `invalidateQueries` keeps stale data in
+   cache and shows it briefly. Use `removeQueries` for hard data isolation.

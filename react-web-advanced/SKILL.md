@@ -213,7 +213,18 @@ Key conventions:
     `queryClient.invalidateQueries()` with no key filter invalidates everything, including
     session queries. Auth reactive hooks refetch, components re-render, `beforeLoad` re-runs.
     Always scope invalidation to the specific entity query key.
-    See `references/ssr-auth.md` for patterns.
+    See `references/integration.md` for query key namespacing patterns.
+
+11. **Auth nanostores re-rendering on every API mutation** — libraries like Better Auth
+    use nanostores internally. Every successful mutation toggles signals, causing all
+    `useSession()`/`useActiveOrganization()` subscribers to re-render synchronously.
+    Combined with TanStack Router, this creates infinite re-render loops. Replace auth
+    hooks with React Query wrappers. See `references/better-auth-start.md`.
+
+12. **`beforeLoad` re-runs on every client-side navigation** — if the session check
+    inside `beforeLoad` calls a server function without React Query caching, every link
+    click triggers a server round-trip. Use `ensureQueryData` with `staleTime` to serve
+    from cache. See `references/ssr-auth.md`.
 
 ---
 
@@ -221,11 +232,12 @@ Key conventions:
 
 Read the relevant reference file when working with a specific library:
 
-| File                        | When to read                                                |
-| --------------------------- | ----------------------------------------------------------- |
-| `references/router.md`      | Routing, search params, loaders, code splitting, navigation |
-| `references/start.md`       | Server functions, SSR, middleware, deployment               |
-| `references/virtual.md`     | Virtualization, dynamic heights, infinite scroll, grids     |
-| `references/integration.md` | Router+Query wiring, auth guards, Suspense placement        |
-| `references/ssr-auth.md`    | SSR cookie auth, Vite proxy, CORS, env vars, HMR stability  |
-| `references/testing.md`     | Testing Router routes, renderWithProviders                  |
+| File                              | When to read                                                      |
+| --------------------------------- | ----------------------------------------------------------------- |
+| `references/router.md`            | Routing, search params, loaders, code splitting, navigation       |
+| `references/start.md`             | Server functions, SSR, middleware, deployment                     |
+| `references/virtual.md`           | Virtualization, dynamic heights, infinite scroll, grids           |
+| `references/integration.md`       | Router+Query wiring, auth guards, query key namespacing, org data |
+| `references/ssr-auth.md`          | SSR cookie auth, Vite proxy, CORS, route guards, FOUC, CF Workers |
+| `references/better-auth-start.md` | Better Auth + TanStack Start: signals, RQ wrapper, org state      |
+| `references/testing.md`           | Testing Router routes, renderWithProviders                        |

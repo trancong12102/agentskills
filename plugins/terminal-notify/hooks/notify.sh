@@ -27,6 +27,10 @@ fi
 
 [ -z "$TTY" ] && exit 0
 
+# tmux: always send bell through pane PTY for statusline indicator
+PANE_TTY=$(tmux display-message -p '#{pane_tty}' 2>/dev/null)
+[ -n "$PANE_TTY" ] && printf '\a' > "$PANE_TTY"
+
 # Kitty: skip notification if Kitty OS window has focus
 _kitty_pid="${KITTY_PID}"
 [ -z "$_kitty_pid" ] && _kitty_pid=$(tmux show-environment KITTY_PID 2>/dev/null | sed 's/^[^=]*=//')

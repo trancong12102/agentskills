@@ -1,6 +1,6 @@
 {
   "name": "terminal-notify",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Desktop notifications for Claude Code — works in any OSC 9 terminal (Ghostty, iTerm2, Kitty, etc.) and inside tmux",
   "author": { "name": "Cong Tran" },
   "repository": "https://github.com/trancong12102/agentskills",

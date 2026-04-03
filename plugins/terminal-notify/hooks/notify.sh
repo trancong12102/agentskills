@@ -27,11 +27,12 @@ fi
 
 [ -z "$TTY" ] && exit 0
 
-# Kitty: skip notification if this pane/tab has focus
-if [ -n "$KITTY_LISTEN_ON" ] && [ -n "$KITTY_WINDOW_ID" ]; then
-  focused=$(kitten @ --to "$KITTY_LISTEN_ON" ls 2>/dev/null \
-    | jq --argjson wid "$KITTY_WINDOW_ID" '[.[].tabs[].windows[] | select(.id == $wid)][0].is_focused')
-  [ "$focused" = "true" ] && exit 0
+# Kitty: skip notification if Kitty OS window has focus
+_kitty_pid="${KITTY_PID}"
+[ -z "$_kitty_pid" ] && _kitty_pid=$(tmux show-environment KITTY_PID 2>/dev/null | sed 's/^[^=]*=//')
+if [ -n "$_kitty_pid" ]; then
+  _os_focused=$(kitten @ --to "unix:/tmp/kitty-$_kitty_pid" ls 2>/dev/null | jq '.[0].is_focused')
+  [ "$_os_focused" = "true" ] && exit 0
 fi
 
 # Bell (dock bounce + badge)

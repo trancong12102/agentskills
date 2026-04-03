@@ -8,9 +8,10 @@ message=$(echo "$input" | jq -r '
   (.last_assistant_message // .message // "Done") | gsub("\n"; " ") | .[:100]
 ')
 
-if [ -n "$TMUX" ]; then
-  # Inside tmux: write directly to outer terminal TTY to bypass tmux interception
-  TTY=$(tmux display-message -p '#{client_tty}')
+# Detect tmux even when $TMUX is unset (e.g. cleared for 256-color fix)
+TMUX_TTY=$(tmux display-message -p '#{client_tty}' 2>/dev/null)
+if [ -n "$TMUX_TTY" ]; then
+  TTY="$TMUX_TTY"
 else
   # Direct terminal: find TTY from parent process tree (hook subprocesses lack a controlling TTY)
   pid=$$

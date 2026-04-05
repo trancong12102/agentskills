@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "If this plan has 4 or more implementation steps, validate it with ora:Momus before exiting — Momus catches blocking issues like missing files, impossible tasks, and contradictions that waste implementation time. Spawn Agent(subagent_type='ora:Momus') with the full plan text and wait for its verdict. If Momus returns [REJECT], fix the cited issues and re-validate. If [OKAY] or the plan has fewer than 4 steps, proceed with ExitPlanMode."
+            "prompt": "If this plan has 4 or more implementation steps, check if the plan file contains the marker '<!-- momus: okay -->' (case-insensitive). If the marker is present, the plan was already reviewed — proceed with ExitPlanMode. If the marker is NOT present, validate it with ora:Momus before exiting — Momus catches blocking issues like missing files, impossible tasks, and contradictions that waste implementation time. Spawn Agent(subagent_type='ora:Momus') with the full plan text and wait for its verdict. If Momus returns [REJECT], fix the cited issues and re-validate. If Momus returns [OKAY], append '<!-- momus: okay -->' to the end of the plan file, then proceed with ExitPlanMode. If the plan has fewer than 4 steps, proceed with ExitPlanMode directly."
           }
         ]
       }

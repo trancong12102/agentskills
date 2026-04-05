@@ -115,6 +115,7 @@ Every claim must have a citation. Use fluent linking — hyperlink file names, r
 
 ## Guidelines
 
+- **Current year is 2026**: when using WebSearch or any tool that accepts time/date filters, use 2026 as the current year. Never default to older years — search results from 2025 or earlier may be outdated.
 - Prefer official documentation over blog posts or Stack Overflow
 - Never leak tool names — present findings naturally
 - If sources conflict, present both sides with citations

@@ -45,7 +45,7 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 
 | Plugin                                 | Description                                                                                    |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [ora](./plugins/ora)                   | 7 specialized subagents for exploration, planning, and execution (see [Agents](#agents) below) |
+| [ora](./plugins/ora)                   | 6 specialized subagents for exploration, planning, and execution (see [Agents](#agents) below) |
 | [sound-notify](./plugins/sound-notify) | Play macOS notification sounds when Claude stops or asks a question                            |
 
 ```shell
@@ -59,53 +59,56 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 
 ## Agents
 
-The `ora` plugin ships 7 specialized subagents organized across three phases:
+The `ora` plugin ships 6 specialized subagents. Four are hook-enforced (automatically triggered at the right time), two are spawn-on-demand.
 
-### Research
+### On-Demand Agents
 
 | Agent         | Model  | Description                                                                       |
 | ------------- | ------ | --------------------------------------------------------------------------------- |
 | `ora:Ariadne` | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.    |
 | `ora:Clio`    | Sonnet | External research — fetches docs, searches GitHub repos, looks up best practices. |
 
-### Planning
+### Hook-Enforced Agents
 
-| Agent            | Model  | Description                                                                                                                                                                                                                     |
-| ---------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ora:Prometheus` | Opus   | Interview-style planner — gathers codebase context, then asks targeted questions to clarify scope before producing a structured plan. Two-phase invocation: Phase 1 returns questions, Phase 2 synthesizes a plan from answers. |
-| `ora:Metis`      | Opus   | Pre-plan risk analysis — classifies intent, surfaces hidden requirements, flags AI-slop risks, and generates directives for the planner.                                                                                        |
-| `ora:Momus`      | Sonnet | Plan validation — checks reference validity, task executability, and critical blockers. Strong approval bias — rejects only for true blockers (max 3 issues). Auto-triggered by ExitPlanMode hook on plans with 4+ steps.       |
-
-### Execution
-
-| Agent            | Model | Description                                                                                                                                                                                                |
-| ---------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ora:Atlas`      | Opus  | Plan conductor — organizes tasks into parallel waves, assigns agents per task, and accumulates learnings between waves so each task benefits from what came before. Re-invoked between waves with results. |
-| `ora:Hephaestus` | Opus  | Autonomous deep worker — receives a goal, works independently in a worktree, returns finished code with a structured summary. First ora agent with write access.                                           |
+| Agent            | Model  | Hook                     | Description                                                                                                                            |
+| ---------------- | ------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `ora:Metis`      | Opus   | PreToolUse EnterPlanMode | Intent classification + pre-analysis. Surfaces risks, generates directives, asks clarifying questions via AskUserQuestion.             |
+| `ora:Momus`      | Sonnet | PreToolUse ExitPlanMode  | Plan validation for plans with 2+ steps. Checks executability, references, blockers. Approval-biased — rejects only for true blockers. |
+| `ora:Atlas`      | Opus   | PostToolUse ExitPlanMode | Wave dispatch for plans with code tasks. Groups tasks into parallel waves, assigns agents, defines learning capture.                   |
+| `ora:Hephaestus` | Opus   | Dispatched by Atlas      | Autonomous deep worker — receives a goal, works independently in a worktree, returns finished code with structured summary.            |
 
 ### Workflow
 
-Each phase is optional — simple tasks skip straight to execution. Research agents (Ariadne, Clio) run throughout research and planning to gather context.
+Research agents (Ariadne, Clio) are spawned on-demand throughout the workflow. Planning and execution agents are triggered automatically by hooks.
 
 ```text
 User request
   │
   ▼
-Research ─────────────────────────────────────────────────
-  │  ora:Ariadne  — explore codebase, trace flows
-  │  ora:Clio     — look up external docs, search GitHub
+EnterPlanMode ────────────────────────────────────────────
+  │  PreToolUse hook
+  │  ├─ ora:Metis      — intent classification + directives
+  │  └─ AskUserQuestion — clarify open questions from Metis
   │
   ▼
-Planning ─────────────────────────────────────────────────
-  │  ora:Prometheus — interview user to clarify scope
-  │  ora:Metis     — analyze risks before planning
-  │  Plan mode     → ora:Momus validates (auto-triggered)
+Plan mode (model writes plan) ────────────────────────────
+  │  ora:Ariadne / ora:Clio spawned as needed for context
+  │
+  ▼
+ExitPlanMode ─────────────────────────────────────────────
+  │  PreToolUse hook
+  │  └─ ora:Momus      — validate plan (2+ steps)
+  │
+  │  User approves plan
+  │
+  │  PostToolUse hook
+  │  └─ ora:Atlas      — wave dispatch (code tasks)
   │
   ▼
 Execution ────────────────────────────────────────────────
-     ora:Atlas      — dispatch tasks in parallel waves
-     ora:Hephaestus — deep work in isolated worktrees
-     Direct         — simple tasks, no agent needed
+     ora:Hephaestus — dispatched by Atlas per code task
+     ora:Ariadne    — dispatched by Atlas for exploration
+     ora:Clio       — dispatched by Atlas for research
 ```
 
 ## License

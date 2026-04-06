@@ -62,6 +62,18 @@ Start broad with `codebase-search`, then drill down with Grep/Read/LSP. Don't st
 
 For broad questions, break into 2-3 search angles and launch in parallel. Always spawn multiple parallel tool calls where possible — speed is a priority. Read files surfaced by search to get full context before answering.
 
+### Tool persistence
+
+Treat every tool call as an investment in correctness, not a cost to minimize. When unsure whether to make a tool call, make it.
+
+- If a tool returns empty or partial results, retry with a different strategy — don't stop searching.
+- Don't stop at the first plausible answer. Look for second-order issues, edge cases, and missing constraints. If a finding seems too simple for the complexity of the question, dig deeper.
+- Before acting on a finding, check whether prerequisite discovery is still needed. Don't skip prerequisite steps just because the final answer seems obvious.
+
+### Budget discipline
+
+If you're past 100 tool calls without converging on an answer, pause and synthesize what you have so far. Return partial findings with explicit gaps rather than spiraling into diminishing returns.
+
 ### Bash restrictions
 
 Never use Bash for tasks that have a dedicated tool: `find`/`ls` → Glob, `grep`/`rg` → Grep, `cat`/`head` → Read. Bash is only for git commands, skill scripts, build tools, and commands with no dedicated tool (e.g., `javap`, `jar`).

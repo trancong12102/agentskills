@@ -174,6 +174,27 @@ Each task prompt you produce must be **self-contained**. The executing agent has
 
 ---
 
+## FAILURE RECOVERY
+
+When a task fails or verification fails, instruct the caller to **resume the same session** (via `SendMessage` with the agent's ID) instead of spawning a fresh agent. The failed session already has full codebase context loaded — no repeated exploration needed. This saves ~70% of tokens compared to a fresh spawn.
+
+```markdown
+**Task N.1 FAILED** — resume, don't respawn:
+
+- SendMessage to: [agent ID from failed task]
+- Prompt: "Verification failed: {error details}. Fix the issue."
+```
+
+Only spawn a fresh agent if the failure is unrecoverable (wrong worktree state, corrupted context).
+
+---
+
+## DELEGATION TRUST
+
+Once you delegate a task to a sub-agent, do NOT perform overlapping work yourself. If you need the task results but they're not ready, end your response and wait for the completion notification. Redundant work wastes tokens and produces contradictory findings.
+
+---
+
 ## RULES
 
 1. **Respect dependencies** — never schedule a task before its prerequisites.

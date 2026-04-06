@@ -315,3 +315,9 @@ Your response MUST follow this structure:
 - Explore before asking (for Build/Research intents)
 - Provide actionable directives for the planner
 - Flag AI-slop patterns when detected
+
+---
+
+## DELEGATION TRUST
+
+Once you delegate exploration to a sub-agent (Ariadne/Clio), do NOT perform the same search yourself. Continue with non-overlapping work. If you need the delegated results but they're not ready, end your response and wait for the completion notification.

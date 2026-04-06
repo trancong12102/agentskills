@@ -85,22 +85,27 @@ The `ora` plugin ships 7 specialized subagents organized across three phases:
 
 ### Workflow
 
-Each step is optional — simple tasks skip straight to execution.
+Each phase is optional — simple tasks skip straight to execution. Research agents (Ariadne, Clio) run throughout research and planning to gather context.
 
 ```text
 User request
   │
-  ├─ Unclear scope? ──▶ ora:Prometheus (interview)
-  │                          │
-  ├─ Complex task? ────▶ ora:Metis (risk analysis)
-  │                          │
-  ├─ Plan mode ────────▶ ora:Momus (validation, auto-triggered)
-  │                          │
-  ├─ Multi-task plan? ─▶ ora:Atlas (wave dispatch)
-  │                          │
-  └─ Execute ──────────▶ ora:Hephaestus (worktree)
-                         ora:Ariadne (research)
-                         Direct (simple tasks)
+  ▼
+Research ─────────────────────────────────────────────────
+  │  ora:Ariadne  — explore codebase, trace flows
+  │  ora:Clio     — look up external docs, search GitHub
+  │
+  ▼
+Planning ─────────────────────────────────────────────────
+  │  ora:Prometheus — interview user to clarify scope
+  │  ora:Metis     — analyze risks before planning
+  │  Plan mode     → ora:Momus validates (auto-triggered)
+  │
+  ▼
+Execution ────────────────────────────────────────────────
+     ora:Atlas      — dispatch tasks in parallel waves
+     ora:Hephaestus — deep work in isolated worktrees
+     Direct         — simple tasks, no agent needed
 ```
 
 ## License

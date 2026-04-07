@@ -109,15 +109,13 @@ Execution ───────────────────────�
      ora:Clio       — dispatched by Atlas for research
 ```
 
-## System Prompt Enhancement
+## CLAUDE.md
 
-Skills and ora agents work best when Claude Code is instructed at the **system prompt level** to use them proactively. CLAUDE.md instructions are advisory and can be ignored — system prompt instructions have the highest compliance.
+Skills and ora agents work best when Claude Code is instructed to use them proactively. Add these overrides to your global `~/.claude/CLAUDE.md`:
 
-### Setup
+```markdown
+# User behavioral overrides
 
-1. Create `~/.claude/system-prompt-extra.md`:
-
-```xml
 <investigate_before_responding>
 Do not respond to technical tasks using training data alone — it is from
 mid-2025 and likely outdated. Verify with a matching skill or ora:Clio research
@@ -143,20 +141,6 @@ tasks — single-file edits, renaming, simple config changes, typo fixes. If a
 task touches 2+ files or has any ambiguity, plan first.
 </plan_before_implementing>
 ```
-
-2. Override `claude` to auto-inject on every session:
-
-```bash
-# ~/.zshrc
-claude() {
-  command claude --append-system-prompt-file ~/.claude/system-prompt-extra.md "$@"
-}
-alias cc='claude'
-```
-
-### Why system prompt instead of CLAUDE.md?
-
-Claude Code wraps CLAUDE.md content in a `<system-reminder>` with the disclaimer _"this context may or may not be relevant"_. The model treats it as advisory and skips instructions when it feels confident answering from training data. `--append-system-prompt-file` injects at the system prompt level with no disclaimer wrapper — the same priority as Claude Code's own built-in instructions.
 
 ## License
 

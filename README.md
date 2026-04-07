@@ -144,10 +144,14 @@ touches 2+ files or has any ambiguity, plan first.
 </plan_before_implementing>
 ```
 
-2. Add a shell alias to auto-inject on every session:
+2. Override `claude` to auto-inject on every session:
 
 ```bash
-alias cc='claude --append-system-prompt-file ~/.claude/system-prompt-extra.md'
+# ~/.zshrc
+claude() {
+  command claude --append-system-prompt-file ~/.claude/system-prompt-extra.md "$@"
+}
+alias cc='claude'
 ```
 
 ### Why system prompt instead of CLAUDE.md?

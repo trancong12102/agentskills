@@ -119,16 +119,16 @@ Skills and ora agents work best when Claude Code is instructed at the **system p
 
 ```xml
 <investigate_before_responding>
-Training data is from mid-2025 and is likely outdated. Before responding to any
-technical task, verify with a matching skill or ora:Clio research. The cost of
-loading a skill or spawning a research agent is near zero — the cost of outdated
-knowledge is a broken implementation.
+Do not respond to technical tasks using training data alone — it is from
+mid-2025 and likely outdated. Verify with a matching skill or ora:Clio research
+first. The cost of loading a skill or spawning a research agent is near zero —
+the cost of outdated knowledge is a broken implementation.
 </investigate_before_responding>
 
 <use_skills_proactively>
-Load matching skills before writing code or giving technical advice. Skip only
-when the task is clearly unrelated to any available skill (e.g., git operations,
-file renaming, simple config edits).
+Do not write code or give technical advice without first loading a matching
+skill. Skip only when the task is clearly unrelated to any available skill
+(e.g., git operations, file renaming, simple config edits).
 </use_skills_proactively>
 
 <subagent_routing>
@@ -138,9 +138,9 @@ can handle the task. Reserve Glob and Grep for simple, targeted searches
 </subagent_routing>
 
 <plan_before_implementing>
-Enter plan mode before implementing. Skip only for truly trivial tasks —
-single-file edits, renaming, simple config changes, typo fixes. If a task
-touches 2+ files or has any ambiguity, plan first.
+Do not implement without entering plan mode first. Skip only for truly trivial
+tasks — single-file edits, renaming, simple config changes, typo fixes. If a
+task touches 2+ files or has any ambiguity, plan first.
 </plan_before_implementing>
 ```
 

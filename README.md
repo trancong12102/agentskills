@@ -111,6 +111,46 @@ Execution ───────────────────────�
      ora:Clio       — dispatched by Atlas for research
 ```
 
+## System Prompt Enhancement
+
+Skills and ora agents work best when Claude Code is instructed at the **system prompt level** to use them proactively. CLAUDE.md instructions are advisory and can be ignored — system prompt instructions have the highest compliance.
+
+### Setup
+
+1. Create `~/.claude/system-prompt-extra.md`:
+
+```xml
+<investigate_before_responding>
+Training data is from mid-2025 and is likely outdated. Before responding to any
+technical task, verify with a matching skill or ora:Clio research. The cost of
+loading a skill or spawning a research agent is near zero — the cost of outdated
+knowledge is a broken implementation.
+</investigate_before_responding>
+
+<use_skills_proactively>
+Load matching skills before writing code or giving technical advice. Skip only
+when the task is clearly unrelated to any available skill (e.g., git operations,
+file renaming, simple config edits).
+</use_skills_proactively>
+
+<subagent_routing>
+Use specialized ora agents instead of built-in Explore or general-purpose agents
+for any task ora agents can handle. Use ora:Ariadne for codebase exploration,
+ora:Clio for external research and documentation lookups. Reserve Glob and Grep
+for simple, targeted searches (specific file, class, or function by name).
+</subagent_routing>
+```
+
+2. Add a shell alias to auto-inject on every session:
+
+```bash
+alias cc='claude --append-system-prompt-file ~/.claude/system-prompt-extra.md'
+```
+
+### Why system prompt instead of CLAUDE.md?
+
+Claude Code wraps CLAUDE.md content in a `<system-reminder>` with the disclaimer _"this context may or may not be relevant"_. The model treats it as advisory and skips instructions when it feels confident answering from training data. `--append-system-prompt-file` injects at the system prompt level with no disclaimer wrapper — the same priority as Claude Code's own built-in instructions.
+
 ## License
 
 [MIT](./LICENSE) — Cong Tran

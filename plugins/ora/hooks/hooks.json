@@ -15,18 +15,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "If this plan has 2 or more implementation steps, check if the plan file contains '<!-- momus: okay -->' (case-insensitive). If present, proceed with ExitPlanMode. If NOT present, validate with ora:Momus — it catches blocking issues like missing files, impossible tasks, and contradictions. Spawn Agent(subagent_type='ora:Momus') with the full plan text and wait for its verdict. If [REJECT], fix cited issues and re-validate. If [OKAY], append '<!-- momus: okay -->' to the plan file, then proceed with ExitPlanMode. If the plan has only 1 step, proceed with ExitPlanMode directly."
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "ExitPlanMode",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Check if the plan file contains '<!-- atlas: dispatched -->'. If present, proceed with implementation directly.\n\nIf NOT present, and the plan has any code implementation tasks (creating files, modifying code, refactoring, adding features), spawn Agent(subagent_type='ora:Atlas') with the full plan text. Atlas will return a wave dispatch plan that assigns tasks to the right agents (ora:Hephaestus for code work, ora:Ariadne for exploration, ora:Clio for external research) and groups them into execution waves. Append the wave dispatch output to the plan file, then append '<!-- atlas: dispatched -->'. Implement by following the wave dispatch — all tasks within a wave as parallel Agent calls in one message.\n\nOnly skip Atlas if the plan is purely research/exploration with no code changes."
+            "prompt": "Step 1 — Momus validation: If this plan has 2 or more implementation steps, check if the plan file contains '<!-- momus: okay -->' (case-insensitive). If present, skip to Step 2. If NOT present, validate with ora:Momus — it catches blocking issues like missing files, impossible tasks, and contradictions. Spawn Agent(subagent_type='ora:Momus') with the full plan text and wait for its verdict. If [REJECT], fix cited issues and re-validate. If [OKAY], append '<!-- momus: okay -->' to the plan file. If the plan has only 1 step, skip Momus entirely.\n\nStep 2 — Atlas dispatch: Check if the plan file contains '<!-- atlas: dispatched -->'. If present, proceed with ExitPlanMode directly. If NOT present, and the plan has any code implementation tasks (creating files, modifying code, refactoring, adding features), spawn Agent(subagent_type='ora:Atlas') with the full plan text. Atlas will return a wave dispatch plan that assigns tasks to the right agents (ora:Hephaestus for code work, ora:Ariadne for exploration, ora:Clio for external research) and groups them into execution waves. Append the wave dispatch output to the plan file, then append '<!-- atlas: dispatched -->'. After Atlas completes, proceed with ExitPlanMode. Implement by following the wave dispatch — all tasks within a wave as parallel Agent calls in one message. Only skip Atlas if the plan is purely research/exploration with no code changes."
           }
         ]
       }

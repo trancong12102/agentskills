@@ -74,7 +74,7 @@ The `ora` plugin ships 6 specialized subagents. Four are hook-enforced (automati
 | ---------------- | ------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `ora:Metis`      | Opus   | PreToolUse EnterPlanMode | Intent classification + pre-analysis. Surfaces risks, generates directives, asks clarifying questions via AskUserQuestion.             |
 | `ora:Momus`      | Sonnet | PreToolUse ExitPlanMode  | Plan validation for plans with 2+ steps. Checks executability, references, blockers. Approval-biased — rejects only for true blockers. |
-| `ora:Atlas`      | Opus   | PostToolUse ExitPlanMode | Wave dispatch for plans with code tasks. Groups tasks into parallel waves, assigns agents, defines learning capture.                   |
+| `ora:Atlas`      | Opus   | PreToolUse ExitPlanMode  | Wave dispatch for plans with code tasks. Groups tasks into parallel waves, assigns agents, defines learning capture.                   |
 | `ora:Hephaestus` | Opus   | Dispatched by Atlas      | Autonomous deep worker — receives a goal, works independently in a worktree, returns finished code with structured summary.            |
 
 ### Workflow
@@ -97,12 +97,10 @@ Plan mode (model writes plan) ────────────────�
   ▼
 ExitPlanMode ─────────────────────────────────────────────
   │  PreToolUse hook
-  │  └─ ora:Momus      — validate plan (2+ steps)
+  │  ├─ ora:Momus      — validate plan (2+ steps)
+  │  └─ ora:Atlas      — wave dispatch (code tasks)
   │
   │  User approves plan
-  │
-  │  PostToolUse hook
-  │  └─ ora:Atlas      — wave dispatch (code tasks)
   │
   ▼
 Execution ────────────────────────────────────────────────

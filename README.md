@@ -132,10 +132,9 @@ file renaming, simple config edits).
 </use_skills_proactively>
 
 <subagent_routing>
-Use specialized ora agents instead of built-in Explore or general-purpose agents
-for any task ora agents can handle. Use ora:Ariadne for codebase exploration,
-ora:Clio for external research and documentation lookups. Reserve Glob and Grep
-for simple, targeted searches (specific file, class, or function by name).
+Do not use the built-in Explore agent or general-purpose agent if an ora agent
+can handle the task. Reserve Glob and Grep for simple, targeted searches
+(specific file, class, or function by name).
 </subagent_routing>
 
 <plan_before_implementing>

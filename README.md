@@ -139,6 +139,12 @@ for any task ora agents can handle. Use ora:Ariadne for codebase exploration,
 ora:Clio for external research and documentation lookups. Reserve Glob and Grep
 for simple, targeted searches (specific file, class, or function by name).
 </subagent_routing>
+
+<plan_before_implementing>
+Enter plan mode before implementing. Skip only for truly trivial tasks —
+single-file edits, renaming, simple config changes, typo fixes. If a task
+touches 2+ files or has any ambiguity, plan first.
+</plan_before_implementing>
 ```
 
 2. Add a shell alias to auto-inject on every session:

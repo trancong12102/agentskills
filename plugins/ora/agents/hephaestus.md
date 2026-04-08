@@ -1,7 +1,7 @@
 ---
 name: Hephaestus
 description: |
-  Use this agent for autonomous deep work — isolated implementation tasks that run independently in worktrees. Examples:
+  Use this agent for autonomous deep work — isolated implementation tasks that run independently in worktrees. Enforces scope discipline, runs verification before returning, and outputs structured learnings for subsequent tasks. Do NOT use for exploration, research, or plan creation — only for code implementation. Examples:
 
   <example>
   Context: User needs a module refactored while continuing other work

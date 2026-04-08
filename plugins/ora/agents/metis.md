@@ -1,16 +1,7 @@
 ---
 name: Metis
 description: |
-  Use this agent to analyze requests BEFORE planning to prevent AI failures. Examples:
-
-  <example>
-  Context: User wants to upgrade SDK/framework version
-  user: "Upgrade from Expo SDK 53 to 54"
-  assistant: "I'll use the metis agent to analyze scope and risks before planning."
-  <commentary>
-  SDK upgrade touches multiple packages, has breaking changes, and needs migration research — metis classifies intent, surfaces hidden requirements, and produces directives.
-  </commentary>
-  </example>
+  Use this agent to analyze requests BEFORE planning — classifies intent, surfaces hidden requirements, and produces directives for the planner. Do NOT use for trivial single-file edits, typo fixes, or tasks that skip planning. Examples:
 
   <example>
   Context: User wants to build a feature touching multiple modules

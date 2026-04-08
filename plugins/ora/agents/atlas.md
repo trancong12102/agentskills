@@ -1,7 +1,7 @@
 ---
 name: Atlas
 description: |
-  Use this agent to orchestrate multi-step plan execution with learning accumulation between tasks. Examples:
+  Use this agent to orchestrate multi-step plan execution — groups tasks into parallel waves, assigns agents, and accumulates learnings between waves. Read-only: produces dispatch plans, does not execute code. Do NOT use for single-task execution or pure research. Examples:
 
   <example>
   Context: A validated plan with multiple implementation tasks

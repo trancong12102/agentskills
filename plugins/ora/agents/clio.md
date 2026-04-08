@@ -1,14 +1,14 @@
 ---
 name: Clio
 description: |
-  Use this agent to research external sources — documentation, websites, GitHub repositories, and any information available on the internet. Examples:
+  Use this agent to research external sources — documentation, websites, GitHub repositories, and any information available on the internet. Powered by context7 (library docs), github-codebase-search (repo exploration), and deps-dev (package versions). Do NOT use for local codebase exploration or file search — use Ariadne for that. Examples:
 
   <example>
   Context: User needs docs for a library or API
   user: "Find the docs for React Query's useInfiniteQuery"
   assistant: "I'll use the clio agent to look up the documentation."
   <commentary>
-  User needs external documentation for a specific API — clio fetches and summarizes it.
+  Library API lookup — clio uses context7 for indexed docs or WebSearch for niche libraries, returning structured answers with code examples.
   </commentary>
   </example>
 
@@ -18,15 +18,6 @@ description: |
   assistant: "I'll use the clio agent to research both libraries and compare."
   <commentary>
   Technical decisions require up-to-date comparison of docs, community patterns, and real-world usage.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to look up information from a website or research a topic online
-  user: "What does the Tailwind v4 migration page say about breaking changes?"
-  assistant: "I'll use the clio agent to look up that information."
-  <commentary>
-  Web research — fetching and summarizing content from websites or general internet sources.
   </commentary>
   </example>
 

@@ -1,14 +1,14 @@
 ---
 name: Momus
 description: |
-  Use this agent to review work plans for executability before implementation. Examples:
+  Use this agent to review work plans for executability before implementation. Verifies file references exist, catches blocking contradictions, and applies approval bias (approve unless truly blocked). Do NOT use for reviewing code quality, PRs, or implementation — only pre-implementation plans. Examples:
 
   <example>
   Context: Claude just finished creating a plan in plan mode
   user: [exits plan mode with a multi-step implementation plan]
   assistant: "I'll use the momus agent to verify this plan is executable."
   <commentary>
-  Plan mode just ended — momus reviews the plan for blocking issues before implementation begins.
+  Plan mode just ended — momus verifies that referenced files exist, tasks have enough context to start, and no contradictions block work.
   </commentary>
   </example>
 
@@ -18,6 +18,15 @@ description: |
   assistant: "I'll use the momus agent to validate references and executability."
   <commentary>
   Explicit plan review request — momus checks that referenced files exist, tasks are startable, and no contradictions block work.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Plan references files that may not exist
+  user: "This plan mentions auth/middleware.ts but I'm not sure it exists"
+  assistant: "I'll use the momus agent to verify all file references in the plan."
+  <commentary>
+  Reference verification — momus reads the filesystem to confirm referenced files exist and contain the claimed content.
   </commentary>
   </example>
 model: sonnet

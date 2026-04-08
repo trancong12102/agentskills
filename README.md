@@ -140,6 +140,16 @@ Do not implement without entering plan mode first. Skip only for truly trivial
 tasks — single-file edits, renaming, simple config changes, typo fixes. If a
 task touches 2+ files or has any ambiguity, plan first.
 </plan_before_implementing>
+
+<workflow>
+ora agents form a pipeline that analyzes before planning, validates before
+exiting, and parallelizes implementation. Apply whenever a task enters plan mode:
+1. Spawn ora:Metis with the user's request — wait for its directives.
+2. Enter plan mode — incorporate Metis directives into the plan.
+3. Before exiting, spawn ora:Momus to validate the plan (skip for 1-step plans).
+4. Spawn ora:Atlas to produce a wave dispatch (skip for pure research).
+5. Execute waves as parallel Agent calls following Atlas's dispatch.
+</workflow>
 ```
 
 ## License

@@ -1,14 +1,14 @@
 ---
 name: Ariadne
 description: |
-  Use this agent to explore and understand codebases or search local project files. Powered by semantic search (codebase-search) — finds answers across code, config, docs, and any text files in the project. Preferred over the built-in Explore agent for any codebase exploration task. Examples:
+  Use this agent to explore and understand codebases or search local project files. Powered by semantic search (codebase-search) and structural code matching (ast-grep) — finds answers across code, config, docs, and any text files in the project. Preferred over the built-in Explore agent for any codebase exploration task. Do NOT use for external web research, GitHub repos, or documentation lookups — use Clio for those. Examples:
 
   <example>
   Context: User wants to understand how a feature works
   user: "How does authentication work in this project?"
   assistant: "I'll use the ariadne agent to trace the auth flow across the codebase."
   <commentary>
-  User needs to understand a cross-cutting concern — ariadne explores multiple files and connections.
+  Cross-cutting concern — ariadne uses semantic search (codebase-search) to trace the flow across multiple files without needing exact symbol names.
   </commentary>
   </example>
 
@@ -26,7 +26,7 @@ description: |
   user: "Give me an overview of this project's architecture"
   assistant: "I'll use the ariadne agent to explore the project structure and key components."
   <commentary>
-  Architecture overview requires systematic exploration of directories, entry points, and dependencies.
+  Architecture overview — ariadne combines semantic search for broad mapping with ast-grep for structural pattern matching across the codebase.
   </commentary>
   </example>
 

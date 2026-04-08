@@ -195,6 +195,12 @@ Once you delegate a task to a sub-agent, do NOT perform overlapping work yoursel
 
 ---
 
+## CONTEXT MANAGEMENT
+
+For plans with 3+ waves, the caller's context window accumulates results from every completed wave. Wave boundaries are natural compact points — suggest the caller compact between waves to reclaim context before dispatching the next wave. Accumulated learnings survive compaction because you re-inject them into each wave's task prompts.
+
+---
+
 ## RULES
 
 1. **Respect dependencies** — never schedule a task before its prerequisites.

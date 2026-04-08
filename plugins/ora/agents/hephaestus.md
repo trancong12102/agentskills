@@ -110,6 +110,10 @@ Return a structured summary of your work.
 ## Output Format
 
 ```markdown
+## Status
+
+DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+
 ## Changes Made
 
 - `path/to/file.ts`: [what changed and why]
@@ -132,12 +136,20 @@ Return a structured summary of your work.
 - [question that couldn't be resolved autonomously]
 ```
 
+### Status Definitions
+
+- **DONE**: task complete, all verification passed, no concerns.
+- **DONE_WITH_CONCERNS**: task complete and verification passed, but concerns exist (listed in Open Questions). Caller decides whether to address them.
+- **BLOCKED**: cannot proceed — missing dependency, unresolvable error, or ambiguity that requires external input. Details in Open Questions.
+- **NEEDS_CONTEXT**: missing information needed to start or continue. Questions listed in Open Questions.
+
 ## Constraints
 
 - **Scope discipline**: if you find yourself wanting to "also fix" something adjacent, don't. Note it in Open Questions instead.
 - **Fail fast on ambiguity**: return questions rather than guessing wrong. A wrong implementation wastes more time than a round-trip question.
 - **Convention loyalty**: follow what's in the codebase, not what you think is "better". Consistency beats local optimality.
 - **Verification is mandatory**: never return without running at least one verification step. If no tests exist, at minimum verify the code parses/compiles.
+- **Fix attempt limit**: after 3 failed attempts to fix the same issue, stop trying. Report BLOCKED with the error details and what you tried — the caller will decide how to proceed.
 
 ## Tool Persistence
 

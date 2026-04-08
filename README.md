@@ -59,7 +59,7 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code -s oracle
 
 ## Agents
 
-The `ora` plugin ships 6 specialized subagents. Four are hook-enforced (automatically triggered at the right time), two are spawn-on-demand.
+The `ora` plugin ships 6 specialized subagents and 2 hook-based safety nets. Two agents are spawn-on-demand, four are part of the planning pipeline.
 
 ### On-Demand Agents
 
@@ -68,38 +68,52 @@ The `ora` plugin ships 6 specialized subagents. Four are hook-enforced (automati
 | `ora:Ariadne` | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.    |
 | `ora:Clio`    | Sonnet | External research — fetches docs, searches GitHub repos, looks up best practices. |
 
-### Hook-Enforced Agents
+### Pipeline Agents
 
-| Agent            | Model  | Hook                     | Description                                                                                                                            |
-| ---------------- | ------ | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `ora:Metis`      | Opus   | PreToolUse EnterPlanMode | Intent classification + pre-analysis. Surfaces risks, generates directives, asks clarifying questions via AskUserQuestion.             |
-| `ora:Momus`      | Sonnet | PreToolUse ExitPlanMode  | Plan validation for plans with 2+ steps. Checks executability, references, blockers. Approval-biased — rejects only for true blockers. |
-| `ora:Atlas`      | Opus   | PreToolUse ExitPlanMode  | Wave dispatch for plans with code tasks. Groups tasks into parallel waves, assigns agents, defines learning capture.                   |
-| `ora:Hephaestus` | Opus   | Dispatched by Atlas      | Autonomous deep worker — receives a goal, works independently in a worktree, returns finished code with structured summary.            |
+| Agent            | Model  | When                 | Description                                                                                                                            |
+| ---------------- | ------ | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `ora:Metis`      | Opus   | Before EnterPlanMode | Intent classification + pre-analysis. Surfaces risks, generates directives, asks clarifying questions via AskUserQuestion.             |
+| `ora:Momus`      | Sonnet | Before ExitPlanMode  | Plan validation for plans with 2+ steps. Checks executability, references, blockers. Approval-biased — rejects only for true blockers. |
+| `ora:Atlas`      | Opus   | Before ExitPlanMode  | Wave dispatch for plans with code tasks. Groups tasks into parallel waves, assigns agents, defines learning capture.                   |
+| `ora:Hephaestus` | Opus   | Dispatched by Atlas  | Autonomous deep worker — receives a goal, works independently in a worktree, returns finished code with structured summary.            |
+
+### Hooks
+
+Two command hooks act as safety nets — they grep the session transcript to verify agents were called in the right order.
+
+| Hook                       | Script                 | Behavior                                                                   |
+| -------------------------- | ---------------------- | -------------------------------------------------------------------------- |
+| `PreToolUse:EnterPlanMode` | `check-metis.sh`       | **Blocks** if `ora:Metis` was not spawned in this session.                 |
+| `PreToolUse:ExitPlanMode`  | `check-plan-review.sh` | **Reminds** (non-blocking) if `ora:Momus` or `ora:Atlas` were not spawned. |
 
 ### Workflow
 
-Research agents (Ariadne, Clio) are spawned on-demand throughout the workflow. Planning and execution agents are triggered automatically by hooks.
+Research agents (Ariadne, Clio) are spawned on-demand throughout the workflow. Pipeline agents are called by CLAUDE.md instructions and verified by hooks.
 
 ```text
 User request
   │
   ▼
+ora:Metis ────────────────────────────────────────────────
+  │  Intent classification + directives
+  │  AskUserQuestion for open questions from Metis
+  │
+  ▼
 EnterPlanMode ────────────────────────────────────────────
-  │  PreToolUse hook
-  │  ├─ ora:Metis      — intent classification + directives
-  │  └─ AskUserQuestion — clarify open questions from Metis
+  │  Hook: check-metis.sh (blocks if Metis not called)
   │
   ▼
 Plan mode (model writes plan) ────────────────────────────
   │  ora:Ariadne / ora:Clio spawned as needed for context
   │
   ▼
-ExitPlanMode ─────────────────────────────────────────────
-  │  PreToolUse hook
-  │  ├─ ora:Momus      — validate plan (2+ steps)
-  │  └─ ora:Atlas      — wave dispatch (code tasks)
+ora:Momus + ora:Atlas ────────────────────────────────────
+  │  Momus validates plan (skip for 1-step plans)
+  │  Atlas produces wave dispatch (skip for pure research)
   │
+  ▼
+ExitPlanMode ─────────────────────────────────────────────
+  │  Hook: check-plan-review.sh (reminds if Momus/Atlas not called)
   │  User approves plan
   │
   ▼
@@ -142,14 +156,24 @@ task touches 2+ files or has any ambiguity, plan first.
 </plan_before_implementing>
 
 <workflow>
-ora agents form a pipeline that analyzes before planning, validates before
-exiting, and parallelizes implementation. Apply whenever a task enters plan mode:
-1. Spawn ora:Metis with the user's request — wait for its directives.
-2. Enter plan mode — incorporate Metis directives into the plan.
-3. Before exiting, spawn ora:Momus to validate the plan (skip for 1-step plans).
-4. Spawn ora:Atlas to produce a wave dispatch (skip for pure research).
-5. Execute waves as parallel Agent calls following Atlas's dispatch.
-</workflow>
+Do not enter plan mode without running ora:Metis first. Do not exit plan mode
+without running ora:Momus and ora:Atlas first (exceptions below). This is
+enforced by hooks — skipping steps will block the tool call.
+
+1. Spawn ora:Metis with the user's full request. Wait for its directives before
+   proceeding.
+2. If Metis returns "Questions for User", use AskUserQuestion to ask them — do
+   not present questions as plain text. Write the user's answers into the plan
+   as key decisions.
+3. Enter plan mode. Incorporate Metis directives (intent, pre-analysis,
+   constraints) into the plan.
+4. Before exiting plan mode, spawn ora:Momus with the full plan text. Fix any
+   issues it rejects. Skip only for 1-step plans.
+5. Spawn ora:Atlas with the full plan text. It returns a wave dispatch assigning
+   tasks to agents. Skip only for pure research with no code changes.
+6. Exit plan mode. Execute waves as parallel Agent calls following Atlas's
+   dispatch.
+   </workflow>
 ```
 
 ## License

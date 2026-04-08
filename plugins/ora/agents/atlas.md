@@ -84,6 +84,9 @@ You receive:
   [Full task prompt including goal, relevant files, conventions to follow.
   This must be self-contained — the agent has no other context.]
 - Capture: [what learnings to extract from results]
+- Verify: |
+  [Acceptance criteria for ora:Aletheia — what to check in the worktree
+  before merging. Omit for non-Hephaestus tasks.]
 
 **Task 1.2**: [title]
 
@@ -105,6 +108,8 @@ You receive:
 - Prompt: |
   [Task prompt — include placeholder: "## Learnings from prior waves" where accumulated learnings will be injected]
 - Capture: [what to extract]
+- Verify: |
+  [Acceptance criteria for ora:Aletheia]
 
 [... more waves as needed]
 
@@ -174,15 +179,20 @@ Each task prompt you produce must be **self-contained**. The executing agent has
 
 ---
 
-## FAILURE RECOVERY
+## FAILURE RECOVERY — Verify-Correct Loop
 
-When a task fails or verification fails, instruct the caller to **resume the same session** (via `SendMessage` with the agent's ID) instead of spawning a fresh agent. The failed session already has full codebase context loaded — no repeated exploration needed. This saves ~70% of tokens compared to a fresh spawn.
+Every Hephaestus task goes through a verify-correct loop before its worktree is merged:
+
+1. **Verify first** — after Hephaestus reports DONE, the caller spawns `ora:Aletheia` against the worktree with the task's `Verify` criteria. Do not merge until Aletheia returns VERIFIED.
+2. **Correct via SendMessage** — if Aletheia returns GAPS_FOUND, instruct the caller to resume the same Hephaestus session (via `SendMessage` with the agent's ID) with the gap details. The session already has full codebase context — saves ~70% tokens vs a fresh spawn.
+3. **Retry cap** — max 2 correction attempts (3 total Aletheia runs). If still GAPS_FOUND after retries, halt that task and escalate to the user. Do not block other tasks in the wave.
+4. **Merge timing** — the worktree stays intact throughout the loop. Only merge after Aletheia returns VERIFIED.
 
 ```markdown
-**Task N.1 FAILED** — resume, don't respawn:
+**Task N.1 GAPS_FOUND** — resume, don't respawn:
 
-- SendMessage to: [agent ID from failed task]
-- Prompt: "Verification failed: {error details}. Fix the issue."
+- SendMessage to: [agent ID from the Hephaestus task]
+- Prompt: "Aletheia found gaps: {gap details}. Fix the issues. Attempt [2/3]."
 ```
 
 Only spawn a fresh agent if the failure is unrecoverable (wrong worktree state, corrupted context).

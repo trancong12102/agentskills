@@ -165,7 +165,10 @@ skill. Skip only for git operations, file renaming, simple config edits.
 
 <subagent_routing>
 Do not use the built-in Explore agent or general-purpose agent if an ora agent
-can handle the task.
+can handle the task. Grep/Glob budget at main agent: max 2 calls per task. If
+you need a 3rd search, spawn ora:Ariadne instead — batch remaining questions
+into the prompt. Do not search alongside Ariadne; delegate fully and wait.
+Broad patterns (`**/*.md`, regex with `|` alternation) always go to Ariadne.
 </subagent_routing>
 
 <plan_before_implementing>

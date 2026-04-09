@@ -1,6 +1,6 @@
 ---
 name: react-native-advanced
-description: "React Native and Expo patterns for navigation, data fetching lifecycle, infinite scroll lists, form handling, state persistence, authentication routing, gesture-driven animations, bottom sheets, push notifications, and OTA updates. Use when building Expo/React Native apps that need screen-level data prefetching, auth guards with protected routes, infinite scroll feeds, native form input handling, offline-capable state persistence, platform-specific setup (focus/online managers), fluid animations and gesture interactions, modal bottom sheets, push notification flows, or over-the-air update strategies. Do not use for React web apps."
+description: "React Native and Expo patterns for navigation, data fetching lifecycle, infinite scroll lists, form handling, state persistence, authentication routing, gesture-driven animations, bottom sheets, push notifications, and OTA updates. Use when building Expo/React Native apps that need data prefetching without route loaders, auth guard routing, infinite scroll with FlashList, gesture-driven animations, or native platform integration (push notifications, OTA updates, MMKV persistence). Do not use for React web apps."
 ---
 
 # React Native Advanced: Expo + TanStack/XState/Zustand Ecosystem
@@ -8,23 +8,6 @@ description: "React Native and Expo patterns for navigation, data fetching lifec
 React Native and Expo patterns for apps built with the TanStack ecosystem, XState, and
 Zustand. This skill extends `react-advanced` (core cross-platform patterns). Read that skill
 first for React Query, XState, Zustand, Zod, TanStack Form, and TanStack Table conventions.
-
-## Table of Contents
-
-1. [RN Architecture](#rn-architecture)
-2. [Required Setup](#required-setup)
-3. [Data Fetching Without Route Loaders](#data-fetching-without-route-loaders)
-4. [Navigation + Auth](#navigation--auth)
-5. [Lists: FlashList + React Query](#lists-flashlist--react-query)
-6. [TanStack Form in RN](#tanstack-form-in-rn)
-7. [Zustand Persist with MMKV](#zustand-persist-with-mmkv)
-8. [Animations & Gestures](#animations--gestures)
-9. [Bottom Sheets](#bottom-sheets)
-10. [Push Notifications](#push-notifications)
-11. [OTA Updates](#ota-updates)
-12. [File Organization](#file-organization)
-13. [Common Pitfalls](#common-pitfalls)
-14. [Reference Files](#reference-files)
 
 ---
 
@@ -52,63 +35,17 @@ React Query, XState, Zustand, Zod, TanStack Form, TanStack Table
 
 ## Required Setup
 
-These two integrations are **mandatory** — without them, React Query's auto-refetch and
-offline handling do not work in React Native.
+Two integrations are **mandatory** — without them, React Query's auto-refetch and offline
+handling do not work in React Native:
 
-### focusManager — refetch when app returns to foreground
+- **focusManager** — wire `AppState` to `focusManager.setFocused()` so `refetchOnWindowFocus`
+  works when the app returns to foreground. Without this, the default is silently ignored.
+- **onlineManager** — wire `NetInfo` to `onlineManager.setOnline()` so queries pause/resume
+  on connectivity changes.
 
-```typescript
-// hooks/useAppState.ts
-import { useEffect } from "react";
-import { AppState, Platform } from "react-native";
-import type { AppStateStatus } from "react-native";
-import { focusManager } from "@tanstack/react-query";
+Call both hooks once in the root `_layout.tsx` inside `QueryClientProvider`.
 
-function onAppStateChange(status: AppStateStatus) {
-  if (Platform.OS !== "web") {
-    focusManager.setFocused(status === "active");
-  }
-}
-
-export function useAppState() {
-  useEffect(() => {
-    const sub = AppState.addEventListener("change", onAppStateChange);
-    return () => sub.remove();
-  }, []);
-}
-```
-
-### onlineManager — pause/resume queries based on network
-
-```typescript
-// hooks/useOnlineManager.ts
-import { useEffect } from "react";
-import NetInfo from "@react-native-community/netinfo";
-import { onlineManager } from "@tanstack/react-query";
-
-export function useOnlineManager() {
-  useEffect(() => {
-    return NetInfo.addEventListener((state) => {
-      onlineManager.setOnline(!!state.isConnected);
-    });
-  }, []);
-}
-```
-
-Call both hooks once in the root layout:
-
-```typescript
-// app/_layout.tsx
-export default function RootLayout() {
-  useAppState()
-  useOnlineManager()
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Slot />
-    </QueryClientProvider>
-  )
-}
-```
+See `references/react-query-rn.md` for full implementation.
 
 ---
 
@@ -117,51 +54,14 @@ export default function RootLayout() {
 Expo Router has **no native route loaders** (data loaders are web-only/alpha). The pattern
 is: prefetch on user interaction, consume in the destination screen.
 
-### Prefetch on press (don't await — keep navigation instant)
+Rules:
 
-```typescript
-function PostListItem({ id }: { id: string }) {
-  const queryClient = useQueryClient()
-  const router = useRouter()
+- Fire `prefetchQuery` without `await` before `router.push` — awaiting makes navigation slow.
+- Use `useFocusEffect` (from `expo-router`) to invalidate stale data when a screen regains
+  focus. `useEffect` does not re-run when navigating back because screens stay mounted.
+- Use `invalidateQueries` (respects `staleTime`) instead of `refetch()` (always re-fetches).
 
-  return (
-    <Pressable
-      onPress={() => {
-        queryClient.prefetchQuery(postQueryOptions(id)) // fire-and-forget
-        router.push(`/posts/${id}`)
-      }}
-    >
-      <Text>{title}</Text>
-    </Pressable>
-  )
-}
-```
-
-### Refetch when screen regains focus
-
-Screens stay mounted in a native stack. `useEffect` does not re-run when navigating back.
-Use `useFocusEffect` to invalidate stale data:
-
-```typescript
-import { useFocusEffect } from "expo-router";
-
-export function useRefreshOnFocus(queryKey: unknown[]) {
-  const queryClient = useQueryClient();
-  const firstRender = useRef(true);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (firstRender.current) {
-        firstRender.current = false;
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey });
-    }, [queryClient, queryKey]),
-  );
-}
-```
-
-Use `invalidateQueries` (respects `staleTime`) instead of `refetch()` (always re-fetches).
+See `references/react-query-rn.md` for prefetch and `useRefreshOnFocus` patterns.
 
 ---
 
@@ -171,9 +71,6 @@ Use `invalidateQueries` (respects `staleTime`) instead of `refetch()` (always re
 
 ```typescript
 // app/_layout.tsx
-import { Stack } from 'expo-router'
-import { useAuthStore } from '@/stores/authStore'
-
 export default function RootLayout() {
   const session = useAuthStore((s) => s.session)
 
@@ -191,34 +88,11 @@ export default function RootLayout() {
 }
 ```
 
-When `session` flips, Expo Router automatically redirects and cleans history.
+When `session` flips, Expo Router automatically redirects and cleans history. For complex
+auth flows (token check, refresh, error recovery), use XState to manage auth state and
+derive a boolean for the `guard` prop.
 
-### With XState for complex auth flows
-
-XState manages async auth (token check, refresh, error recovery). Derive a boolean for
-`Stack.Protected`:
-
-```typescript
-const AuthContext = createActorContext(authMachine)
-
-function RootNavigator() {
-  const session = AuthContext.useSelector((s) => s.context.session)
-  const isChecking = AuthContext.useSelector((s) => s.matches('checking'))
-
-  if (isChecking) return <SplashScreen />
-
-  return (
-    <Stack>
-      <Stack.Protected guard={!!session}>
-        <Stack.Screen name="(app)" />
-      </Stack.Protected>
-      <Stack.Protected guard={!session}>
-        <Stack.Screen name="sign-in" />
-      </Stack.Protected>
-    </Stack>
-  )
-}
-```
+See `references/expo-router.md` for the XState auth variant and Zustand auth store patterns.
 
 ---
 
@@ -227,108 +101,44 @@ function RootNavigator() {
 FlashList replaces TanStack Virtual for RN — it uses native view recycling instead of
 DOM-based absolute positioning.
 
-### Infinite scroll pattern
+Rules:
 
-```typescript
-function PostList() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch, isRefetching } =
-    useInfiniteQuery({
-      queryKey: ['posts'],
-      queryFn: ({ pageParam }) => fetchPosts(pageParam),
-      initialPageParam: 0,
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    })
+- The `!isFetchingNextPage` guard in `onEndReached` is essential — FlashList can fire
+  `onEndReached` multiple times in quick succession, causing duplicate fetches.
+- Memoize the flattened `items` array with `useMemo` — `data.pages.flatMap()` creates a new
+  reference each render.
+- Stabilize `handleEndReached` with `useCallback`.
+- `getNextPageParam` must return `undefined` (not `null`) to signal no next page.
 
-  const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data])
-
-  const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
-
-  return (
-    <FlashList
-      data={items}
-      renderItem={({ item }) => <PostCard post={item} />}
-      keyExtractor={(item) => item.id}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.3}
-      ListFooterComponent={isFetchingNextPage ? <ActivityIndicator /> : null}
-      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
-    />
-  )
-}
-```
-
-The `!isFetchingNextPage` guard in `handleEndReached` is essential — FlashList can fire
-`onEndReached` multiple times in quick succession, causing duplicate fetches.
+See `references/lists.md` for the full infinite scroll pattern, FlashList v2 changes,
+and performance tuning.
 
 ---
 
 ## TanStack Form in RN
 
-TanStack Form is headless — no DOM dependency, no adapter needed. The key difference is
-`TextInput` uses `onChangeText` (string directly) instead of `onChange` (event object).
+TanStack Form is headless — no DOM dependency, no adapter needed. Key differences from web:
 
-```typescript
-<form.Field name="username">
-  {(field) => (
-    <TextInput
-      value={field.state.value}
-      onChangeText={field.handleChange}   // string directly — no event extraction
-      onBlur={field.handleBlur}           // triggers isTouched + onBlur validators
-      autoCapitalize="none"
-    />
-  )}
-</form.Field>
-```
-
-For numeric fields, convert at the call site:
-
-```typescript
-<TextInput
-  keyboardType="numeric"
-  onChangeText={(val) => field.handleChange(val === '' ? null : Number(val))}
-  value={String(field.state.value ?? '')}
-/>
-```
-
-Wrap forms in `ScrollView` with `keyboardShouldPersistTaps="handled"` — otherwise the
-first tap on Submit dismisses the keyboard instead of firing the press.
+- `TextInput` uses `onChangeText` (string directly) instead of `onChange` (event object).
+  Wire `field.handleChange` directly to `onChangeText`.
+- For numeric fields, convert at the call site:
+  `onChangeText={(val) => field.handleChange(val === '' ? null : Number(val))}`.
+- Wrap forms in `ScrollView` with `keyboardShouldPersistTaps="handled"` — otherwise the
+  first tap on Submit dismisses the keyboard instead of firing the press.
 
 ---
 
 ## Zustand Persist with MMKV
 
-MMKV is synchronous and runs on the native thread — no async hydration gap.
-
-```typescript
-import { createMMKV } from "react-native-mmkv";
-import { StateStorage, createJSONStorage } from "zustand/middleware";
-
-const mmkv = createMMKV(); // create at module level — never inside a component
-
-const zustandStorage: StateStorage = {
-  setItem: (name, value) => mmkv.set(name, value),
-  getItem: (name) => mmkv.getString(name) ?? null, // must return null, not undefined
-  removeItem: (name) => mmkv.remove(name),
-};
-
-export const useAppStore = create<AppState>()(
-  persist(
-    (set) => ({
-      /* state + actions */
-    }),
-    {
-      name: "app-storage",
-      storage: createJSONStorage(() => zustandStorage),
-      partialize: (state) => ({ token: state.token, theme: state.theme }),
-    },
-  ),
-);
-```
+MMKV is synchronous and runs on the native thread — no async hydration gap. Create the
+MMKV instance at module level (never inside a component). The `StateStorage` adapter must
+return `null` for missing keys: `mmkv.getString(name) ?? null`.
 
 For sensitive data, use an encrypted MMKV instance with `encryptionKey`. For the hybrid
 pattern (hardware-backed key + encrypted MMKV), see `references/expo-essentials.md`.
+
+See `references/zustand-rn.md` for the full adapter, store creation, encrypted storage,
+hydration timing, and vanilla store patterns.
 
 ---
 
@@ -336,32 +146,6 @@ pattern (hardware-backed key + encrypted MMKV), see `references/expo-essentials.
 
 Reanimated runs animations on the **UI thread** via worklets. Gesture Handler routes touch
 events to the same thread. Reanimated 4 adds CSS-style declarative transitions.
-
-### Threading Model
-
-Shared values live on the UI thread. Reading `.value` on the JS thread is a blocking bridge
-call — never do it in hot paths. Writing is instant.
-
-```typescript
-const x = useSharedValue(0);
-
-// Gesture callback — runs on UI thread (worklet)
-const pan = Gesture.Pan()
-  .onChange((e) => {
-    "worklet";
-    x.value += e.changeX; // instant, no bridge
-  })
-  .onEnd(() => {
-    "worklet";
-    x.value = withSpring(0);
-    runOnJS(onDragEnd)(); // call JS functions via runOnJS
-  });
-
-// Animated style — also runs on UI thread
-const style = useAnimatedStyle(() => ({
-  transform: [{ translateX: x.value }],
-}));
-```
 
 ### Critical Rules
 
@@ -372,13 +156,20 @@ const style = useAnimatedStyle(() => ({
 - **GestureHandlerRootView** must wrap the app root with `style={{ flex: 1 }}`
 - **Android modals** need their own `GestureHandlerRootView` (outside native root view)
 
+### Threading Summary
+
+Shared values live on the UI thread. Reading `.value` on the JS thread is a blocking bridge
+call — never do it in hot paths. Gesture callbacks and `useAnimatedStyle` run on the UI
+thread. Use `runOnJS` (Reanimated 3) or `scheduleOnRN` (Reanimated 4) to call JS functions.
+
 ### Declarative vs Imperative
 
 Use **CSS transitions** (Reanimated 4) for state-driven style changes (toggle colors,
 opacity, dimensions). Use **layout animations** (`entering`/`exiting` props) for mount/unmount.
 Use **worklets + shared values** for gesture-driven animations and imperative chains.
 
-For detailed patterns, see `references/animations.md`.
+See `references/animations.md` for detailed patterns, Reanimated 4 API changes, gesture
+composition, and CSS transitions.
 
 ---
 
@@ -387,25 +178,6 @@ For detailed patterns, see `references/animations.md`.
 `@lodev09/react-native-true-sheet` — a native bottom sheet backed by
 `UISheetPresentationController` (iOS) and `BottomSheetDialog` (Android). No Reanimated
 dependency. New Architecture only.
-
-### Imperative Ref-Based Control
-
-```typescript
-import { TrueSheet } from "@lodev09/react-native-true-sheet";
-
-function MySheet() {
-  const sheet = useRef<TrueSheet>(null);
-
-  return (
-    <>
-      <Button onPress={() => sheet.current?.present()} />
-      <TrueSheet ref={sheet} detents={[0.5, 1]}>
-        <MyContent />
-      </TrueSheet>
-    </>
-  );
-}
-```
 
 ### Key Rules
 
@@ -418,8 +190,8 @@ function MySheet() {
 - **Standard `TextInput` works** — no special keyboard component needed (native handling).
 - **Standard `ScrollView`/`FlashList` works** with `scrollable` + `nestedScrollEnabled` — auto-detected in v3 (up to 2 levels deep).
 
-For full patterns, platform differences, and Expo Router integration, see
-`references/bottom-sheet.md`.
+See `references/bottom-sheet.md` for full patterns, platform differences, and Expo Router
+integration.
 
 ---
 
@@ -491,34 +263,10 @@ For staged rollout, runtime versions, and reactive patterns, see `references/exp
 
 ## File Organization
 
-```text
-app/
-  _layout.tsx              # Root layout — providers, auth guard
-  (auth)/
-    _layout.tsx            # Auth group layout
-    sign-in.tsx
-  (app)/
-    _layout.tsx            # App group layout (tabs)
-    (tabs)/
-      _layout.tsx          # Tab navigator
-      index.tsx
-      profile.tsx
-    [id].tsx               # Dynamic route
-    modal.tsx              # Modal screen
-queries/                   # queryOptions definitions
-mutations/                 # useMutation wrappers
-machines/                  # XState machine definitions
-stores/                    # Zustand stores (MMKV persist)
-hooks/                     # useAppState, useOnlineManager, useRefreshOnFocus
-components/                # Shared components
-```
-
-Key conventions:
-
-- Route groups `(name)/` organize without URL impact
-- `_layout.tsx` defines the navigator for each segment
-- Machine definitions are pure TypeScript — no React imports
-- `queries/` files export `queryOptions` objects, not hooks
+Structure: `app/` contains route files with `_layout.tsx` per segment. Route groups `(auth)/`,
+`(app)/`, `(tabs)/` organize without URL impact. Feature code lives outside `app/`:
+`queries/` (queryOptions objects, not hooks), `mutations/`, `machines/` (pure TS, no React
+imports), `stores/` (Zustand + MMKV persist), `hooks/`, `components/`.
 
 ---
 

@@ -1,0 +1,120 @@
+{
+  "skill_name": "typescript-advanced",
+  "evals": [
+    {
+      "id": 0,
+      "name": "discriminated-union-exhaustive",
+      "prompt": "I have a Shape type that can be circle, rectangle, or triangle. Write a function that calculates the area using a switch statement. How do I make sure I handle all cases?",
+      "expected_output": "Should use a `never` exhaustive check or `satisfies` to ensure all cases are handled at compile time, not just a default clause with a runtime throw.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses never type or satisfies for exhaustive checking",
+          "type": "pattern",
+          "pattern": "never|satisfies"
+        },
+        {
+          "text": "Explains exhaustive checking at compile time",
+          "type": "semantic",
+          "description": "Should explain how assigning to never or using satisfies catches missing cases at compile time, not just at runtime"
+        },
+        {
+          "text": "Does not rely solely on a default throw for exhaustiveness",
+          "type": "negative_pattern",
+          "pattern": "default:\\s*throw\\s+new\\s+Error"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "branded-type-domain-safety",
+      "prompt": "I have UserId and OrderId that are both strings. I keep accidentally passing a UserId where an OrderId is expected. How do I prevent this at the type level?",
+      "expected_output": "Should use branded/opaque type pattern with a phantom brand field or unique symbol, not a plain type alias which provides no type safety.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses branded type pattern with brand field or unique symbol",
+          "type": "pattern",
+          "pattern": "__brand|brand|unique symbol|Brand<"
+        },
+        {
+          "text": "Explains nominal typing vs structural typing",
+          "type": "semantic",
+          "description": "Should explain that TypeScript is structurally typed so plain type aliases are interchangeable, and branded types simulate nominal typing"
+        },
+        {
+          "text": "Does not suggest plain type alias as the solution",
+          "type": "negative_pattern",
+          "pattern": "type UserId\\s*=\\s*string\\s*[;\\n]"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "conditional-type-inference",
+      "prompt": "I need a utility type that extracts the resolved type from a Promise. If it's not a Promise, return the type unchanged. Write it with conditional types.",
+      "expected_output": "Should use the `infer` keyword with a conditional type extending Promise to extract the inner type.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses infer keyword to extract the Promise inner type",
+          "type": "pattern",
+          "pattern": "infer"
+        },
+        {
+          "text": "Uses conditional type extending Promise",
+          "type": "pattern",
+          "pattern": "extends\\s+Promise"
+        },
+        {
+          "text": "Explains distributive conditional type behavior",
+          "type": "semantic",
+          "description": "Should explain how conditional types distribute over union types and how infer captures the resolved type from the Promise generic parameter"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "module-augmentation",
+      "prompt": "I'm using express and I want to add a `user` property to the Request type so I can access `req.user` in my handlers without TypeScript complaining. How do I extend the express types?",
+      "expected_output": "Should use `declare module` to augment the express namespace and merge the Request interface, not redeclare a standalone interface.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses declare module for augmentation",
+          "type": "pattern",
+          "pattern": "declare\\s+module"
+        },
+        {
+          "text": "Does not redeclare a standalone Request interface without module context",
+          "type": "negative_pattern",
+          "pattern": "^\\s*interface Request\\s*\\{"
+        },
+        {
+          "text": "Explains module augmentation vs redeclaration",
+          "type": "semantic",
+          "description": "Should explain that declare module merges declarations into the existing module's namespace, while a standalone interface creates a new unrelated type"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "type-fest-vs-handrolled",
+      "prompt": "I need a type that makes all properties of an object readonly recursively, including nested objects. Should I write my own recursive mapped type or is there a better way?",
+      "expected_output": "Should recommend type-fest's ReadonlyDeep utility type rather than hand-rolling a recursive mapped type.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Recommends type-fest or ReadonlyDeep",
+          "type": "pattern",
+          "pattern": "type-fest|ReadonlyDeep"
+        },
+        {
+          "text": "Explains when to use type-fest over hand-rolled types",
+          "type": "semantic",
+          "description": "Should explain that type-fest handles edge cases (arrays, Maps, Sets, readonly tuples) that naive recursive mapped types miss, and is well-tested"
+        }
+      ]
+    }
+  ]
+}

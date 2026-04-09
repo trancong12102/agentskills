@@ -1,0 +1,12 @@
+[
+  {"query": "review the changes I've made in the last 3 commits — I want multiple perspectives before merging to main", "should_trigger": true},
+  {"query": "can you audit this diff? I'm worried about edge cases in the new validation logic", "should_trigger": true},
+  {"query": "check my uncommitted changes for code quality issues, I've been working on the auth refactor all day", "should_trigger": true},
+  {"query": "I have a PR ready — please do a thorough code review before I request approval from the team", "should_trigger": true},
+  {"query": "review the code changes in the payment module — look for correctness, performance, and security concerns", "should_trigger": true},
+  {"query": "write unit tests for the UserService class covering the create, update, and delete methods", "should_trigger": false},
+  {"query": "how does the routing layer in this project work? I need to understand it before making changes", "should_trigger": false},
+  {"query": "check if the axios package is deprecated and what version we should be using", "should_trigger": false},
+  {"query": "I need a second opinion on whether we should use event sourcing or CRUD for the order system — deep analysis please", "should_trigger": false},
+  {"query": "this feature request is pretty vague — help me break it down into concrete requirements before I start", "should_trigger": false}
+]

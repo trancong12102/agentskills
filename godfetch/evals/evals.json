@@ -1,0 +1,12 @@
+[
+  {"query": "how does the useActionState hook work in React 19? I can't find clear examples in the docs I've read", "should_trigger": true},
+  {"query": "what version of prisma should I install right now? we're on 4.x and I want to know if 5 is stable", "should_trigger": true},
+  {"query": "is the request package for Node.js deprecated? what should I use instead?", "should_trigger": true},
+  {"query": "I need to understand how Drizzle ORM handles migrations — look up their docs on schema push vs generate", "should_trigger": true},
+  {"query": "can you search the tRPC repo on GitHub and find how they implement middleware chaining?", "should_trigger": true},
+  {"query": "find all the places in our codebase where we call the payments API and trace the error handling flow", "should_trigger": false},
+  {"query": "refactor the database module to use connection pooling instead of single connections", "should_trigger": false},
+  {"query": "review my last commit and make sure the code quality is acceptable before I push", "should_trigger": false},
+  {"query": "I'm not sure what this feature should do — help me think through the requirements before I start coding", "should_trigger": false},
+  {"query": "there's a deeply nested race condition in our worker queue — can you do an independent deep analysis of the concurrency logic?", "should_trigger": false}
+]

@@ -1,0 +1,12 @@
+[
+  {"query": "how does the authentication middleware work in this project? trace the flow from request to response", "should_trigger": true},
+  {"query": "find all React components that use useEffect without a dependency array — that's a potential performance issue", "should_trigger": true},
+  {"query": "search the codebase for anywhere we're catching errors and silently swallowing them", "should_trigger": true},
+  {"query": "I just joined this project and need to understand the folder structure and how the modules connect", "should_trigger": true},
+  {"query": "find every file that imports from the legacy utils package so I know what to update during the migration", "should_trigger": true},
+  {"query": "what's the latest stable version of Next.js? should I upgrade from 14 to 15?", "should_trigger": false},
+  {"query": "look up the Zod documentation for how discriminated unions work with nested schemas", "should_trigger": false},
+  {"query": "review the PR diff and tell me if there are any issues with the changes before I merge", "should_trigger": false},
+  {"query": "we're debating between Redis and Memcached for our session store — what are the architectural trade-offs?", "should_trigger": false},
+  {"query": "the requirements for this notification system are unclear — help me figure out what questions to ask the PM", "should_trigger": false}
+]

@@ -1,0 +1,12 @@
+[
+  {"query": "I need a second opinion — we're considering moving from a monorepo to polyrepo and I want deep analysis of how it affects our CI pipeline and team velocity", "should_trigger": true},
+  {"query": "there's an intermittent deadlock in our database transaction layer that only surfaces under concurrent writes — I've spent 3 days on it and need fresh eyes for a deep dive", "should_trigger": true},
+  {"query": "oracle: what are the security implications of our current token refresh strategy? we rotate every 15 minutes but I'm not sure it's sufficient", "should_trigger": true},
+  {"query": "we need to decide between WebSockets and SSE for our real-time dashboard — assess the trade-offs given we're behind a CDN with 50k concurrent users", "should_trigger": true},
+  {"query": "analyze the impact of switching our ORM from Sequelize to Drizzle — I want to understand migration risk, performance differences, and what breaks", "should_trigger": true},
+  {"query": "review the diff from my feature branch and flag any issues before I open a PR", "should_trigger": false},
+  {"query": "look up the Fastify documentation for how route hooks differ from application hooks", "should_trigger": false},
+  {"query": "add input validation to the createUser endpoint using Zod schemas", "should_trigger": false},
+  {"query": "find all the places in the codebase where we're using deprecated API methods", "should_trigger": false},
+  {"query": "this project brief is ambiguous — help me interview the stakeholder to clarify requirements", "should_trigger": false}
+]

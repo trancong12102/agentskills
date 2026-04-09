@@ -1,6 +1,6 @@
 ---
 name: typescript-advanced
-description: "Master TypeScript's advanced type system including generics, conditional types, mapped types, template literals, and utility types for building type-safe applications. Use when implementing complex type logic, creating reusable type utilities, or enforcing type safety beyond basic annotations — discriminated unions with exhaustive checks, branded/opaque types for domain safety, satisfies vs as const decisions, NoInfer for inference control, module augmentation for third-party types, or choosing between hand-rolled types and type-fest utilities. Do not use for basic TypeScript syntax or simple type annotations."
+description: "Advanced TypeScript type system patterns for generics, conditional types, mapped types, template literals, and utility types. Use when implementing complex type logic, creating reusable type utilities, or enforcing type safety beyond basic annotations — discriminated unions with exhaustive checks, branded/opaque types for domain safety, satisfies vs as const decisions, NoInfer for inference control, module augmentation for third-party types, or choosing between hand-rolled types and type-fest utilities. Do not use for basic TypeScript syntax or simple type annotations."
 ---
 
 # TypeScript Advanced: Patterns, Pitfalls & type-fest

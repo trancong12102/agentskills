@@ -12,7 +12,7 @@ The core workflow is a loop-based pipeline where each stage iterates until satis
 2. **Plan** — write a plan informed by the analysis directives.
 3. **Validate** — review the plan for executability. If rejected, fix and re-review — same session, no context lost.
 4. **Dispatch** — group tasks into parallel waves with dependency ordering and learning carry-forward.
-5. **Execute** — run tasks in isolated worktrees, each independently verified before merging.
+5. **Execute** — run tasks in a single session worktree, each independently verified.
 
 Every stage uses **session resume** (SendMessage) instead of respawning, preserving full context and saving ~70% tokens per round-trip.
 
@@ -84,7 +84,7 @@ sandbox_mode = "read-only"
 | `ora:Metis`      | Opus   | Pre-analysis — classifies intent, surfaces risks, self-researches local and external sources. |
 | `ora:Momus`      | Sonnet | Plan review — checks executability, rejects only for true blockers.                           |
 | `ora:Atlas`      | Opus   | Wave dispatch — groups tasks into parallel waves with learning carry-forward.                 |
-| `ora:Hephaestus` | Opus   | Deep worker — implements in isolated worktrees, commits before returning.                     |
+| `ora:Hephaestus` | Opus   | Deep worker — implements in the session worktree, verifies before returning.                  |
 | `ora:Aletheia`   | Sonnet | Verification — checks acceptance criteria against actual code, not summaries.                 |
 | `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.                |
 | `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks package versions.             |
@@ -124,15 +124,19 @@ ExitPlanMode ──────────────────────�
   │  Hook: check-plan-review.sh (reminds if review skipped)
   │
   ▼
+EnterWorktree ──────────────────────────────────────────
+  │  Single worktree for the session
+  │
+  ▼
 Execution (per wave) ───────────────────────────────────
-  │  Hephaestus — code tasks in isolated worktrees
+  │  Hephaestus — code tasks (all in same worktree)
   │  Ariadne    — codebase exploration
   │  Clio       — external research
   │
   ▼
 Verify-Correct loop (per task, max 2 retries) ──────────
      Aletheia checks acceptance criteria
-       ├─ VERIFIED   → merge worktree
+       ├─ VERIFIED   → done
        └─ GAPS_FOUND → resume Hephaestus
             └─ still failing → halt, ask user
 ```
@@ -182,7 +186,8 @@ can continue.
    - OKAY → proceed.
    - REJECT → fix → resume Momus.
 4. Atlas. Spawn ora:Atlas. Resume if user modifies dispatch.
-5. Exit plan mode. Execute waves per Atlas dispatch.
+5. Exit plan mode. EnterWorktree for the session. Execute waves
+   per Atlas dispatch — all Hephaestus agents share the worktree.
 6. Verify-correct loop (max 2 retries). Aletheia per Hephaestus task.
    GAPS_FOUND → resume Hephaestus. Still failing → ask user.
 

@@ -1,0 +1,12 @@
+[
+  {"query": "I need to build a notification system but I'm not sure what channels to support, how to handle preferences, or what the delivery guarantees should be — help me think through this", "should_trigger": true},
+  {"query": "we want to add multi-tenancy to our app but the requirements are super vague — let's figure out what questions we need answered first", "should_trigger": true},
+  {"query": "the PM asked me to 'add analytics' — that could mean a dozen things, help me nail down the actual requirements before I start planning", "should_trigger": true},
+  {"query": "brainstorm: we're thinking about adding a plugin system to our CLI tool, what should I consider?", "should_trigger": true},
+  {"query": "I have a rough idea for a caching layer but it touches the API, the database, and the CDN — can you help me figure out the scope before I dive in?", "should_trigger": true},
+  {"query": "add a retry mechanism with exponential backoff to the API client in src/lib/fetch.ts", "should_trigger": false},
+  {"query": "review my pull request for the search feature — check for bugs and performance issues", "should_trigger": false},
+  {"query": "what's the recommended way to handle file uploads in Express 5? look up the docs", "should_trigger": false},
+  {"query": "trace how the event bus dispatches messages across the microservices in this codebase", "should_trigger": false},
+  {"query": "analyze the trade-offs between using Kafka vs RabbitMQ for our event-driven architecture — give me a deep expert assessment", "should_trigger": false}
+]

@@ -79,15 +79,15 @@ sandbox_mode = "read-only"
 
 ### Agents
 
-| Agent            | Model  | Role                                                                              |
-| ---------------- | ------ | --------------------------------------------------------------------------------- |
-| `ora:Metis`      | Opus   | Pre-analysis — classifies intent, surfaces risks, gathers context iteratively.    |
-| `ora:Momus`      | Sonnet | Plan review — checks executability, rejects only for true blockers.               |
-| `ora:Atlas`      | Opus   | Wave dispatch — groups tasks into parallel waves with learning carry-forward.     |
-| `ora:Hephaestus` | Opus   | Deep worker — implements in isolated worktrees, commits before returning.         |
-| `ora:Aletheia`   | Sonnet | Verification — checks acceptance criteria against actual code, not summaries.     |
-| `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.    |
-| `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks package versions. |
+| Agent            | Model  | Role                                                                                          |
+| ---------------- | ------ | --------------------------------------------------------------------------------------------- |
+| `ora:Metis`      | Opus   | Pre-analysis — classifies intent, surfaces risks, self-researches local and external sources. |
+| `ora:Momus`      | Sonnet | Plan review — checks executability, rejects only for true blockers.                           |
+| `ora:Atlas`      | Opus   | Wave dispatch — groups tasks into parallel waves with learning carry-forward.                 |
+| `ora:Hephaestus` | Opus   | Deep worker — implements in isolated worktrees, commits before returning.                     |
+| `ora:Aletheia`   | Sonnet | Verification — checks acceptance criteria against actual code, not summaries.                 |
+| `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.                |
+| `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks package versions.             |
 
 ### Workflow
 
@@ -98,10 +98,9 @@ User request
   │
   ▼
 Metis loop (max 3 rounds) ──────────────────────────────
-  │  Analyze → status:
-  │    READY        → proceed
-  │    NEED_RESEARCH → Clio → resume Metis
-  │    NEED_USER    → AskUserQuestion → resume Metis
+  │  Analyze → self-explores local + external sources → status:
+  │    READY     → proceed
+  │    NEED_USER → AskUserQuestion → resume Metis
   │
   ▼
 EnterPlanMode ───────────────────────────────────────────
@@ -174,9 +173,9 @@ tasks (single-file edits, renaming, typo fixes).
 All agents use resume via SendMessage — do not respawn when the same session
 can continue.
 
-1. Metis loop (max 3 rounds). Spawn ora:Metis. On return:
+1. Metis loop (max 3 rounds). Spawn ora:Metis. Metis self-explores
+   local codebase and external sources when needed. On return:
    - READY → enter plan mode.
-   - NEED_RESEARCH → Clio → resume Metis.
    - NEED_USER → AskUserQuestion → resume Metis.
 2. Enter plan mode with Metis directives.
 3. Momus loop (max 3 rounds). Spawn ora:Momus with plan. On return:

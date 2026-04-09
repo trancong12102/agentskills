@@ -186,7 +186,8 @@ can continue.
 5. Exit plan mode. Execute waves per Atlas dispatch.
 6. Verify-correct loop (max 2 retries). Aletheia per Hephaestus task.
    GAPS_FOUND → resume Hephaestus. Still failing → ask user.
-   </workflow>
+
+</workflow>
 ```
 
 ## License

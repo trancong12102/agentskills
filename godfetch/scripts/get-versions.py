@@ -20,7 +20,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-API_BASE = "https://api.deps.dev/v3alpha/systems"
+API_BASE = "https://api.deps.dev/v3/systems"
 
 
 def get_latest_version(system: str, package: str) -> dict:
@@ -71,7 +71,7 @@ def main():
     system = sys.argv[1].upper()
     packages = sys.argv[2:]
 
-    valid_systems = ["NPM", "PYPI", "GO", "CARGO", "MAVEN", "NUGET"]
+    valid_systems = ["NPM", "PYPI", "GO", "CARGO", "MAVEN", "NUGET", "RUBYGEMS"]
     if system not in valid_systems:
         print(f"Error: Invalid system '{sys.argv[1]}'. Use: {', '.join(s.lower() for s in valid_systems)}")
         sys.exit(1)

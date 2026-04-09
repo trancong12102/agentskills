@@ -1,8 +1,3 @@
----
-name: deps-dev
-description: "Look up the latest stable version of any open-source package across npm, PyPI, Go, Cargo, Maven, and NuGet. Use when the user asks 'what's the latest version of X', 'what version should I use', 'is X deprecated', 'how outdated is my package.json/requirements.txt/Cargo.toml', or needs version numbers for adding or updating dependencies. Also covers pinning versions, checking if packages are maintained, or comparing installed vs latest versions. Do NOT use for private/internal packages or for looking up documentation (use context7)."
----
-
 # Latest Package Version Lookup
 
 Query the deps.dev API to get the latest stable version of open-source packages. This is faster and more reliable than searching the web or guessing version numbers, and it catches deprecated packages before you install them.

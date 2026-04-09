@@ -1,8 +1,3 @@
----
-name: codebase-search
-description: "Semantic local search — searches across all project files: code, config, docs, markdown, YAML, JSON, and any text. Use as the first step when exploring or scanning a project broadly. Understands intent and traces cross-file flows. Use when you need to understand how something works, trace data flows, explore unfamiliar projects, find information in local files, or answer conceptual questions ('how does X work', 'where is Y configured', 'trace the flow of Z'). Do NOT use for targeted keyword/symbol searches (use Grep) or file lookups (use Glob)."
----
-
 # codebase-search
 
 Semantic local search powered by MorphLLM — an RL-trained subagent that runs ~15-30 internal grep+read operations to answer natural language questions about any project files (code, config, docs, markdown, YAML, JSON, and other text files). Unlike simple grep, it understands intent and traces cross-file flows.

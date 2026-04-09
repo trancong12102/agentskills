@@ -1,8 +1,3 @@
----
-name: context7
-description: "Fetch up-to-date documentation for any open-source library or framework. Use when the user asks to look up docs, check an API, find code examples, or verify how a feature works — especially with a specific library name, version migration, or phrases like 'what's the current way to...' or 'the API might have changed'. Also covers setup and configuration docs. Do NOT use for general programming concepts, internal project code, or version lookups (use deps-dev)."
----
-
 # Context7
 
 Retrieve current documentation for software libraries by querying the Context7 API. This is especially useful when you're unsure about an API's current interface — library docs change frequently and your training data may be outdated.

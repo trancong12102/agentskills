@@ -1,8 +1,3 @@
----
-name: github-codebase-search
-description: "Semantic search for public GitHub repos without cloning. Use when the user wants to understand how an external library or framework works internally, investigate upstream bugs, trace code paths in a repo they haven't cloned, or search GitHub source code by intent. Do NOT use for local codebase questions (use codebase-search), documentation lookup (use context7), or private repos."
----
-
 # github-codebase-search
 
 Semantic search for public GitHub repositories powered by MorphLLM — an RL-trained subagent that runs parallel grep+read calls against the GitHub API to answer natural language questions about code. No cloning required.

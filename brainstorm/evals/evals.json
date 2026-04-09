@@ -1,12 +1,92 @@
-[
-  {"query": "I need to build a notification system but I'm not sure what channels to support, how to handle preferences, or what the delivery guarantees should be — help me think through this", "should_trigger": true},
-  {"query": "we want to add multi-tenancy to our app but the requirements are super vague — let's figure out what questions we need answered first", "should_trigger": true},
-  {"query": "the PM asked me to 'add analytics' — that could mean a dozen things, help me nail down the actual requirements before I start planning", "should_trigger": true},
-  {"query": "brainstorm: we're thinking about adding a plugin system to our CLI tool, what should I consider?", "should_trigger": true},
-  {"query": "I have a rough idea for a caching layer but it touches the API, the database, and the CDN — can you help me figure out the scope before I dive in?", "should_trigger": true},
-  {"query": "add a retry mechanism with exponential backoff to the API client in src/lib/fetch.ts", "should_trigger": false},
-  {"query": "review my pull request for the search feature — check for bugs and performance issues", "should_trigger": false},
-  {"query": "what's the recommended way to handle file uploads in Express 5? look up the docs", "should_trigger": false},
-  {"query": "trace how the event bus dispatches messages across the microservices in this codebase", "should_trigger": false},
-  {"query": "analyze the trade-offs between using Kafka vs RabbitMQ for our event-driven architecture — give me a deep expert assessment", "should_trigger": false}
-]
+{
+  "skill_name": "brainstorm",
+  "evals": [
+    {
+      "id": 0,
+      "name": "vague-perf-request",
+      "prompt": "our API endpoints are getting slow, especially the dashboard ones — can you help me figure out what to do about it?",
+      "expected_output": "Should classify intent, score ambiguity across 4 dimensions (all High), and ask a targeted first question via AskUserQuestion. Should NOT propose specific solutions yet.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Classifies intent into one of the defined types (Refactoring, Build, Mid-sized, etc.)",
+          "type": "semantic",
+          "description": "Response should explicitly state the request type classification and confidence level"
+        },
+        {
+          "text": "Scores ambiguity across dimensions (Scope, Acceptance, Approach, Boundaries)",
+          "type": "semantic",
+          "description": "Should present ambiguity scores for the 4 dimensions, with Scope and Acceptance rated High"
+        },
+        {
+          "text": "Asks exactly one targeted question, not multiple questions at once",
+          "type": "semantic",
+          "description": "Should ask a single focused question about the highest-ambiguity dimension, not dump a list of questions"
+        },
+        {
+          "text": "Does not propose specific technical solutions",
+          "type": "semantic",
+          "description": "Should not recommend caching, query optimization, CDN, or any concrete fix — that comes after the interview"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "multi-system-notification",
+      "prompt": "we want to add a notification system — the PM mentioned email, push, and maybe Slack integration but hasn't specified much else",
+      "expected_output": "Should classify as Build, identify high ambiguity in Scope and Boundaries, and ask about MVP scope vs full vision.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Classifies as Build type",
+          "type": "semantic",
+          "description": "Multi-channel notification system is a new feature build, should be classified as Build"
+        },
+        {
+          "text": "Identifies Boundaries ambiguity as High",
+          "type": "semantic",
+          "description": "Three channels mentioned with 'maybe' qualifier — unclear what's in scope vs out of scope"
+        },
+        {
+          "text": "First question targets scope boundaries or MVP definition",
+          "type": "semantic",
+          "description": "With multiple channels and vague PM requirements, the biggest unknown is what to build first"
+        },
+        {
+          "text": "Offers multi-choice options rather than open-ended question",
+          "type": "semantic",
+          "description": "Skill instructs to prefer multi-choice when possible — e.g. 'Which channels for MVP: (A) email only, (B) email + push, (C) all three'"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "architecture-exploration",
+      "prompt": "we're thinking about splitting our Django monolith into services but honestly I'm not sure if it's the right move or where to even start — help me think through this?",
+      "expected_output": "Should classify as Architecture/Collaborative, score Approach and Acceptance as High, and explore constraints before any recommendation.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Classifies as Architecture or Collaborative type",
+          "type": "semantic",
+          "description": "User explicitly says 'help me think through' (Collaborative signal) about system design (Architecture signal)"
+        },
+        {
+          "text": "Scores Approach ambiguity as High",
+          "type": "semantic",
+          "description": "Multiple valid approaches exist — microservices, modular monolith, partial extraction — and user is unsure"
+        },
+        {
+          "text": "Does not recommend microservices or any specific architecture",
+          "type": "semantic",
+          "description": "Brainstorm gathers requirements, it does not propose solutions. No 'you should use X' before understanding constraints"
+        },
+        {
+          "text": "First question explores constraints (team size, pain points, or scale)",
+          "type": "semantic",
+          "description": "Architecture decisions depend heavily on constraints — the first question should surface what's driving the split"
+        }
+      ]
+    }
+  ]
+}

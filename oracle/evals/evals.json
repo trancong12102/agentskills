@@ -1,12 +1,92 @@
-[
-  {"query": "I need a second opinion — we're considering moving from a monorepo to polyrepo and I want deep analysis of how it affects our CI pipeline and team velocity", "should_trigger": true},
-  {"query": "there's an intermittent deadlock in our database transaction layer that only surfaces under concurrent writes — I've spent 3 days on it and need fresh eyes for a deep dive", "should_trigger": true},
-  {"query": "oracle: what are the security implications of our current token refresh strategy? we rotate every 15 minutes but I'm not sure it's sufficient", "should_trigger": true},
-  {"query": "we need to decide between WebSockets and SSE for our real-time dashboard — assess the trade-offs given we're behind a CDN with 50k concurrent users", "should_trigger": true},
-  {"query": "analyze the impact of switching our ORM from Sequelize to Drizzle — I want to understand migration risk, performance differences, and what breaks", "should_trigger": true},
-  {"query": "review the diff from my feature branch and flag any issues before I open a PR", "should_trigger": false},
-  {"query": "look up the Fastify documentation for how route hooks differ from application hooks", "should_trigger": false},
-  {"query": "add input validation to the createUser endpoint using Zod schemas", "should_trigger": false},
-  {"query": "find all the places in the codebase where we're using deprecated API methods", "should_trigger": false},
-  {"query": "this project brief is ambiguous — help me interview the stakeholder to clarify requirements", "should_trigger": false}
-]
+{
+  "skill_name": "oracle",
+  "evals": [
+    {
+      "id": 0,
+      "name": "architecture-decision",
+      "prompt": "we're debating whether to split our Django monolith into microservices — we have 200k daily users, a team of 8, and the main pain point is deploy times for the checkout module. I want a deep independent analysis of the trade-offs",
+      "expected_output": "Should formulate a clear, context-rich question for Codex including the constraints (200k users, 8-person team, checkout deploy pain), then launch codex-oracle.py in background.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses codex-oracle.py script",
+          "type": "pattern",
+          "pattern": "codex-oracle\\.py"
+        },
+        {
+          "text": "Includes key constraints in the Codex question",
+          "type": "semantic",
+          "description": "Question to Codex should mention the specific constraints: 200k daily users, team of 8, checkout module deploy times"
+        },
+        {
+          "text": "Runs as a background task",
+          "type": "semantic",
+          "description": "codex-oracle.py should be launched with run_in_background: true as Codex can take up to 30 minutes"
+        },
+        {
+          "text": "Ends turn after launching, does not start parallel analysis",
+          "type": "semantic",
+          "description": "Skill rule: do not start your own parallel analysis while Codex runs — Codex is the analyst"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "elusive-concurrency-bug",
+      "prompt": "there's an intermittent bug where our Celery job queue processes the same job twice — it only happens under high concurrency with 50+ workers and we can't reproduce it locally. The job processing code is in app/tasks/processor.py",
+      "expected_output": "Should craft a focused debugging question for Codex, including the file path and concurrency details.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses codex-oracle.py script",
+          "type": "pattern",
+          "pattern": "codex-oracle\\.py"
+        },
+        {
+          "text": "Question includes the specific file path",
+          "type": "semantic",
+          "description": "Should mention app/tasks/processor.py in the question to point Codex in the right direction"
+        },
+        {
+          "text": "Question includes concurrency context (50+ workers, Celery)",
+          "type": "semantic",
+          "description": "Should mention the Celery queue, 50+ workers, and duplicate processing symptom"
+        },
+        {
+          "text": "Does not attempt to debug the issue itself",
+          "type": "semantic",
+          "description": "Oracle delegates deep analysis to Codex — should not read files or grep for the bug pattern before Codex responds"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "security-assessment",
+      "prompt": "assess our JWT token refresh strategy — we use 15-min access tokens and 7-day refresh tokens stored in httpOnly cookies. I'm worried about token theft and replay attack scenarios. The auth code is in src/auth/tokens.ts",
+      "expected_output": "Should formulate a security-focused question for Codex including token lifetimes, storage mechanism, and file path.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses codex-oracle.py script",
+          "type": "pattern",
+          "pattern": "codex-oracle\\.py"
+        },
+        {
+          "text": "Question includes token configuration details",
+          "type": "semantic",
+          "description": "Should mention 15-min access tokens, 7-day refresh tokens, httpOnly cookies in the Codex question"
+        },
+        {
+          "text": "Question frames security concerns (theft, replay attacks)",
+          "type": "semantic",
+          "description": "Should specifically ask Codex to assess token theft and replay attack scenarios"
+        },
+        {
+          "text": "Includes file path hint for Codex",
+          "type": "semantic",
+          "description": "Should mention src/auth/tokens.ts to help Codex find the relevant code"
+        }
+      ]
+    }
+  ]
+}

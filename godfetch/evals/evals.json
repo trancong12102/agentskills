@@ -1,12 +1,92 @@
-[
-  {"query": "how does the useActionState hook work in React 19? I can't find clear examples in the docs I've read", "should_trigger": true},
-  {"query": "what version of prisma should I install right now? we're on 4.x and I want to know if 5 is stable", "should_trigger": true},
-  {"query": "is the request package for Node.js deprecated? what should I use instead?", "should_trigger": true},
-  {"query": "I need to understand how Drizzle ORM handles migrations — look up their docs on schema push vs generate", "should_trigger": true},
-  {"query": "can you search the tRPC repo on GitHub and find how they implement middleware chaining?", "should_trigger": true},
-  {"query": "find all the places in our codebase where we call the payments API and trace the error handling flow", "should_trigger": false},
-  {"query": "refactor the database module to use connection pooling instead of single connections", "should_trigger": false},
-  {"query": "review my last commit and make sure the code quality is acceptable before I push", "should_trigger": false},
-  {"query": "I'm not sure what this feature should do — help me think through the requirements before I start coding", "should_trigger": false},
-  {"query": "there's a deeply nested race condition in our worker queue — can you do an independent deep analysis of the concurrency logic?", "should_trigger": false}
-]
+{
+  "skill_name": "godfetch",
+  "evals": [
+    {
+      "id": 0,
+      "name": "lookup-library-docs",
+      "prompt": "how does useOptimistic work in React 19? the examples I found online are all outdated and I need the current API signature and usage pattern",
+      "expected_output": "Should use context7 (search then fetch) for React docs, not WebSearch as primary. Should return current API with examples.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses context7 search as first step",
+          "type": "pattern",
+          "pattern": "context7\\.py.*search"
+        },
+        {
+          "text": "Uses context7 fetch after search",
+          "type": "pattern",
+          "pattern": "context7\\.py.*fetch"
+        },
+        {
+          "text": "Does not use WebSearch as the primary lookup method",
+          "type": "semantic",
+          "description": "React has >1K GitHub stars, so context7 should be tried first per search discipline rules"
+        },
+        {
+          "text": "Returns useOptimistic API signature and usage",
+          "type": "semantic",
+          "description": "Response should include the hook signature and at least one practical usage example"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "check-package-versions",
+      "prompt": "what's the latest stable version of next, prisma, and drizzle-orm? we're planning our Q2 dependency upgrades and need to know what's current",
+      "expected_output": "Should use deps-dev (get-versions.py) with all 3 packages batched in one call.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses get-versions.py for version lookup",
+          "type": "pattern",
+          "pattern": "get-versions\\.py"
+        },
+        {
+          "text": "Batches all 3 packages in a single call",
+          "type": "pattern",
+          "pattern": "get-versions\\.py.*npm.*next.*prisma.*drizzle-orm"
+        },
+        {
+          "text": "Uses npm as the ecosystem identifier",
+          "type": "pattern",
+          "pattern": "get-versions\\.py.*npm"
+        },
+        {
+          "text": "Reports version numbers for all 3 packages",
+          "type": "semantic",
+          "description": "Should present the latest stable version for each of the three packages"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "search-github-source",
+      "prompt": "how does the Remix repo handle nested route module loading? I want to see their actual source code, not the docs",
+      "expected_output": "Should use github-codebase-search with --repo remix-run/remix and a specific natural language query.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Uses github-codebase-search.py for repo search",
+          "type": "pattern",
+          "pattern": "github-codebase-search\\.py"
+        },
+        {
+          "text": "Targets the correct Remix repo",
+          "type": "pattern",
+          "pattern": "remix-run/remix"
+        },
+        {
+          "text": "Uses a natural language query, not just keywords",
+          "type": "semantic",
+          "description": "Query should be descriptive like 'How does Remix handle nested route module loading?' not just 'route loading'"
+        },
+        {
+          "text": "Does not use WebFetch on github.com URLs",
+          "type": "semantic",
+          "description": "Skill rules prohibit WebFetch on github.com — must use github-codebase-search or gh CLI instead"
+        }
+      ]
+    }
+  ]
+}

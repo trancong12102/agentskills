@@ -87,7 +87,7 @@ sandbox_mode = "read-only"
 
 ### Workflow
 
-All agents resume via SendMessage instead of respawning. Ariadne and Clio are spawned on-demand throughout.
+All agents resume via SendMessage instead of respawning. Ariadne and Clio run during planning; execution rarely needs them.
 
 ```text
 User request
@@ -95,12 +95,12 @@ User request
   ▼
 Plan Mode (Opus inline) ───────────────────────────────
   │  Analyze intent, explore codebase, surface risks
-  │  (no separate pre-analysis agent)
+  │  Ariadne (codebase) / Clio (external) for research
+  │  All research happens here
   │
   ▼
 Execution ─────────────────────────────────────────────
   │  Hephaestus ×N (Opus, parallel worktrees)
-  │  Ariadne / Clio on demand
   │
   ▼
 Verify-Correct loop (per task, max 2 retries) ─────────
@@ -148,11 +148,12 @@ All agents use resume via SendMessage — do not respawn when the same session
 can continue.
 
 1. Enter plan mode. Analyze intent inline — classify the work type, explore
-   the codebase, surface risks, gather missing context. Ask the user if
+   the codebase with ora:Ariadne, research externals with ora:Clio, surface
+   risks, gather missing context. All research happens here. Ask the user if
    ambiguous (do not guess). Write a plan informed by the analysis.
 2. Exit plan mode. Execute tasks — spawn ora:Hephaestus in worktrees
-   (parallel for independent tasks). Use ora:Ariadne / ora:Clio for research
-   as needed during execution.
+   (parallel for independent tasks). Research in this phase is rare — only
+   when execution reveals something the plan could not have anticipated.
 3. Verify-correct loop (max 2 retries). Aletheia per Hephaestus task.
    GAPS_FOUND → resume Hephaestus. Still failing → ask user.
 4. Squash-merge each worktree.

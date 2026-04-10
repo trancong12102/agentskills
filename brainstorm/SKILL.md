@@ -5,7 +5,7 @@ description: "Structured requirements interview — asks targeted questions to r
 
 # Brainstorm — Structured Requirements Interview
 
-Reduce ambiguity to near-zero through targeted questions before entering plan mode. You are the user-facing interviewer — Metis handles codebase-facing analysis after you finish.
+Reduce ambiguity to near-zero through targeted questions. Activated within plan mode after a quick Ariadne/Clio landscape scan — use that context to ask informed, codebase-grounded questions.
 
 ## When to Use
 
@@ -25,7 +25,7 @@ Reduce ambiguity to near-zero through targeted questions before entering plan mo
 
 ### Phase 1 — Intent Classification
 
-Classify the request into one of these types (same as Metis):
+Classify the request into one of these types:
 
 | Type          | Signal                                   | Interview Focus                           |
 | ------------- | ---------------------------------------- | ----------------------------------------- |
@@ -56,8 +56,8 @@ Report the scores. Focus questions on the highest-ambiguity dimensions first.
 Ask ONE question at a time using `AskUserQuestion`. Rules:
 
 - **Most ambiguous dimension first** — attack the biggest unknown
-- **Multi-choice when possible** — "Which approach: (A) Redis cache, (B) in-memory LRU, (C) CDN, (D) other?" is faster than open-ended
-- **Concrete, not generic** — "Should auth middleware cover WebSocket routes too, or just REST?" beats "What's the scope?"
+- **Ground in codebase/external context** — reference Ariadne/Clio findings already in conversation. "I see 3 auth patterns in the codebase: X, Y, Z — which should we target?" beats "What's the scope?"
+- **Multi-choice when possible** — concrete options from codebase/research findings are faster than open-ended questions
 - **Build on previous answers** — each question should narrow the remaining ambiguity
 - **State why you're asking** — "I'm asking because this determines whether we need a new database table or can reuse the existing one"
 
@@ -92,16 +92,16 @@ Output a structured summary of what you learned:
 
 **Open Items** (if any):
 
-- [remaining ambiguity that Metis/planning should resolve via codebase analysis]
+- [remaining ambiguity to resolve via deeper Ariadne/Clio exploration]
 ```
 
-After outputting the summary, tell the user they can now enter plan mode. Do NOT enter plan mode automatically — the user may want to refine the requirements further.
+After outputting the summary, proceed — plan mode continues with deep targeted exploration on the clarified scope.
 
 ## Rules
 
 - **Skill, not agent** — you run as the main agent. You CAN and SHOULD use `AskUserQuestion` for every question.
-- **Do NOT explore the codebase** — that is Metis's job. You interview the user about intent, scope, and preferences.
+- **Use existing context, do not explore** — reference codebase and external findings already in the conversation (from prior Ariadne/Clio landscape scan). Do not spawn new exploration.
 - **Do NOT write files** — output the requirements summary in conversation. It feeds into plan mode naturally.
-- **Do NOT propose solutions** — you gather requirements. Planning happens after.
+- **Do NOT propose solutions** — you gather requirements. Deep exploration and planning happen after.
 - **5 question maximum** — respect the user's time. If you cannot reduce ambiguity in 5 questions, summarize and move on.
 - **Match the user's language** — if they write in Vietnamese, interview in Vietnamese.

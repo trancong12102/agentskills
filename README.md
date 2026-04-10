@@ -87,16 +87,20 @@ sandbox_mode = "read-only"
 
 ### Workflow
 
-All agents resume via SendMessage instead of respawning. Ariadne and Clio run during planning; execution rarely needs them.
+All agents resume via SendMessage instead of respawning. Planning uses a two-pass research strategy: quick landscape scan → /brainstorm if ambiguous → deep targeted exploration on clarified scope.
 
 ```text
 User request
   │
   ▼
 Plan Mode (Opus inline) ───────────────────────────────
-  │  Analyze intent, explore codebase, surface risks
-  │  Ariadne (codebase) / Clio (external) for research
-  │  All research happens here
+  │  a. Quick landscape scan
+  │     Ariadne (codebase) / Clio (external, if needed)
+  │  b. If ambiguous → /brainstorm
+  │     (grounded in landscape scan context)
+  │  c. Deep targeted exploration
+  │     Ariadne / Clio on clarified scope
+  │  d. Write plan
   │
   ▼
 Execution ─────────────────────────────────────────────
@@ -147,10 +151,15 @@ tasks (single-file edits, renaming, typo fixes).
 All agents use resume via SendMessage — do not respawn when the same session
 can continue.
 
-1. Enter plan mode. Analyze intent inline — classify the work type, explore
-   the codebase with ora:Ariadne, research externals with ora:Clio, surface
-   risks, gather missing context. All research happens here. Ask the user if
-   ambiguous (do not guess). Write a plan informed by the analysis.
+1. Enter plan mode.
+   a. Quick landscape scan: ora:Ariadne (always) + ora:Clio (if task
+   involves externals) — understand what exists, not how to change it.
+   b. Classify ambiguity. If the request is vague, touches multiple systems,
+   has unclear acceptance criteria, or could go multiple directions →
+   activate /brainstorm (it now has codebase + external context to ask
+   informed questions). If clear and well-scoped → skip to c.
+   c. Deep targeted exploration: Ariadne/Clio on the clarified scope.
+   d. Write plan informed by the analysis.
 2. Exit plan mode. Execute tasks — spawn ora:Hephaestus in worktrees
    (parallel for independent tasks). Research in this phase is rare — only
    when execution reveals something the plan could not have anticipated.

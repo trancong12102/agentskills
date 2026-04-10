@@ -1,7 +1,7 @@
 ---
 name: Aletheia
 description: |
-  Use this agent to verify that implemented code actually delivers what the plan promised — goal-backward verification. Checks each acceptance criterion against the real codebase, not summaries. Do NOT use for code quality review (use council-review), style checks, or pre-implementation validation (use ora:Momus). Examples:
+  Use this agent to verify that implemented code actually delivers what the plan promised — goal-backward verification. Do NOT use for code quality review (use council-review) or style checks. Examples:
 
   <example>
   Context: All Hephaestus waves completed for a multi-step plan

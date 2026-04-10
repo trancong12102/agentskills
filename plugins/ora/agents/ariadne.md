@@ -1,7 +1,7 @@
 ---
 name: Ariadne
 description: |
-  Use this agent to explore and understand codebases or search local project files. Powered by semantic search (codebase-search) and structural code matching (ast-grep) — finds answers across code, config, docs, and any text files in the project. Preferred over the built-in Explore agent for any codebase exploration task. Do NOT use for external web research, GitHub repos, or documentation lookups — use Clio for those. Examples:
+  Use this agent to explore and understand codebases or search local project files. Preferred over the built-in Explore agent for any codebase exploration task. Do NOT use for external web research, GitHub repos, or documentation lookups — use Clio for those. Examples:
 
   <example>
   Context: User wants to understand how a feature works

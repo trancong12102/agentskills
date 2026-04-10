@@ -1,7 +1,7 @@
 ---
 name: Clio
 description: |
-  Use this agent to research external sources — documentation, websites, GitHub repositories, and any information available on the internet. Powered by context7 (library docs), github-codebase-search (repo exploration), and deps-dev (package versions). Do NOT use for local codebase exploration or file search — use Ariadne for that. Examples:
+  Use this agent to research external sources — documentation, websites, GitHub repositories, and any information available on the internet. Do NOT use for local codebase exploration or file search — use Ariadne for that. Examples:
 
   <example>
   Context: User needs docs for a library or API

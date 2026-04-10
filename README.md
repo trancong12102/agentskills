@@ -4,26 +4,25 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 ## Why ora
 
-Claude Code is capable out of the box, but on complex tasks it tends to jump straight into code, skip pre-analysis, and lose track of multi-step plans. ora adds structure where it matters — before planning starts and after execution ends — without getting in the way for simple tasks.
+Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models — guardrailing planning quality, enforcing step-by-step discipline, gating tool access. With Opus 4.6, that complexity burns tokens without improving output.
 
-The core workflow is a loop-based pipeline where each stage iterates until satisfied:
+ora keeps only what a strong model can't do alone:
 
-1. **Analyze** — classify intent, explore the codebase, surface risks, gather missing context via external research or user clarification.
-2. **Plan** — write a plan informed by the analysis directives.
-3. **Validate** — review the plan for executability. If rejected, fix and re-review — same session, no context lost.
-4. **Dispatch** — group tasks into parallel waves with dependency ordering and learning carry-forward.
-5. **Execute** — run tasks in a single session worktree, each independently verified.
+1. **Plan** — Opus plans inline. No plan-review agent needed — Opus rarely produces unexecutable plans, and when it does, the executor catches it.
+2. **Execute** — Hephaestus runs in parallel worktrees. This is capability extension, not model compensation — a single agent can't work on multiple isolated branches simultaneously.
+3. **Verify** — Aletheia checks acceptance criteria against actual code. Self-assessment has blind spots regardless of model strength — independent verification catches what the implementer misses.
+4. **Research** — Ariadne (codebase) and Clio (external) isolate search context from the main conversation, preventing context pollution from broad queries.
 
-Every stage uses **session resume** (SendMessage) instead of respawning, preserving full context and saving ~70% tokens per round-trip.
+No hooks, no workflow enforcement, no weaker-model reviewing stronger-model output. Session resume via SendMessage saves ~70% tokens per round-trip.
 
 ### Comparison
 
 |                      | ora                                       | [superpowers]                | [get-shit-done]                 | [oh-my-openagent]                          |
 | -------------------- | ----------------------------------------- | ---------------------------- | ------------------------------- | ------------------------------------------ |
-| Architecture         | 7 agents, multi-model                     | 14 skills, single model      | 24 agents, single model         | 11 agents, multi-model                     |
+| Architecture         | 4 agents, multi-model                     | 14 skills, single model      | 24 agents, single model         | 11 agents, multi-model                     |
 | Runtime deps         | Zero                                      | Zero                         | Zero (Node >= 22)               | Heavy (ast-grep, MCP SDK, native binaries) |
 | Token strategy       | Session resume (~70% savings on retries)  | On-demand skill loading      | File-based context (.planning/) | Always-on MCPs + injected                  |
-| Workflow enforcement | 2 hooks (1 blocking, 1 advisory)          | 1 hook (soft)                | 9 hooks (mostly advisory)       | Behavioral (intent gate, todo enforcer)    |
+| Workflow enforcement | None                                      | 1 hook (soft)                | 9 hooks (mostly advisory)       | Behavioral (intent gate, todo enforcer)    |
 | Session management   | Resume via SendMessage                    | Fresh subagent per task      | File-based persistence          | Auto-recovery, no explicit resume          |
 | Composability        | Skills via frontmatter, agents composable | Skills loaded via Skill tool | Edit agent markdown files       | JSONC config, prompt_append                |
 | Host                 | Claude Code                               | Claude Code + 7 others       | 13 runtimes                     | OpenCode (Claude Code compat layer)        |
@@ -33,14 +32,14 @@ Every stage uses **session resume** (SendMessage) instead of respawning, preserv
 [get-shit-done]: https://github.com/gsd-build/get-shit-done
 [oh-my-openagent]: https://github.com/code-yeongyu/oh-my-openagent
 
-**Where ora fits**: no compiled plugins, no native binaries, no mandatory MCP servers — just markdown agents and shell scripts. Skills are composable via frontmatter, agents have non-overlapping tool access, and the pipeline is opt-in per step.
+**Where ora fits**: no hooks, no compiled plugins, no native binaries, no mandatory MCP servers — just 4 markdown agents. Each agent exists because it extends what a single model can't do (parallelism, context isolation, independent verification), not because the model needs guardrails.
 
 ## Getting Started
 
 ### Install
 
 ```shell
-# Plugin (agents + hooks)
+# Plugin (agents)
 /plugin marketplace add trancong12102/agentskills
 /plugin install ora@agentskills
 
@@ -79,74 +78,42 @@ sandbox_mode = "read-only"
 
 ### Agents
 
-| Agent            | Model  | Role                                                                                          |
-| ---------------- | ------ | --------------------------------------------------------------------------------------------- |
-| `ora:Metis`      | Opus   | Pre-analysis — classifies intent, surfaces risks, self-researches local and external sources. |
-| `ora:Momus`      | Sonnet | Plan review — checks executability, rejects only for true blockers.                           |
-| `ora:Atlas`      | Opus   | Wave dispatch — groups tasks into parallel waves with learning carry-forward.                 |
-| `ora:Hephaestus` | Opus   | Deep worker — implements in the session worktree, verifies before returning.                  |
-| `ora:Aletheia`   | Sonnet | Verification — checks acceptance criteria against actual code, not summaries.                 |
-| `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture.                |
-| `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks package versions.             |
+| Agent            | Model  | Role                                                                           |
+| ---------------- | ------ | ------------------------------------------------------------------------------ |
+| `ora:Hephaestus` | Opus   | Deep worker — implements in worktrees, squash-merged by caller.                |
+| `ora:Aletheia`   | Sonnet | Verification — checks acceptance criteria against actual code, not summaries.  |
+| `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. |
+| `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks versions.      |
 
 ### Workflow
 
-All stages resume via SendMessage instead of respawning. Ariadne and Clio are spawned on-demand throughout.
+All agents resume via SendMessage instead of respawning. Ariadne and Clio are spawned on-demand throughout.
 
 ```text
 User request
   │
   ▼
-Metis loop (max 3 rounds) ──────────────────────────────
-  │  Analyze → self-explores local + external sources → status:
-  │    READY     → proceed
-  │    NEED_USER → AskUserQuestion → resume Metis
+Plan Mode (Opus inline) ───────────────────────────────
+  │  Analyze intent, explore codebase, surface risks
+  │  (no separate pre-analysis agent)
   │
   ▼
-EnterPlanMode ───────────────────────────────────────────
-  │  Hook: check-metis.sh (blocks if Metis not called)
+Execution ─────────────────────────────────────────────
+  │  Hephaestus ×N (Opus, parallel worktrees)
+  │  Ariadne / Clio on demand
   │
   ▼
-Plan mode ───────────────────────────────────────────────
+Verify-Correct loop (per task, max 2 retries) ─────────
+  │  Aletheia checks acceptance criteria
+  │    ├─ VERIFIED   → squash-merge worktree
+  │    └─ GAPS_FOUND → resume Hephaestus
+  │         └─ still failing → halt, ask user
   │
   ▼
-Momus loop (max 3 rounds) ──────────────────────────────
-  │  Review → verdict:
-  │    OKAY   → proceed
-  │    REJECT → fix plan → resume Momus
-  │
-  ▼
-Atlas ───────────────────────────────────────────────────
-  │  Wave dispatch (resume if user modifies)
-  │
-  ▼
-ExitPlanMode ────────────────────────────────────────────
-  │  Hook: check-plan-review.sh (reminds if review skipped)
-  │
-  ▼
-EnterWorktree ──────────────────────────────────────────
-  │  Single worktree for the session
-  │
-  ▼
-Execution (per wave) ───────────────────────────────────
-  │  Hephaestus — code tasks (all in same worktree)
-  │  Ariadne    — codebase exploration
-  │  Clio       — external research
-  │
-  ▼
-Verify-Correct loop (per task, max 2 retries) ──────────
-     Aletheia checks acceptance criteria
-       ├─ VERIFIED   → done
-       └─ GAPS_FOUND → resume Hephaestus
-            └─ still failing → halt, ask user
+Post-implementation review ────────────────────────────
+     /council-review (behavior-changing logic)
+     /simplify (mechanical / style-only changes)
 ```
-
-### Hooks
-
-| Hook                       | Script                 | Behavior                                        |
-| -------------------------- | ---------------------- | ----------------------------------------------- |
-| `PreToolUse:EnterPlanMode` | `check-metis.sh`       | **Blocks** if Metis was not spawned.            |
-| `PreToolUse:ExitPlanMode`  | `check-plan-review.sh` | **Reminds** if Momus or Atlas were not spawned. |
 
 ## Configuration
 
@@ -180,21 +147,26 @@ tasks (single-file edits, renaming, typo fixes).
 All agents use resume via SendMessage — do not respawn when the same session
 can continue.
 
-1. Metis loop (max 3 rounds). Spawn ora:Metis. Metis self-explores
-   local codebase and external sources when needed. On return:
-   - READY → enter plan mode.
-   - NEED_USER → AskUserQuestion → resume Metis.
-2. Enter plan mode with Metis directives.
-3. Momus loop (max 3 rounds). Spawn ora:Momus with plan. On return:
-   - OKAY → proceed.
-   - REJECT → fix → resume Momus.
-4. Atlas. Spawn ora:Atlas. Resume if user modifies dispatch.
-5. Exit plan mode. EnterWorktree for the session. Execute waves
-   per Atlas dispatch — all Hephaestus agents share the worktree.
-6. Verify-correct loop (max 2 retries). Aletheia per Hephaestus task.
+1. Enter plan mode. Analyze intent inline — classify the work type, explore
+   the codebase, surface risks, gather missing context. Ask the user if
+   ambiguous (do not guess). Write a plan informed by the analysis.
+2. Exit plan mode. Execute tasks — spawn ora:Hephaestus in worktrees
+   (parallel for independent tasks). Use ora:Ariadne / ora:Clio for research
+   as needed during execution.
+3. Verify-correct loop (max 2 retries). Aletheia per Hephaestus task.
    GAPS_FOUND → resume Hephaestus. Still failing → ask user.
+4. Squash-merge each worktree.
 
 </workflow>
+
+<post_implementation_review>
+
+- /council-review: logic changes that affect behavior — new features, bug fixes,
+  cross-module integration, auth/payments/data domains.
+- /simplify: mechanical changes — refactoring, code style, renaming, moving code
+  without behavior change.
+
+</post_implementation_review>
 ```
 
 ## License

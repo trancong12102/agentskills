@@ -131,14 +131,11 @@ ora works best with proactive behavioral overrides in `~/.claude/CLAUDE.md`:
 
 ```markdown
 <investigate_before_responding>
-Do not respond to technical tasks using training data alone — verify with a
-matching skill or ora:Clio research first.
+Do not respond to technical tasks without loading a matching skill or
+spawning ora:Clio research first. The cost is near zero — the cost of
+outdated knowledge is a broken implementation. Skip only when the task
+is clearly unrelated to any available skill.
 </investigate_before_responding>
-
-<use_skills_proactively>
-Do not write code or give technical advice without first loading a matching
-skill. Skip only for git operations, file renaming, simple config edits.
-</use_skills_proactively>
 
 <subagent_routing>
 Do not use the built-in Explore agent or general-purpose agent — use

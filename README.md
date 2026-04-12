@@ -13,7 +13,7 @@ ora keeps only what a strong model can't do alone:
 3. **Verify** — Aletheia checks acceptance criteria against actual code. Self-assessment has blind spots regardless of model strength — independent verification catches what the implementer misses.
 4. **Research** — Ariadne (codebase) and Clio (external) isolate search context from the main conversation, preventing context pollution from broad queries.
 
-No hooks, no workflow enforcement, no weaker-model reviewing stronger-model output. Session resume via SendMessage saves ~70% tokens per round-trip.
+Two lightweight hooks inject context reminders (load workflow skill, run verification) — no blocking, no workflow enforcement, no weaker-model reviewing stronger-model output. Session resume via SendMessage saves ~70% tokens per round-trip.
 
 ### Comparison
 
@@ -22,7 +22,7 @@ No hooks, no workflow enforcement, no weaker-model reviewing stronger-model outp
 | Architecture         | 4 agents, multi-model                     | 14 skills, single model      | 24 agents, single model         | 11 agents, multi-model                     |
 | Runtime deps         | Zero                                      | Zero                         | Zero (Node >= 22)               | Heavy (ast-grep, MCP SDK, native binaries) |
 | Token strategy       | Session resume (~70% savings on retries)  | On-demand skill loading      | File-based context (.planning/) | Always-on MCPs + injected                  |
-| Workflow enforcement | None                                      | 1 hook (soft)                | 9 hooks (mostly advisory)       | Behavioral (intent gate, todo enforcer)    |
+| Workflow enforcement | 2 hooks (context injection)               | 1 hook (soft)                | 9 hooks (mostly advisory)       | Behavioral (intent gate, todo enforcer)    |
 | Session management   | Resume via SendMessage                    | Fresh subagent per task      | File-based persistence          | Auto-recovery, no explicit resume          |
 | Composability        | Skills via frontmatter, agents composable | Skills loaded via Skill tool | Edit agent markdown files       | JSONC config, prompt_append                |
 | Host                 | Claude Code                               | Claude Code + 7 others       | 13 runtimes                     | OpenCode (Claude Code compat layer)        |
@@ -32,7 +32,7 @@ No hooks, no workflow enforcement, no weaker-model reviewing stronger-model outp
 [get-shit-done]: https://github.com/gsd-build/get-shit-done
 [oh-my-openagent]: https://github.com/code-yeongyu/oh-my-openagent
 
-**Where ora fits**: no hooks, no compiled plugins, no native binaries, no mandatory MCP servers — just 4 markdown agents. Each agent exists because it extends what a single model can't do (parallelism, context isolation, independent verification), not because the model needs guardrails.
+**Where ora fits**: minimal hooks (2 context-injecting reminders), no compiled plugins, no native binaries, no mandatory MCP servers — 4 markdown agents + 2 lightweight hooks. Each agent exists because it extends what a single model can't do (parallelism, context isolation, independent verification), not because the model needs guardrails.
 
 ## Getting Started
 
@@ -85,21 +85,24 @@ sandbox_mode = "read-only"
 | `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. |
 | `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks versions.      |
 
-### Workflow
+### Workflow & Hooks
 
-All agents resume via SendMessage instead of respawning. Planning uses a two-pass research strategy: quick landscape scan → /brainstorm if ambiguous → deep targeted exploration on clarified scope.
+The `/ora` skill contains the full workflow (plan → execute → verify → review). Two PostToolUse hooks inject context reminders via `additionalContext`:
+
+| Matcher                             | Trigger                | Reminder                                      |
+| ----------------------------------- | ---------------------- | --------------------------------------------- |
+| `EnterPlanMode`                     | Model enters plan mode | Load `/ora` skill for workflow                |
+| `Agent` (filtered `ora:Hephaestus`) | Hephaestus completes   | Run Aletheia verification before squash-merge |
 
 ```text
 User request
   │
   ▼
-Plan Mode (Opus inline) ───────────────────────────────
+Plan Mode ─── hook: load /ora skill ──────────────────
   │  a. Quick landscape scan
   │     Ariadne (codebase) / Clio (external, if needed)
   │  b. If ambiguous → /brainstorm
-  │     (grounded in landscape scan context)
   │  c. Deep targeted exploration
-  │     Ariadne / Clio on clarified scope
   │  d. Write plan
   │
   ▼
@@ -107,16 +110,19 @@ Execution ───────────────────────�
   │  Hephaestus ×N (Opus, parallel worktrees)
   │
   ▼
-Verify-Correct loop (per task, max 2 retries) ─────────
+Verify ─── hook: Aletheia reminder ────────────────────
   │  Aletheia checks acceptance criteria
   │    ├─ VERIFIED   → squash-merge worktree
   │    └─ GAPS_FOUND → resume Hephaestus
   │         └─ still failing → halt, ask user
   │
   ▼
-Post-implementation review ────────────────────────────
-     /council-review (behavior-changing logic)
-     /simplify (mechanical / style-only changes)
+Finalize ──────────────────────────────────────────────
+  │  git reset --soft + git restore --staged
+  │  /council-review or /simplify → fix, do not commit
+  │
+  ▼
+Human reviews changes and commits
 ```
 
 ## Configuration
@@ -135,8 +141,9 @@ skill. Skip only for git operations, file renaming, simple config edits.
 </use_skills_proactively>
 
 <subagent_routing>
-Do not use the built-in Explore agent or general-purpose agent if an ora agent
-can handle the task. Grep/Glob budget at main agent: max 2 calls per task. If
+Do not use the built-in Explore agent or general-purpose agent — use
+ora:Ariadne and ora:Clio instead. General-purpose agent is the escape hatch
+when no ora agent fits. Grep/Glob budget at main agent: max 2 calls per task. If
 you need a 3rd search, spawn ora:Ariadne instead — batch remaining questions
 into the prompt. Do not search alongside Ariadne; delegate fully and wait.
 Broad patterns (`**/*.md`, regex with `|` alternation) always go to Ariadne.
@@ -146,37 +153,6 @@ Broad patterns (`**/*.md`, regex with `|` alternation) always go to Ariadne.
 Do not implement without entering plan mode first. Skip only for truly trivial
 tasks (single-file edits, renaming, typo fixes).
 </plan_before_implementing>
-
-<workflow>
-All agents use resume via SendMessage — do not respawn when the same session
-can continue.
-
-1. Enter plan mode.
-   a. Quick landscape scan: ora:Ariadne (always) + ora:Clio (if task
-   involves externals) — understand what exists, not how to change it.
-   b. Classify ambiguity. If the request is vague, touches multiple systems,
-   has unclear acceptance criteria, or could go multiple directions →
-   activate /brainstorm (it now has codebase + external context to ask
-   informed questions). If clear and well-scoped → skip to c.
-   c. Deep targeted exploration: Ariadne/Clio on the clarified scope.
-   d. Write plan informed by the analysis.
-2. Exit plan mode. Execute tasks — spawn ora:Hephaestus in worktrees
-   (parallel for independent tasks). Research in this phase is rare — only
-   when execution reveals something the plan could not have anticipated.
-3. Verify-correct loop (max 2 retries). Aletheia per Hephaestus task.
-   GAPS_FOUND → resume Hephaestus. Still failing → ask user.
-4. Squash-merge each worktree.
-
-</workflow>
-
-<post_implementation_review>
-
-- /council-review: logic changes that affect behavior — new features, bug fixes,
-  cross-module integration, auth/payments/data domains.
-- /simplify: mechanical changes — refactoring, code style, renaming, moving code
-  without behavior change.
-
-</post_implementation_review>
 ```
 
 ## License

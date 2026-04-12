@@ -1,5 +1,5 @@
 {
   "name": "ora",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "description": "Agents for parallel execution, independent verification, and research isolation"
 }

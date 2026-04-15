@@ -4,35 +4,12 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 ## Why ora
 
-Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models — guardrailing planning quality, enforcing step-by-step discipline, gating tool access. With Opus 4.6, that complexity burns tokens without improving output.
+Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.6, that complexity burns tokens without improving output. ora ships exactly two research agents:
 
-ora keeps only what a strong model can't do alone:
+- **Ariadne** — codebase exploration (enhanced contextual grep over local files)
+- **Clio** — external research (docs, web, GitHub repos)
 
-1. **Plan** — Opus plans inline. No plan-review agent needed — Opus rarely produces unexecutable plans, and when it does, the executor catches it.
-2. **Execute** — Hephaestus runs in parallel worktrees. This is capability extension, not model compensation — a single agent can't work on multiple isolated branches simultaneously.
-3. **Verify** — Aletheia checks acceptance criteria against actual code. Self-assessment has blind spots regardless of model strength — independent verification catches what the implementer misses.
-4. **Research** — Ariadne (codebase) and Clio (external) isolate search context from the main conversation, preventing context pollution from broad queries.
-
-Two lightweight hooks inject context reminders (load workflow skill, run verification) — no blocking, no workflow enforcement, no weaker-model reviewing stronger-model output. Session resume via SendMessage saves ~70% tokens per round-trip.
-
-### Comparison
-
-|                      | ora                                       | [superpowers]                | [get-shit-done]                 | [oh-my-openagent]                          |
-| -------------------- | ----------------------------------------- | ---------------------------- | ------------------------------- | ------------------------------------------ |
-| Architecture         | 4 agents, multi-model                     | 14 skills, single model      | 24 agents, single model         | 11 agents, multi-model                     |
-| Runtime deps         | Zero                                      | Zero                         | Zero (Node >= 22)               | Heavy (ast-grep, MCP SDK, native binaries) |
-| Token strategy       | Session resume (~70% savings on retries)  | On-demand skill loading      | File-based context (.planning/) | Always-on MCPs + injected                  |
-| Workflow enforcement | 2 hooks (context injection)               | 1 hook (soft)                | 9 hooks (mostly advisory)       | Behavioral (intent gate, todo enforcer)    |
-| Session management   | Resume via SendMessage                    | Fresh subagent per task      | File-based persistence          | Auto-recovery, no explicit resume          |
-| Composability        | Skills via frontmatter, agents composable | Skills loaded via Skill tool | Edit agent markdown files       | JSONC config, prompt_append                |
-| Host                 | Claude Code                               | Claude Code + 7 others       | 13 runtimes                     | OpenCode (Claude Code compat layer)        |
-| License              | MIT                                       | MIT                          | MIT                             | SUL-1.0                                    |
-
-[superpowers]: https://github.com/obra/superpowers
-[get-shit-done]: https://github.com/gsd-build/get-shit-done
-[oh-my-openagent]: https://github.com/code-yeongyu/oh-my-openagent
-
-**Where ora fits**: minimal hooks (2 context-injecting reminders), no compiled plugins, no native binaries, no mandatory MCP servers — 4 markdown agents + 2 lightweight hooks. Each agent exists because it extends what a single model can't do (parallelism, context isolation, independent verification), not because the model needs guardrails.
+Both isolate search context from the main conversation — broad queries never pollute your main window. The plugin has no hooks and no planning/verification/execution agents. Planning and verification happen inline in the main agent, shaped by behavioral rules in your `CLAUDE.md` (see Configuration below).
 
 ## Getting Started
 
@@ -76,89 +53,42 @@ sandbox_mode = "read-only"
 
 ## ora Plugin
 
-### Agents
-
-| Agent            | Model  | Role                                                                           |
-| ---------------- | ------ | ------------------------------------------------------------------------------ |
-| `ora:Hephaestus` | Opus   | Deep worker — implements in worktrees, squash-merged by caller.                |
-| `ora:Aletheia`   | Sonnet | Verification — checks acceptance criteria against actual code, not summaries.  |
-| `ora:Ariadne`    | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. |
-| `ora:Clio`       | Sonnet | External research — fetches docs, searches GitHub repos, checks versions.      |
-
-### Workflow & Hooks
-
-The `/ora` skill contains the full workflow (plan → execute → verify → review). Two PostToolUse hooks inject context reminders via `additionalContext`:
-
-| Matcher                             | Trigger                | Reminder                                      |
-| ----------------------------------- | ---------------------- | --------------------------------------------- |
-| `EnterPlanMode`                     | Model enters plan mode | Load `/ora` skill for workflow                |
-| `Agent` (filtered `ora:Hephaestus`) | Hephaestus completes   | Run Aletheia verification before squash-merge |
-
-```text
-User request
-  │
-  ▼
-Plan Mode ─── hook: load /ora skill ──────────────────
-  │  a. Quick landscape scan
-  │     Ariadne (codebase) / Clio (external, if needed)
-  │  b. If ambiguous → /brainstorm
-  │  c. Deep targeted exploration
-  │  d. Write plan
-  │
-  ▼
-Execution ─────────────────────────────────────────────
-  │  Hephaestus ×N (Opus, parallel worktrees)
-  │
-  ▼
-Verify ─── hook: Aletheia reminder ────────────────────
-  │  Aletheia checks acceptance criteria
-  │    ├─ VERIFIED   → squash-merge worktree
-  │    └─ GAPS_FOUND → resume Hephaestus
-  │         └─ still failing → halt, ask user
-  │
-  ▼
-Finalize ──────────────────────────────────────────────
-  │  /council-review or /simplify (merge base → HEAD)
-  │  Hephaestus fix-wave for scope-heavy issues
-  │  git reset --soft <merge-base> + git restore --staged
-  │
-  ▼
-Human reviews changes and commits
-```
+| Agent         | Model  | Role                                                                           |
+| ------------- | ------ | ------------------------------------------------------------------------------ |
+| `ora:Ariadne` | Sonnet | Codebase exploration — traces flows, finds implementations, maps architecture. |
+| `ora:Clio`    | Sonnet | External research — fetches docs, searches GitHub repos, checks versions.      |
 
 ## Configuration
 
-ora works best with proactive behavioral overrides in `~/.claude/CLAUDE.md`:
+ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`. Recommended setup:
 
 ```markdown
 <investigate_before_responding>
-Do not respond to technical tasks without loading a matching skill or
-spawning ora:Clio research first. The cost is near zero — the cost of
-outdated knowledge is a broken implementation. Skip only when the task
-is clearly unrelated to any available skill.
+Do not respond to technical tasks without loading a matching skill or spawning ora:Clio research first. The cost is near zero — the cost of outdated knowledge is a broken implementation. Skip only when the task is clearly unrelated to any available skill.
 </investigate_before_responding>
 
 <subagent_routing>
-Do not use the built-in Explore agent or general-purpose agent — use
-ora:Ariadne and ora:Clio instead. General-purpose agent is the escape hatch
-when no ora agent fits. Grep/Glob budget at main agent: max 2 calls per task. If
-you need a 3rd search, spawn ora:Ariadne instead — batch remaining questions
-into the prompt. Do not search alongside Ariadne; delegate fully and wait.
-Broad patterns (`**/*.md`, regex with `|` alternation) always go to Ariadne.
+Do not use the built-in Explore agent or general-purpose agent — use ora:Ariadne (local codebase) and ora:Clio (external sources) instead. General-purpose agent is the escape hatch when no ora agent fits.
+
+**Grep/Glob budget at main agent: max 2 calls per task.** If you need a 3rd search, stop and spawn ora:Ariadne instead — batch remaining questions into the Ariadne prompt. Do not search alongside Ariadne; delegate fully and wait for results. Allowed without budget: reading a known exact path via Read, or a single Glob for a specific filename. Broad patterns always go to Ariadne.
+
+**Resume, don't respawn.** When you need follow-up information from an agent you already spawned in this session, use SendMessage with the returned agentId instead of starting a fresh Agent call. A fresh spawn loses cached context and repeats tool calls. Only start a new agent when the topic is genuinely different from the prior run.
 </subagent_routing>
 
 <plan_before_implementing>
-Do not implement without entering plan mode first. Skip only for truly trivial
-tasks (single-file edits, renaming, typo fixes).
+Do not implement without entering plan mode when the task is ambiguous, touches multiple subsystems, or has unclear acceptance criteria. Skip plan mode for clearly-scoped changes — bug fixes with obvious fix site, mechanical renames/refactors, config/typo fixes, adding a single feature with known shape.
 </plan_before_implementing>
 
-<delegate_implementation>
-Do not Edit/Write 2+ files or >10 lines in main after plan mode exits —
-dispatch ora:Hephaestus. Exceptions: typo/comment fixes, unused import removal,
-or a 1-line syntax error explicitly pointed out by Aletheia/Hephaestus output.
-Any code change requiring reading surrounding context first goes to Hephaestus.
-</delegate_implementation>
+<think_before_coding>
+Do not start implementing without first stating your assumptions and flagging tradeoffs. If the request has multiple reasonable interpretations, present them instead of picking silently. If a simpler approach exists than what was asked, say so and push back. If something is unclear enough to block correct execution, stop and ask — do not guess.
+</think_before_coding>
+
+<goal_driven_execution>
+Do not accept vague goals. Translate each task into a verifiable success criterion before implementing ("add validation" → "write tests for invalid inputs, then make them pass"). Do not mark a task complete until the success criterion is met — read the actual code and run the actual check, do not trust your own summary.
+</goal_driven_execution>
 ```
+
+`think_before_coding` and `goal_driven_execution` are adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).
 
 ## License
 

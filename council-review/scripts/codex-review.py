@@ -127,7 +127,7 @@ def handle_uncommitted(args):
     if rest:
         fail(f"Unknown option: {rest[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "exec", "review", "--uncommitted", "--json", "-c", "model=gpt-5.4"]
+    cmd = ["codex", "exec", "review", "--uncommitted", "--json", "-c", "model=gpt-5.4", "-c", 'model_reasoning_effort="xhigh"']
     run_codex(cmd, dry_run)
 
 
@@ -149,7 +149,7 @@ def handle_branch(args):
     if filtered:
         fail(f"Unknown option: {filtered[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "exec", "review", "--base", base, "--json", "-c", "model=gpt-5.4"]
+    cmd = ["codex", "exec", "review", "--base", base, "--json", "-c", "model=gpt-5.4", "-c", 'model_reasoning_effort="xhigh"']
     run_codex(cmd, dry_run)
 
 
@@ -161,7 +161,7 @@ def handle_commit(args):
     if rest:
         fail(f"Unknown option: {rest[0]}")
     warn_focus_ignored(focus)
-    cmd = ["codex", "exec", "review", "--commit", sha, "--json", "-c", "model=gpt-5.4"]
+    cmd = ["codex", "exec", "review", "--commit", sha, "--json", "-c", "model=gpt-5.4", "-c", 'model_reasoning_effort="xhigh"']
     run_codex(cmd, dry_run)
 
 

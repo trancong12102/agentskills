@@ -118,8 +118,9 @@ Verify ─── hook: Aletheia reminder ─────────────
   │
   ▼
 Finalize ──────────────────────────────────────────────
-  │  git reset --soft + git restore --staged
-  │  /council-review or /simplify → fix, do not commit
+  │  /council-review or /simplify (merge base → HEAD)
+  │  Hephaestus fix-wave for scope-heavy issues
+  │  git reset --soft <merge-base> + git restore --staged
   │
   ▼
 Human reviews changes and commits
@@ -150,6 +151,13 @@ Broad patterns (`**/*.md`, regex with `|` alternation) always go to Ariadne.
 Do not implement without entering plan mode first. Skip only for truly trivial
 tasks (single-file edits, renaming, typo fixes).
 </plan_before_implementing>
+
+<delegate_implementation>
+Do not Edit/Write 2+ files or >10 lines in main after plan mode exits —
+dispatch ora:Hephaestus. Exceptions: typo/comment fixes, unused import removal,
+or a 1-line syntax error explicitly pointed out by Aletheia/Hephaestus output.
+Any code change requiring reading surrounding context first goes to Hephaestus.
+</delegate_implementation>
 ```
 
 ## License

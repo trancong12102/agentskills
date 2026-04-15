@@ -70,8 +70,6 @@ Do not respond to technical tasks without loading a matching skill or spawning o
 <subagent_routing>
 Do not use the built-in Explore agent or general-purpose agent — use ora:Ariadne (local codebase) and ora:Clio (external sources) instead. General-purpose agent is the escape hatch when no ora agent fits.
 
-**Grep/Glob budget at main agent: max 2 calls per task.** If you need a 3rd search, stop and spawn ora:Ariadne instead — batch remaining questions into the Ariadne prompt. Do not search alongside Ariadne; delegate fully and wait for results. Allowed without budget: reading a known exact path via Read, or a single Glob for a specific filename. Broad patterns always go to Ariadne.
-
 **Resume, don't respawn.** When you need follow-up information from an agent you already spawned in this session, use SendMessage with the returned agentId instead of starting a fresh Agent call. A fresh spawn loses cached context and repeats tool calls. Only start a new agent when the topic is genuinely different from the prior run.
 </subagent_routing>
 

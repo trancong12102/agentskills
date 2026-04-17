@@ -1,6 +1,6 @@
 ---
 name: council-review
-description: "Multi-model AI code review — runs Codex, Claude, and Simplify reviews in parallel, then synthesizes a unified report. Use when the user asks to review code changes, audit a diff, check code quality, review a PR, review commits, or review uncommitted changes. Also covers 'code review', 'review my changes', 'check this before I merge', or wanting multiple perspectives on code. Do NOT use for documentation/markdown review or trivial single-line changes."
+description: "Multi-model AI code review — runs Codex, Claude, and Simplify reviews in parallel, then synthesizes a unified report. Use when the user asks to review code changes, audit a diff, check code quality, review a PR, review commits, or review uncommitted changes. Also covers 'code review', 'review my changes', 'check this before I merge', or wanting multiple perspectives on code. Do not use for documentation/markdown review or trivial single-line changes."
 ---
 
 # Council Review
@@ -12,17 +12,6 @@ Run Codex, Claude's own `/review`, and `/simplify` in parallel, then cross-valid
 - **Codex CLI**: Install with `npm i -g @openai/codex`, authenticate with `codex login`
 
 If only one CLI is installed, fall back to the available reviewer with a warning — the review still has value with fewer perspectives, so don't fail entirely.
-
-## When to Use
-
-- Reviewing uncommitted changes before committing
-- Auditing a branch diff before opening a PR
-- Reviewing a specific commit for regressions
-
-## When NOT to Use
-
-- Reviewing documentation, markdown, or non-code files
-- Trivial single-line changes where a full council review would be overkill
 
 ## Workflow
 

@@ -1,6 +1,6 @@
 ---
 name: godgrep
-description: "Unified local codebase search combining semantic search and structural AST matching. Use when searching a codebase for code patterns, tracing how features work across files, finding structural code issues, or exploring unfamiliar projects. Covers three search modes: semantic questions (codebase-search), AST-structural patterns (ast-grep), and keyword/symbol lookup (Grep/Glob). Do NOT use for external library docs or GitHub searches."
+description: "Unified local codebase search combining semantic search and structural AST matching. Use when searching a codebase for code patterns, tracing how features work across files, finding structural code issues, or exploring unfamiliar projects. Covers three search modes: semantic questions (codebase-search), AST-structural patterns (ast-grep), and keyword/symbol lookup (Grep/Glob). Do not use for external library docs or GitHub searches."
 ---
 
 # godgrep
@@ -66,7 +66,7 @@ python3 scripts/codebase-search.py search "trace the payment pipeline" --timeout
 - Write natural language questions, not keywords -- `"How does auth middleware validate tokens?"` not `"auth JWT"`
 - Be specific about what you want to know -- the subagent plans its own search strategy from your question
 - Default timeout is 120s -- increase with `--timeout` for large codebases
-- DO NOT read the script source code -- run directly and use `--help` for usage
+- Do not read the script source code -- run directly and use `--help` for usage
 
 Reference: `references/codebase-search.md` for full documentation.
 

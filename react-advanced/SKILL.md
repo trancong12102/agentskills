@@ -42,7 +42,7 @@ Do not use `useEffect` for:
 
 ### Acceptable uses of useEffect
 
-These are the **only** legitimate cases:
+Legitimate cases:
 
 1. **Synchronizing with non-React external systems** — DOM APIs, third-party widgets
    (maps, charts), imperative libraries that need mount/unmount lifecycle

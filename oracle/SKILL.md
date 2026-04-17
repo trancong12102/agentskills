@@ -1,6 +1,6 @@
 ---
 name: oracle
-description: "Deep analysis and expert reasoning via a separate model (Codex CLI). Use when the user asks for 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from deep, independent reasoning. Do NOT use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
+description: "Deep analysis and expert reasoning via a separate model (Codex CLI). Use when the user asks for 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from deep, independent reasoning. Do not use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
 ---
 
 # Oracle
@@ -12,23 +12,6 @@ Delegate deep analysis to Codex CLI — launch it with a clear question, wait fo
 - **Codex CLI** (required): Install with `npm i -g @openai/codex`, authenticate with `codex login`
 
 If Codex CLI is not installed, **stop and tell the user** to install it.
-
-## When to Use
-
-- Architecture analysis and design decisions
-- Debugging elusive or complex bugs
-- Impact assessment of proposed changes
-- Security reasoning and threat modeling
-- Refactoring strategy evaluation
-- Trade-off analysis between approaches
-- Complex "why" or "how" questions about a codebase
-
-## When NOT to Use
-
-- Simple factual questions (just answer directly)
-- Code generation tasks (just write the code)
-- Code review (use `council-review` instead)
-- Tasks that require file modifications (oracle is read-only analysis)
 
 ## Workflow
 

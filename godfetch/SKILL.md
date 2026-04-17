@@ -73,7 +73,7 @@ python3 scripts/context7.py fetch <library_id> <topic> [--max-tokens N]
 
 **Rules:**
 
-- Do NOT read script source code. Run directly or use `--help`.
+- Do not read script source code. Run directly or use `--help`.
 - Always search before fetch — library IDs are not guessable.
 - Write specific queries — `"useState hook with objects"` beats `"hooks"`.
 - Match `--max-tokens` to the task scope.
@@ -98,7 +98,7 @@ Must provide either `--repo` or `--url`.
 
 **Rules:**
 
-- Do NOT read script source code. Run directly or use `--help`.
+- Do not read script source code. Run directly or use `--help`.
 - Write queries as natural language questions — the search agent plans its own strategy.
 - Be specific — `"How does Prisma handle relation loading in findMany?"` beats `"Prisma relations"`.
 - Provide the repo — the tool needs to know which GitHub repository to search.
@@ -130,7 +130,7 @@ Output: TSV with columns `package`, `version`, `published`, `status`.
 
 **Rules:**
 
-- Do NOT read script source code. Run directly or use `--help`.
+- Do not read script source code. Run directly or use `--help`.
 - Batch lookups when possible — pass multiple package names in one call.
 - Flag deprecated packages — if status says `deprecated`, suggest an alternative.
 

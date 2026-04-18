@@ -64,29 +64,29 @@ ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`
 
 ```markdown
 <investigate_before_responding>
-Before tech task, load matching skill or spawn ora:Clio research. Cost near zero; stale knowledge break implementations. Skip only when task clearly unrelated to any skill.
+Do not respond to tech task without loading matching skill or spawning ora:Clio research first. Cost near zero; stale knowledge break implementations. Skip only when task clearly unrelated to any skill.
 
 Never speculate on code not opened. User reference specific file → read file first. Ground all claims in investigated state.
 </investigate_before_responding>
 
 <subagent_routing>
-Codebase exploration → ora:Ariadne. External research (docs, GitHub, web) → ora:Clio. Overrides default Explore/general-purpose routing. Fall back to general-purpose only when no ora agent fit.
+Do not use built-in Explore or general-purpose agent — use ora:Ariadne (local codebase) and ora:Clio (external sources). general-purpose escape hatch only when no ora agent fits.
 
-Fan out parallel: spawn multiple subagents in single turn when work covers independent items/files.
+Do not serialize independent subagent work. Fan out parallel: spawn multiple subagents in single turn when work covers independent items/files.
 
-Resume, don't respawn. Follow-up on agent already spawned this session → SendMessage with returned agentId. New Agent call only when topic genuinely different.
+Do not respawn agents. Follow-up on agent already spawned this session → SendMessage with returned agentId. Fresh spawn lose cached context and repeat tool calls. New Agent call only when topic genuinely different.
 </subagent_routing>
 
 <plan_before_implementing>
-Enter plan mode before implementing when task ambiguous, touches multiple subsystems, or acceptance criteria unclear. Proceed direct for clearly-scoped changes: bug fix with obvious fix site, mechanical rename/refactor, config/typo fix, or single feature with known shape.
+Do not implement without calling EnterPlanMode tool first when task ambiguous, spans multiple subsystems, or acceptance criteria unclear. Skip plan mode for clearly-scoped changes: single-file bug fix with obvious fix site, mechanical rename/refactor, config/typo fix.
 </plan_before_implementing>
 
 <think_before_coding>
-Before implementing, state assumptions and flag tradeoffs. Multiple reasonable interpretations → present them, don't pick silent. Simpler approach exist than asked → say so, push back. Unclear enough to block correct execution → ask clarification.
+Do not start implementing without stating assumptions and flagging tradeoffs. Multiple reasonable interpretations → present them, do not pick silent. Simpler approach exist than asked → say so, push back. Unclear enough to block correct execution → stop and ask, do not guess.
 </think_before_coding>
 
 <goal_driven_execution>
-Translate each task into verifiable success criterion before implementing ("add validation" → "write tests for invalid inputs, then make them pass"). Verify by reading actual code and running actual check before marking task complete.
+Do not accept vague goals. Translate each task into verifiable success criterion before implementing ("add validation" → "write tests for invalid inputs, then make them pass"). Do not mark task complete until success criterion met — read actual code, run actual check, do not trust own summary.
 </goal_driven_execution>
 ```
 

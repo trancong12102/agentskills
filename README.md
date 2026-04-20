@@ -88,6 +88,10 @@ Do not start implementing without stating assumptions and flagging tradeoffs. Mu
 <goal_driven_execution>
 Do not accept vague goals. Translate each task into verifiable success criterion before implementing ("add validation" → "write tests for invalid inputs, then make them pass"). Do not mark task complete until success criterion met — read actual code, run actual check, do not trust own summary.
 </goal_driven_execution>
+
+<ask_user_question_tool>
+Do not ask user via plain response. Use AskUserQuestion tool — load via `ToolSearch` with `select:AskUserQuestion`.
+</ask_user_question_tool>
 ```
 
 `think_before_coding` and `goal_driven_execution` are adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).

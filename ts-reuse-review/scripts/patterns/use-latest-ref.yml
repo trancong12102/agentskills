@@ -1,0 +1,23 @@
+id: use-latest-ref
+language: Tsx
+message: "Ref mirroring latest state without deps. Use useLatest / useLatestRef from usehooks-ts or ahooks."
+severity: info
+rule:
+  any:
+    - pattern: "useEffect(() => { $REF.current = $VAL; })"
+    - pattern: "React.useEffect(() => { $REF.current = $VAL; })"
+  inside:
+    kind: function_declaration
+    has:
+      any:
+        - pattern: "const $REF = useRef($_)"
+        - pattern: "const $REF = useRef<$_>($_)"
+        - pattern: "const $REF = React.useRef($_)"
+        - pattern: "const $REF = React.useRef<$_>($_)"
+      stopBy: end
+    stopBy: end
+metadata:
+  replace_catalog: "import { useLatest } from 'ahooks'; const latestRef = useLatest($VAL);"
+  priority: P2
+  fallback_regex: "useRef[<(][\\s\\S]{0,100}[>(][^)]+\\)[\\s\\S]{0,200}useEffect\\s*\\(\\s*\\(\\s*\\)\\s*=>\\s*\\{[^}]*\\.current\\s*=[^}]*\\}\\s*\\)"
+  notes: "No-deps useEffect assigning to a ref declared within the same function. Latest-value mirror pattern."

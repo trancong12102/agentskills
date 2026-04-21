@@ -1,0 +1,16 @@
+id: crypto-createhash-node
+language: TypeScript
+message: "Node crypto.createHash doesn't run on Cloudflare Workers / Vercel Edge. Use crypto.subtle.digest (Web Crypto)."
+severity: info
+rule:
+  any:
+    - pattern: "crypto.createHash($ALGO).update($DATA).digest($_)"
+    - pattern: "crypto.createHash($ALGO).update($DATA).digest()"
+    - pattern: "createHash($ALGO).update($DATA).digest($_)"
+    - pattern: "createHash($ALGO).update($DATA).digest()"
+metadata:
+  replace_native: "const buf = await crypto.subtle.digest($ALGO_UC, new TextEncoder().encode($DATA))  // ALGO_UC = 'SHA-256' etc."
+  priority: P1
+  fallback_regex: "crypto\\.createHash\\([^)]+\\)\\.update\\([^)]+\\)\\.digest\\("
+  notes: "Priority P1 only when file path matches edge/workers patterns (wrangler.toml, functions/, workers/). In pure Node code, stylistic P3."
+  fallback_keywords: ["workers", "edge", "cloudflare", "wrangler"]

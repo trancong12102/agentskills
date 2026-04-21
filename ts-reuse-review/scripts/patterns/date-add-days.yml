@@ -1,0 +1,14 @@
+id: date-add-days
+language: TypeScript
+message: "Manual date arithmetic via milliseconds. Use addDays from date-fns for clarity + DST safety."
+severity: info
+rule:
+  any:
+    - pattern: new Date($D.getTime() + $N * 86400000)
+    - pattern: new Date($D.getTime() + $N * 24 * 60 * 60 * 1000)
+    - pattern: new Date($D.getTime() - $N * 86400000)
+metadata:
+  replace_catalog: "import { addDays } from 'date-fns'; addDays($D, $N)"
+  priority: P2
+  fallback_regex: "getTime\\(\\)\\s*[+-]\\s*[^;]*86400000"
+  notes: "Manual ms math ignores DST transitions. date-fns handles them."

@@ -1,0 +1,14 @@
+id: maxby-reduce
+language: TypeScript
+message: "Manual max-by via reduce comparing one field. Use maxBy from es-toolkit — also handles empty array (returns undefined)."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.reduce(($ACC, $CUR) => $CUR.$K > $ACC.$K ? $CUR : $ACC)"
+    - pattern: "$ARR.reduce(($ACC, $CUR) => ($CUR.$K > $ACC.$K ? $CUR : $ACC))"
+    - pattern: "$ARR.reduce(($ACC, $CUR) => $CUR.$K >= $ACC.$K ? $CUR : $ACC)"
+metadata:
+  replace_catalog: "import { maxBy } from 'es-toolkit'; maxBy($ARR, (x) => x.$K)"
+  priority: P1
+  fallback_regex: "\\.reduce\\(\\s*\\([^)]+\\)\\s*=>\\s*\\w+\\.\\w+\\s*>=?\\s*\\w+\\.\\w+\\s*\\?"
+  notes: "Manual version often paired with a preceding empty-array guard. maxBy handles empty internally."

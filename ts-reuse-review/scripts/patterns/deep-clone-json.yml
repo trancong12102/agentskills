@@ -1,0 +1,11 @@
+id: deep-clone-json
+language: TypeScript
+message: "JSON.parse(JSON.stringify(x)) silently drops Dates/Maps/functions. Use structuredClone(x) (native) or cloneDeep from es-toolkit/lodash."
+severity: info
+rule:
+  pattern: JSON.parse(JSON.stringify($X))
+metadata:
+  replace_native: "structuredClone($X)"
+  replace_catalog: "cloneDeep($X)  // from es-toolkit"
+  priority: P1
+  fallback_regex: "JSON\\.parse\\(\\s*JSON\\.stringify\\("

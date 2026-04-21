@@ -1,0 +1,25 @@
+id: url-validate-try
+language: TypeScript
+message: "try/catch around new URL to validate a string. Prefer URL.canParse(str) (ES2023) or zod z.string().url()."
+severity: info
+rule:
+  any:
+    - pattern: |
+        try {
+          new URL($STR);
+          $$$
+        } catch {
+          $$$
+        }
+    - pattern: |
+        try {
+          return new URL($STR);
+        } catch {
+          return $_;
+        }
+metadata:
+  replace_native: "URL.canParse($STR)"
+  replace_catalog: "import { z } from 'zod'; const schema = z.string().url(); schema.safeParse($STR).success"
+  priority: P2
+  fallback_regex: "try\\s*\\{[^}]*new\\s+URL\\s*\\([^)]+\\)[^}]*\\}\\s*catch"
+  notes: "URL.canParse requires Node ≥20. Downgrade to medium on older targets. Use zod when validating at API boundary."

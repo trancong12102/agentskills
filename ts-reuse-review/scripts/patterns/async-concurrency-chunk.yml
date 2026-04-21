@@ -1,0 +1,21 @@
+id: async-concurrency-chunk
+language: TypeScript
+message: "Manual chunked Promise.all for concurrency limit. Use p-limit, p-map, or Effect.forEach({ concurrency: N })."
+severity: info
+rule:
+  kind: for_statement
+  all:
+    - has:
+        pattern: "$ARR.slice($I, $I + $N)"
+        stopBy: end
+    - has:
+        pattern: "Promise.all($_)"
+        stopBy: end
+    - has:
+        pattern: "await $_"
+        stopBy: end
+metadata:
+  replace_catalog: "import pLimit from 'p-limit'; const limit = pLimit($N); await Promise.all($ARR.map((x) => limit(() => fn(x))));"
+  priority: P2
+  fallback_regex: "for\\s*\\([^)]*i\\s*\\+=\\s*\\w+[^)]*\\)[\\s\\S]{0,200}\\.slice\\([^)]*i[^)]*\\)[\\s\\S]{0,200}Promise\\.all"
+  notes: "If 'effect' is installed, prefer Effect.forEach with concurrency option over p-limit."

@@ -1,0 +1,15 @@
+id: compact-filter-null
+language: TypeScript
+message: "Filtering null/undefined. filter(x => x != null) is idiomatic; compact from es-toolkit drops all falsy. Pick based on intent."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.filter(($X) => $X != null)"
+    - pattern: "$ARR.filter(($X) => $X !== null && $X !== undefined)"
+    - pattern: "$ARR.filter(($X) => $X !== undefined && $X !== null)"
+metadata:
+  replace_native: "$ARR.filter((x): x is NonNullable<typeof x> => x != null)  // type-narrowing form"
+  replace_catalog: "import { compact } from 'es-toolkit'; compact($ARR)  // drops ALL falsy including 0/'' — different semantics"
+  priority: P3
+  fallback_regex: "\\.filter\\([^)]*!=\\s*null|\\.filter\\([^)]*!==\\s*null\\s*&&"
+  notes: "Flag only to suggest the type-narrowing form — `compact` has stricter falsy semantics."

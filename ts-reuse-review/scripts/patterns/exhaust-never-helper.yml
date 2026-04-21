@@ -1,0 +1,15 @@
+id: exhaust-never-helper
+language: TypeScript
+message: "Hand-rolled exhaustiveness helper. Use Match.exhaustive (effect) or import assertNever from ts-pattern / type-fest."
+severity: info
+rule:
+  any:
+    - pattern: "const exhaust = ($V: never): never => $V"
+    - pattern: "const exhaust = ($V: never) => $V"
+    - pattern: "function exhaust($V: never): never { return $V }"
+    - pattern: "const assertNever = ($V: never): never => { throw new Error($$$) }"
+metadata:
+  replace_catalog: "import { Match } from 'effect'; Match.exhaustive  // or: import { assertNever } from 'ts-pattern'"
+  priority: P2
+  fallback_regex: "\\(\\s*\\w+\\s*:\\s*never\\s*\\)\\s*(:\\s*never\\s*)?=>"
+  notes: "Only flag when paired with a switch-on-tag or similar union-exhaustion site — otherwise the helper has no replacement."

@@ -1,0 +1,13 @@
+id: minby-reduce
+language: TypeScript
+message: "Manual min-by via reduce comparing one field. Use minBy from es-toolkit."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.reduce(($ACC, $CUR) => $CUR.$K < $ACC.$K ? $CUR : $ACC)"
+    - pattern: "$ARR.reduce(($ACC, $CUR) => ($CUR.$K < $ACC.$K ? $CUR : $ACC))"
+    - pattern: "$ARR.reduce(($ACC, $CUR) => $CUR.$K <= $ACC.$K ? $CUR : $ACC)"
+metadata:
+  replace_catalog: "import { minBy } from 'es-toolkit'; minBy($ARR, (x) => x.$K)"
+  priority: P1
+  fallback_regex: "\\.reduce\\(\\s*\\([^)]+\\)\\s*=>\\s*\\w+\\.\\w+\\s*<=?\\s*\\w+\\.\\w+\\s*\\?"

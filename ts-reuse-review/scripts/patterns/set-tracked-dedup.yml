@@ -1,0 +1,22 @@
+id: set-tracked-dedup
+language: TypeScript
+message: "reduce tracking a Set of seen + a Set of duplicates. Use countBy from es-toolkit + Object.entries.filter(([, n]) => n > 1)."
+severity: info
+rule:
+  all:
+    - pattern: "$ARR.reduce(($ACC, $X) => { $$$BODY }, $$$INIT)"
+    - has:
+        pattern: "$ACC.$SEEN.has($$$)"
+        stopBy: end
+    - has:
+        pattern: "$ACC.$SEEN.add($$$)"
+        stopBy: end
+metadata:
+  replace_catalog: |
+    import { countBy } from 'es-toolkit';
+    const dupes = Object.entries(countBy($ARR, (x) => x.id))
+      .filter(([, n]) => n > 1)
+      .map(([id]) => id);
+  priority: P2
+  fallback_regex: "\\.reduce\\([\\s\\S]{0,400}\\.has\\([^)]*\\)[\\s\\S]{0,200}\\.add\\("
+  notes: "Pattern specifically for 'collect duplicates while iterating' — single-purpose dedup already covered by uniq/uniqBy rules."

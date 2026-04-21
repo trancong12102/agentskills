@@ -1,0 +1,20 @@
+id: zod-discriminated-union
+language: TypeScript
+message: "Manual branch-by-tag parsing. Use z.discriminatedUnion for typed, exhaustive parsing."
+severity: info
+rule:
+  kind: if_statement
+  all:
+    - has:
+        pattern: "$DATA.$TAG === $VAL"
+        stopBy: end
+    - has:
+        any:
+          - pattern: "$SCHEMA.parse($DATA)"
+          - pattern: "$SCHEMA.safeParse($DATA)"
+        stopBy: end
+metadata:
+  replace_catalog: "const U = z.discriminatedUnion('$TAG', [SchemaA, SchemaB]); U.parse($DATA)"
+  priority: P3
+  fallback_regex: "if\\s*\\(\\s*\\w+\\.(type|kind|_tag|variant)\\s*===\\s*['\"]"
+  notes: "Only suggest if the branches call different schema parses on the same discriminant field. Otherwise keep the if."

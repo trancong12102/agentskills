@@ -1,0 +1,21 @@
+id: effect-all-promise-all
+language: TypeScript
+message: "Promise.all inside Effect.gen context. Use Effect.all — keeps error channel typed and composable."
+severity: info
+rule:
+  kind: call_expression
+  all:
+    - has:
+        pattern: "Promise.all($_)"
+        stopBy: end
+    - inside:
+        any:
+          - pattern: "Effect.gen(function* () { $$$ })"
+          - pattern: "Effect.gen(function* ($_) { $$$ })"
+          - pattern: "Effect.fn($$$)"
+        stopBy: end
+metadata:
+  replace_catalog: "yield* Effect.all(effects, { concurrency: 'unbounded' })"
+  priority: P2
+  fallback_regex: "Effect\\.gen[\\s\\S]{0,500}Promise\\.all"
+  notes: "Only suggest if 'effect' is in installed libs. Promise.all in Effect.gen breaks error-channel typing and prevents structured concurrency."

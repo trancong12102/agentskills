@@ -1,0 +1,12 @@
+id: reduce-to-object
+language: TypeScript
+message: "reduce spreading into object literal is O(n^2). Use Object.fromEntries(arr.map(...)) or keyBy/groupBy from es-toolkit."
+severity: info
+rule:
+  pattern: "$ARR.reduce(($ACC, $X) => ({ ...$ACC, [$K]: $V }), {})"
+metadata:
+  replace_native: "Object.fromEntries($ARR.map(($X) => [$K, $V]))"
+  replace_catalog: "import { keyBy } from 'es-toolkit'; keyBy($ARR, ($X) => $K)"
+  priority: P1
+  fallback_regex: "\\.reduce\\([^)]*=>\\s*\\(\\{\\s*\\.\\.\\."
+  notes: "O(n^2) — native Object.fromEntries is O(n)."

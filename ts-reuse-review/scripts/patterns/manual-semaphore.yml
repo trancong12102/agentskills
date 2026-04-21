@@ -1,0 +1,29 @@
+id: manual-semaphore
+language: TypeScript
+message: "Hand-rolled semaphore / queue with active counter. Use p-limit, p-queue, or Effect.forEach({ concurrency })."
+severity: info
+rule:
+  kind: statement_block
+  all:
+    - has:
+        any:
+          - pattern: "let $ACTIVE = 0"
+          - pattern: "let $ACTIVE: number = 0"
+        stopBy: end
+    - has:
+        any:
+          - pattern: "const $QUEUE: $_ = []"
+          - pattern: "const $QUEUE = []"
+        stopBy: end
+    - has:
+        pattern: "if ($ACTIVE < $_) { $$$ }"
+        stopBy: end
+    - has:
+        pattern: "$ACTIVE++"
+        stopBy: end
+metadata:
+  replace_catalog: "import pLimit from 'p-limit'; const limit = pLimit(N); await Promise.all(tasks.map(t => limit(t)))"
+  priority: P2
+  fallback_regex: "let\\s+active\\s*=\\s*0[\\s\\S]{0,500}active\\+\\+"
+  notes: "Classic bugs in hand-rolled semaphores: miscounting, lost rejections, stuck queue on throw. Use a lib."
+  fallback_keywords: ["semaphore", "concurrency", "active", "queue"]

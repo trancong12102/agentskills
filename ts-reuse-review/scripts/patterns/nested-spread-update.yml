@@ -1,0 +1,13 @@
+id: nested-spread-update
+language: TypeScript
+message: "3-level nested spread update. Use immer produce() — readable, structurally safe, same perf."
+severity: info
+rule:
+  any:
+    - pattern: "{ ...$A, $K1: { ...$A.$K1, $K2: { ...$A.$K1.$K2, $$$FIELDS } } }"
+    - pattern: "return { ...$A, $K1: { ...$A.$K1, $K2: { ...$A.$K1.$K2, $$$FIELDS } } }"
+metadata:
+  replace_catalog: "import { produce } from 'immer'; produce($A, draft => { draft.$K1.$K2.<field> = <value> })"
+  priority: P2
+  fallback_regex: "\\{\\s*\\.\\.\\.\\w+\\s*,[\\s\\S]{0,80}:\\s*\\{\\s*\\.\\.\\.\\w+\\.\\w+\\s*,[\\s\\S]{0,80}:\\s*\\{\\s*\\.\\.\\."
+  notes: "3 levels is the readability threshold. 2 levels of spread is fine — don't push immer on small updates."

@@ -1,0 +1,23 @@
+id: use-previous-manual
+language: Tsx
+message: "Hand-rolled previous-value tracking. Use usePrevious from usehooks-ts or ahooks."
+severity: info
+rule:
+  any:
+    - pattern: "useEffect(() => { $REF.current = $VAL; }, [$VAL])"
+    - pattern: "React.useEffect(() => { $REF.current = $VAL; }, [$VAL])"
+  inside:
+    kind: function_declaration
+    has:
+      any:
+        - pattern: "const $REF = useRef($_)"
+        - pattern: "const $REF = useRef<$_>($_)"
+        - pattern: "const $REF = React.useRef($_)"
+        - pattern: "const $REF = React.useRef<$_>($_)"
+      stopBy: end
+    stopBy: end
+metadata:
+  replace_catalog: "import { usePrevious } from 'usehooks-ts'; const prev = usePrevious($VAL);"
+  priority: P2
+  fallback_regex: "useRef[<(]\\s*[\\w<>, ]*\\s*[>(][^)]*\\)[\\s\\S]{0,300}useEffect\\s*\\(\\s*\\(\\s*\\)\\s*=>\\s*\\{[^}]*\\.current\\s*="
+  notes: "useEffect with [value] deps assigning to a ref declared within the same function. Prior-value mirror pattern."

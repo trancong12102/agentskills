@@ -1,0 +1,14 @@
+id: localecompare-sort
+language: TypeScript
+message: "Repeated localeCompare in sort. For hot paths prefer Intl.Collator — one-time setup, ~10x faster than localeCompare per call."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.sort(($A, $B) => $A.localeCompare($B))"
+    - pattern: "$ARR.sort(($A, $B) => $A.$K.localeCompare($B.$K))"
+    - pattern: "$ARR.toSorted(($A, $B) => $A.localeCompare($B))"
+metadata:
+  replace_native: "const coll = new Intl.Collator(locale); $ARR.sort((a, b) => coll.compare(a, b));"
+  priority: P3
+  fallback_regex: "\\.sort\\(\\s*\\([^)]+\\)\\s*=>\\s*\\w+(\\.\\w+)?\\.localeCompare"
+  notes: "Only meaningful benefit on large arrays (>1000). P3 stylistic for small arrays."

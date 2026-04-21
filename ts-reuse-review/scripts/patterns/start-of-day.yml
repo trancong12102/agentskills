@@ -1,0 +1,10 @@
+id: start-of-day
+language: TypeScript
+message: "Manual startOfDay via new Date(y, m, d) constructor. Use startOfDay from date-fns — handles DST."
+severity: info
+rule:
+  pattern: "new Date($D.getFullYear(), $D.getMonth(), $D.getDate())"
+metadata:
+  replace_catalog: "import { startOfDay } from 'date-fns'; startOfDay($D)"
+  priority: P2
+  fallback_regex: "new Date\\([^)]*\\.getFullYear\\(\\)[^)]*\\.getMonth\\(\\)[^)]*\\.getDate\\(\\)\\)"

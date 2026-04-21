@@ -1,0 +1,13 @@
+id: sleep-promise
+language: TypeScript
+message: "setTimeout wrapped in a Promise is a sleep helper. Use delay/sleep from es-toolkit or an internal helper."
+severity: info
+rule:
+  any:
+    - pattern: new Promise($R => setTimeout($R, $MS))
+    - pattern: new Promise(($R) => setTimeout($R, $MS))
+    - pattern: new Promise(function ($R) { setTimeout($R, $MS) })
+metadata:
+  replace_catalog: "import { delay } from 'es-toolkit'; await delay(ms)"
+  priority: P2
+  fallback_regex: "new Promise\\([^)]*=>\\s*setTimeout\\("

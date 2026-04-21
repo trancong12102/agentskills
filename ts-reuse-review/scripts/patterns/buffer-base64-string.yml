@@ -1,0 +1,14 @@
+id: buffer-base64-string
+language: TypeScript
+message: "Buffer.from(string).toString('base64') encodes a string to base64. Use btoa(str) (native, works in Node + browser + workers)."
+severity: info
+rule:
+  any:
+    - pattern: "Buffer.from($S).toString('base64')"
+    - pattern: "Buffer.from($S, 'utf8').toString('base64')"
+    - pattern: 'Buffer.from($S).toString("base64")'
+metadata:
+  replace_native: "btoa($S)  // or for non-ASCII: btoa(String.fromCharCode(...new TextEncoder().encode($S)))"
+  priority: P3
+  fallback_regex: "Buffer\\.from\\([^)]*\\)\\.toString\\(['\"]base64['\"]\\)"
+  notes: "If input is Uint8Array/binary, keep Buffer (btoa only takes strings). Flag only when input is string."

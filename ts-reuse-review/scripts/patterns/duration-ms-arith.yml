@@ -1,0 +1,17 @@
+id: duration-ms-arith
+language: TypeScript
+message: "Inline milliseconds arithmetic. If effect is installed, prefer Duration helpers (Duration.hours/minutes/seconds) — self-documenting + DST-aware for date diffs."
+severity: info
+rule:
+  any:
+    - pattern: "$N * 60 * 60 * 1000"
+    - pattern: "$N * 60 * 1000"
+    - pattern: "$N * 24 * 60 * 60 * 1000"
+    - pattern: "$N * 86400000"
+    - pattern: "$N * 3600000"
+    - pattern: "$N * 60000"
+metadata:
+  replace_catalog: "import { Duration } from 'effect'; Duration.hours($N)  // or: Duration.minutes / Duration.seconds / Duration.days"
+  priority: P3
+  fallback_regex: "\\b\\w+\\s*\\*\\s*(60\\s*\\*\\s*60\\s*\\*\\s*1000|60\\s*\\*\\s*1000|86400000|3600000)\\b"
+  notes: "Only P3 when effect not installed — inline ms is not a reuse violation by itself. P2 when effect detected."

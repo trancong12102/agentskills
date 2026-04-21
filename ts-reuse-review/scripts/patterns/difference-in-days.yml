@@ -1,0 +1,13 @@
+id: difference-in-days
+language: TypeScript
+message: "Manual day difference via ms arithmetic. Use differenceInDays from date-fns — DST-safe."
+severity: info
+rule:
+  any:
+    - pattern: "Math.floor(($A.getTime() - $B.getTime()) / 86400000)"
+    - pattern: "Math.floor(($A - $B) / 86400000)"
+    - pattern: "Math.round(($A.getTime() - $B.getTime()) / 86400000)"
+metadata:
+  replace_catalog: "import { differenceInDays } from 'date-fns'; differenceInDays($A, $B)"
+  priority: P2
+  fallback_regex: "Math\\.(floor|round)\\([^)]*getTime\\(\\)[^)]*/ ?86400000"

@@ -1,0 +1,15 @@
+id: switch-tag-match
+language: TypeScript
+message: "switch on ._tag of a tagged union. Prefer Match.tag (effect) or match().with() (ts-pattern) — both give exhaustiveness checking without the exhaust(never) helper."
+severity: info
+rule:
+  all:
+    - kind: switch_statement
+    - has:
+        pattern: "$E._tag"
+        stopBy: end
+metadata:
+  replace_catalog: "import { Match } from 'effect'; Match.type<T>().pipe(Match.tag('X', fn), ..., Match.exhaustive)"
+  priority: P1
+  fallback_regex: "switch\\s*\\(\\s*\\w+\\._tag\\s*\\)"
+  notes: "If `effect` installed — Match.tag + Match.exhaustive. If `ts-pattern` installed — match(e).with({_tag: 'X'}, fn).exhaustive(). Otherwise switch is fine."

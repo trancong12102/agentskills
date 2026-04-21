@@ -1,0 +1,14 @@
+id: array-toreversed
+language: TypeScript
+message: "Copy-then-reverse via spread. Use arr.toReversed() (ES2023) — one call, no intermediate array."
+severity: info
+rule:
+  any:
+    - pattern: "[...$ARR].reverse()"
+    - pattern: "Array.from($ARR).reverse()"
+    - pattern: "$ARR.slice().reverse()"
+metadata:
+  replace_native: "$ARR.toReversed()"
+  priority: P3
+  fallback_regex: "\\[\\s*\\.\\.\\.\\w+\\s*\\]\\s*\\.reverse\\(\\)"
+  notes: "Node ≥20. Downgrade to medium if tsconfig target < ES2023."

@@ -1,0 +1,16 @@
+id: nullish-chain-coerce
+language: TypeScript
+message: "Chained null/undefined checks. Use ?? (nullish coalescing) or optional chaining ?. ."
+severity: info
+rule:
+  any:
+    - pattern: "$X !== null && $X !== undefined"
+    - pattern: "$X !== undefined && $X !== null"
+    - pattern: "$X != null && $X != undefined"
+    - pattern: "$X === null || $X === undefined"
+    - pattern: "$X === undefined || $X === null"
+metadata:
+  replace_native: "$X != null  // strict: $X !== null && $X !== undefined is equivalent to $X != null"
+  priority: P3
+  fallback_regex: "\\w+\\s*[!=]==\\s*(null|undefined)\\s*(&&|\\|\\|)\\s*\\w+\\s*[!=]==\\s*(null|undefined)"
+  notes: "`$X != null` (loose eq) is the canonical short form. Tsc + eslint-strict allows it. For fallback, prefer `x ?? default`."

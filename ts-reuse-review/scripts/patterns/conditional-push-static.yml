@@ -1,0 +1,23 @@
+id: conditional-push-static
+language: TypeScript
+message: "Building a known-shape array via conditional pushes. Use filter() on a static tuple literal — same output, half the code."
+severity: info
+rule:
+  kind: statement_block
+  all:
+    - has:
+        any:
+          - pattern: "const $ARR: $_ = []"
+          - pattern: "const $ARR = []"
+        stopBy: end
+    - has:
+        pattern: "if ($_) $ARR.push($_);"
+        stopBy: end
+    - has:
+        pattern: "return $ARR"
+        stopBy: end
+metadata:
+  replace_native: "const $ARR = [$V1, $V2, ...].filter((v) => <pred(v)>)"
+  priority: P3
+  fallback_regex: "const\\s+(\\w+)[^=]*=\\s*\\[\\];[\\s\\S]{0,200}if\\s*\\([^)]*\\)\\s*\\1\\.push\\([^)]*\\);[\\s\\S]{0,200}if\\s*\\([^)]*\\)\\s*\\1\\.push"
+  notes: "Confidence low — often the conditions differ per value. Flag only when values are simple literals and conditions all test the same input shape."

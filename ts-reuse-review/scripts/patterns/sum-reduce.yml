@@ -1,0 +1,13 @@
+id: sum-reduce
+language: TypeScript
+message: "Manual sum via reduce. Use sum from es-toolkit."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.reduce(($A, $B) => $A + $B, 0)"
+    - pattern: "$ARR.reduce(($A, $B) => $A + $B, $$$)"
+metadata:
+  replace_catalog: "import { sum } from 'es-toolkit'; sum($ARR)"
+  priority: P1
+  fallback_regex: "\\.reduce\\(\\s*\\([^)]+\\)\\s*=>\\s*\\w+\\s*\\+\\s*\\w+\\s*,"
+  notes: "Also covers mean/average — users often combine sum + divide by length."

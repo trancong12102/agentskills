@@ -1,0 +1,11 @@
+id: kebab-case-manual
+language: TypeScript
+message: "Manual kebabCase via regex split + toLowerCase. Use kebabCase from es-toolkit."
+severity: info
+rule:
+  pattern: "$S.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()"
+metadata:
+  replace_catalog: "import { kebabCase } from 'es-toolkit'; kebabCase($S)"
+  priority: P3
+  fallback_regex: "\\.replace\\(/\\(\\[a-z\\]\\)\\(\\[A-Z\\]\\)/"
+  notes: "Naive regex misses acronyms ('URLParser' → 'u-r-l-parser'). es-toolkit handles common cases."

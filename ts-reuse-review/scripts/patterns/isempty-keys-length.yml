@@ -1,0 +1,14 @@
+id: isempty-keys-length
+language: TypeScript
+message: "Object.keys(obj).length === 0 is a fine native check — only flag to suggest the clearer isEmpty helper when the project already uses one."
+severity: info
+rule:
+  any:
+    - pattern: "Object.keys($OBJ).length === 0"
+    - pattern: "Object.keys($OBJ).length < 1"
+metadata:
+  replace_native: "Object.keys($OBJ).length === 0  // already native — fine as-is"
+  replace_catalog: "import { isEmpty } from 'es-toolkit'; isEmpty($OBJ)  // also handles arrays/Maps/Sets"
+  priority: P3
+  fallback_regex: "Object\\.keys\\([^)]+\\)\\.length\\s*===\\s*0"
+  notes: "Low-priority — suggest the helper only if isEmpty is already imported elsewhere in the project."

@@ -1,0 +1,14 @@
+id: email-regex
+language: TypeScript
+message: "Hand-rolled email regex. Use zod z.string().email() — tested, spec-compliant, typed."
+severity: info
+rule:
+  any:
+    - pattern: "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test($STR)"
+    - pattern: "/^[\\w.+-]+@[\\w-]+\\.[\\w.-]+$/.test($STR)"
+    - pattern: "/\\S+@\\S+\\.\\S+/.test($STR)"
+metadata:
+  replace_catalog: "import { z } from 'zod'; z.string().email().safeParse($STR).success"
+  priority: P2
+  fallback_regex: "/[^/]*@[^/]*\\.[^/]*/\\s*\\.test"
+  notes: "Email regexes are famously wrong (RFC 5322 is hard). zod uses a battle-tested pattern and produces a typed Result."

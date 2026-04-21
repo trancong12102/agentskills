@@ -1,0 +1,13 @@
+id: set-uniq
+language: TypeScript
+message: "Manual de-dup loop over an array. [...new Set(arr)] is the native one-liner."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.filter(($X, $I, $SELF) => $SELF.indexOf($X) === $I)"
+    - pattern: "$ARR.reduce(($ACC, $X) => $ACC.includes($X) ? $ACC : [...$ACC, $X], [])"
+metadata:
+  replace_native: "[...new Set($ARR)]"
+  replace_catalog: "import { uniq } from 'es-toolkit'; uniq($ARR)"
+  priority: P2
+  fallback_regex: "\\.filter\\([^)]*=>\\s*\\w+\\.indexOf\\([^)]*\\)\\s*===\\s*"

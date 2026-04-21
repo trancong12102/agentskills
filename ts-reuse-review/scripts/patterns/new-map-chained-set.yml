@@ -1,0 +1,13 @@
+id: new-map-chained-set
+language: TypeScript
+message: "Chained Map.set() calls. Use iterable initializer new Map([[k,v],[k,v]]) or from Object.entries."
+severity: info
+rule:
+  any:
+    - pattern: "new Map().set($K1, $V1).set($K2, $V2)"
+    - pattern: "new Map<$_, $_>().set($K1, $V1).set($K2, $V2)"
+metadata:
+  replace_native: "new Map([[$K1, $V1], [$K2, $V2]])"
+  priority: P3
+  fallback_regex: "new\\s+Map(<[^>]+>)?\\(\\)\\s*\\.set\\([^)]+\\)\\s*\\.set\\("
+  notes: "Iterable init is O(n) single pass; chained sets are the same but visually worse. Stylistic."

@@ -1,0 +1,21 @@
+id: effect-tagged-error
+language: TypeScript
+message: "Custom Error class with manual _tag. Use Data.TaggedError from effect for ergonomics + correct equality/printing."
+severity: info
+rule:
+  any:
+    - pattern: |
+        class $NAME extends Error {
+          readonly _tag = $TAG
+          $$$
+        }
+    - pattern: |
+        class $NAME extends Error {
+          readonly _tag: $_ = $TAG
+          $$$
+        }
+metadata:
+  replace_catalog: "import { Data } from 'effect'; class $NAME extends Data.TaggedError('$NAME')<{ ... }> {}"
+  priority: P2
+  fallback_regex: "class\\s+\\w+\\s+extends\\s+Error[\\s\\S]{0,200}readonly\\s+_tag"
+  notes: "Only suggest if 'effect' is in installed libs. Data.TaggedError provides structural equality + Match.tag compatibility."

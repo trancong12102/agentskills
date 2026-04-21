@@ -1,0 +1,17 @@
+id: react-object-literal-dep
+language: Tsx
+message: "Object/array literal in hook deps. Every render it's a fresh reference → hook runs every time. Wrap in useMemo."
+severity: info
+rule:
+  any:
+    - pattern: "useEffect($FN, [{ $$$ }])"
+    - pattern: "useMemo($FN, [{ $$$ }])"
+    - pattern: "useCallback($FN, [{ $$$ }])"
+    - pattern: "useEffect($FN, [[$$$]])"
+    - pattern: "useMemo($FN, [[$$$]])"
+    - pattern: "useCallback($FN, [[$$$]])"
+metadata:
+  replace_native: "const stable = useMemo(() => ({ ... }), [primitiveDeps]); useEffect($FN, [stable])"
+  priority: P1
+  fallback_regex: "use(Effect|Memo|Callback)\\s*\\([^,]+,\\s*\\[\\s*\\{"
+  notes: "Correctness bug — defeats memoization. P1."

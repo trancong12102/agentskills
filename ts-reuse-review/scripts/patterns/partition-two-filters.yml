@@ -1,0 +1,13 @@
+id: partition-two-filters
+language: TypeScript
+message: "Two complementary .filter() calls for partition. Use partition from es-toolkit (one pass, both arrays)."
+severity: info
+rule:
+  any:
+    - pattern: "[$ARR.filter($PRED), $ARR.filter(($X) => !$PRED($X))]"
+    - pattern: "[$ARR.filter(($X) => $COND), $ARR.filter(($X) => !$COND)]"
+metadata:
+  replace_catalog: "import { partition } from 'es-toolkit'; const [pass, fail] = partition($ARR, $PRED)"
+  priority: P2
+  fallback_regex: "\\.filter\\([^)]*\\)[^,]*,\\s*\\w+\\.filter\\([^)]*!"
+  notes: "Low-confidence pattern — ast-grep exact match preferred."

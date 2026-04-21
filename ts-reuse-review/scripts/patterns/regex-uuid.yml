@@ -1,0 +1,14 @@
+id: regex-uuid
+language: TypeScript
+message: "Hand-rolled UUID regex. Use zod z.string().uuid() — version-aware, typed, ergonomic."
+severity: info
+rule:
+  any:
+    - pattern: "/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/i.test($STR)"
+    - pattern: "/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test($STR)"
+    - pattern: "/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test($STR)"
+metadata:
+  replace_catalog: "import { z } from 'zod'; z.string().uuid().safeParse($STR).success"
+  priority: P2
+  fallback_regex: "/\\^\\[0-9a-f(A-F)?\\]\\{8\\}-\\[0-9a-f(A-F)?\\]\\{4\\}-\\[0-9a-f(A-F)?\\]\\{4\\}-\\[0-9a-f(A-F)?\\]\\{4\\}-\\[0-9a-f(A-F)?\\]\\{12\\}"
+  notes: "If validation happens at API boundary, zod schema is preferred over one-off regex."

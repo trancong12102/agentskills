@@ -1,0 +1,15 @@
+id: manual-uuid
+language: TypeScript
+message: "Manual UUID generation. Use crypto.randomUUID() (native, V4)."
+severity: info
+rule:
+  any:
+    - pattern: |
+        'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, $$$)
+    - pattern: |
+        Math.random().toString(36).substring(2) + Date.now().toString(36)
+metadata:
+  replace_native: "crypto.randomUUID()"
+  priority: P1
+  fallback_regex: "'xxxxxxxx-xxxx-[34]xxx-yxxx|Math\\.random\\(\\)\\.toString\\(36\\)"
+  notes: "Math.random()-based IDs are not cryptographically secure."

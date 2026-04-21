@@ -1,0 +1,10 @@
+id: is-same-day
+language: TypeScript
+message: "Manual isSameDay via y/m/d compare. Use isSameDay from date-fns."
+severity: info
+rule:
+  pattern: "$A.getFullYear() === $B.getFullYear() && $A.getMonth() === $B.getMonth() && $A.getDate() === $B.getDate()"
+metadata:
+  replace_catalog: "import { isSameDay } from 'date-fns'; isSameDay($A, $B)"
+  priority: P2
+  fallback_regex: "getFullYear\\(\\)[^&]*===[^&]*getFullYear\\(\\)[\\s\\S]{0,150}getDate\\(\\)"

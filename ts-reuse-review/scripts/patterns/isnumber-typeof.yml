@@ -1,0 +1,13 @@
+id: isnumber-typeof
+language: TypeScript
+message: "typeof x === 'number' && !isNaN(x) is equivalent to Number.isFinite(x) for typed input (and excludes Infinity, which is usually what you want)."
+severity: info
+rule:
+  any:
+    - pattern: "typeof $X === 'number' && !isNaN($X)"
+    - pattern: "typeof $X === 'number' && !Number.isNaN($X)"
+metadata:
+  replace_native: "Number.isFinite($X)  // also rejects Infinity; Number.isNaN for NaN-only check"
+  priority: P3
+  fallback_regex: "typeof\\s+\\w+\\s*===\\s*['\"]number['\"]\\s*&&\\s*!"
+  notes: "Number.isFinite is stricter than typeof+isNaN (rejects Infinity). If Infinity is valid in domain, keep manual check."

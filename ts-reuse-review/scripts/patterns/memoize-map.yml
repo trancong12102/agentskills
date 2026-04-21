@@ -1,0 +1,24 @@
+id: memoize-map
+language: TypeScript
+message: "Manual memoization via local Map with get-or-set. Use memoize from es-toolkit."
+severity: info
+rule:
+  all:
+    - any:
+        - kind: function_declaration
+        - kind: arrow_function
+        - kind: function_expression
+    - has:
+        pattern: "$CACHE.has($K)"
+        stopBy: end
+    - has:
+        pattern: "$CACHE.set($K, $V)"
+        stopBy: end
+    - has:
+        pattern: "$CACHE.get($K)"
+        stopBy: end
+metadata:
+  replace_catalog: "import { memoize } from 'es-toolkit'; const memoFn = memoize(fn)"
+  priority: P2
+  fallback_regex: "\\w+\\.has\\([^)]*\\)[\\s\\S]{0,100}\\w+\\.set\\("
+  notes: "Some manual caches are intentional (per-instance, with eviction). Review before replacing."

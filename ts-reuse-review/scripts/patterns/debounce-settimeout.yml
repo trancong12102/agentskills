@@ -1,0 +1,21 @@
+id: debounce-settimeout
+language: TypeScript
+message: "Manual debounce via clearTimeout/setTimeout. Use debounce from es-toolkit."
+severity: info
+rule:
+  all:
+    - any:
+        - kind: arrow_function
+        - kind: function_expression
+        - kind: function_declaration
+    - has:
+        pattern: "clearTimeout($$$)"
+        stopBy: end
+    - has:
+        pattern: "setTimeout($$$)"
+        stopBy: end
+metadata:
+  replace_catalog: "import { debounce } from 'es-toolkit'; debounce(fn, ms)"
+  priority: P1
+  fallback_regex: "clearTimeout\\([^)]*\\)[\\s\\S]{0,200}setTimeout\\("
+  notes: "Heuristic — any fn containing both clearTimeout and setTimeout is suspicious. Manual review to distinguish debounce vs legitimate timer management."

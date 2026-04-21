@@ -1,0 +1,14 @@
+id: object-hasown
+language: TypeScript
+message: "hasOwnProperty.call is verbose and error-prone. Use Object.hasOwn(obj, key) (ES2022)."
+severity: info
+rule:
+  any:
+    - pattern: "Object.prototype.hasOwnProperty.call($OBJ, $KEY)"
+    - pattern: "{}.hasOwnProperty.call($OBJ, $KEY)"
+    - pattern: "$OBJ.hasOwnProperty($KEY)"
+metadata:
+  replace_native: "Object.hasOwn($OBJ, $KEY)"
+  priority: P3
+  fallback_regex: "Object\\.prototype\\.hasOwnProperty\\.call|\\.hasOwnProperty\\("
+  notes: "Last variant (direct .hasOwnProperty) is unsafe if obj overrides the prop or has null prototype. Object.hasOwn is always safe."

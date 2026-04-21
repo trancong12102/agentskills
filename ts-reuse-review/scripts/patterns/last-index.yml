@@ -1,0 +1,10 @@
+id: last-index
+language: TypeScript
+message: "arr[arr.length - 1] is the last element. Native arr.at(-1) is clearer."
+severity: info
+rule:
+  pattern: $ARR[$ARR.length - 1]
+metadata:
+  replace_native: "$ARR.at(-1)"
+  priority: P3
+  fallback_regex: "\\[\\s*\\w+\\.length\\s*-\\s*1\\s*\\]"

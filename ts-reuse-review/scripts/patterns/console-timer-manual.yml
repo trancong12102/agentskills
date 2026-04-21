@@ -1,0 +1,25 @@
+id: console-timer-manual
+language: TypeScript
+message: "Manual Date.now timer. Use console.time() / console.timeEnd() — labeled, consistent format, works with DevTools profiler."
+severity: info
+rule:
+  kind: statement_block
+  all:
+    - has:
+        any:
+          - pattern: "const $T = Date.now()"
+          - pattern: "const $T = performance.now()"
+        stopBy: end
+    - has:
+        any:
+          - pattern: "console.log(Date.now() - $T)"
+          - pattern: "console.log(`$_`, Date.now() - $T)"
+          - pattern: "console.log($_, Date.now() - $T)"
+          - pattern: "console.log(performance.now() - $T)"
+          - pattern: "console.log(`$_`, performance.now() - $T)"
+        stopBy: end
+metadata:
+  replace_native: "console.time('label'); /* work */ console.timeEnd('label')"
+  priority: P3
+  fallback_regex: "Date\\.now\\(\\)[\\s\\S]{0,500}Date\\.now\\(\\)\\s*-\\s*\\w+"
+  notes: "For production metrics, OpenTelemetry or performance.mark/measure. console.time is for local debugging."

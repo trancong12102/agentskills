@@ -1,0 +1,13 @@
+id: url-query-split
+language: TypeScript
+message: "Manual query string parse via split('?') and split('&'). Use URL + URLSearchParams (native)."
+severity: info
+rule:
+  any:
+    - pattern: "$URL.split('?')[1].split('&')"
+    - pattern: '$URL.split("?")[1].split("&")'
+metadata:
+  replace_native: "new URL($URL).searchParams  // or: Object.fromEntries(new URL($URL).searchParams)"
+  priority: P2
+  fallback_regex: "\\.split\\(['\"]\\?['\"]\\)\\[1\\]\\.split\\(['\"]&['\"]\\)"
+  notes: "URL + URLSearchParams handles encoding and edge cases (missing '=', '+' vs '%20')."

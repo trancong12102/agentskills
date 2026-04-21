@@ -1,0 +1,25 @@
+id: react-fetch-useeffect
+language: Tsx
+message: "useEffect + fetch + setState. Use TanStack Query (useQuery) or SWR — handles loading, error, caching, refetch."
+severity: info
+rule:
+  kind: call_expression
+  all:
+    - has:
+        pattern: "useEffect"
+        stopBy: end
+    - has:
+        pattern: "fetch($_)"
+        stopBy: end
+    - has:
+        any:
+          - pattern: "set$STATE($_)"
+          - pattern: "setData($_)"
+          - pattern: "setResult($_)"
+          - pattern: "setResponse($_)"
+        stopBy: end
+metadata:
+  replace_catalog: "import { useQuery } from '@tanstack/react-query'; const { data, error, isLoading } = useQuery({ queryKey, queryFn })"
+  priority: P2
+  fallback_regex: "useEffect\\s*\\([\\s\\S]{0,300}fetch\\([\\s\\S]{0,500}set\\w+\\("
+  notes: "Only suggest react-query if it's installed (Step 2). Otherwise suggest SWR. If neither, suggest useQuery as install."

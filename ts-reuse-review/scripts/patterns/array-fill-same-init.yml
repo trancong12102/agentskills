@@ -1,0 +1,17 @@
+id: array-fill-same-init
+language: TypeScript
+message: "new Array(n).fill({}) or .fill([]) shares the same reference across all slots. Use Array.from({length:n}, () => ({}))."
+severity: info
+rule:
+  any:
+    - pattern: "new Array($N).fill({})"
+    - pattern: "new Array($N).fill([])"
+    - pattern: "Array($N).fill({})"
+    - pattern: "Array($N).fill([])"
+    - pattern: "new Array($N).fill(new $CLS())"
+    - pattern: "Array($N).fill(new $CLS())"
+metadata:
+  replace_native: "Array.from({ length: $N }, () => ({}))  // fresh instance per slot"
+  priority: P1
+  fallback_regex: "new\\s+Array\\(\\w+\\)\\.fill\\(\\s*(\\{\\s*\\}|\\[\\s*\\]|new\\s+)"
+  notes: "This is a correctness bug, not style. All slots alias the same object — mutating one mutates all. P1."

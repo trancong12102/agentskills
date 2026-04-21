@@ -1,0 +1,20 @@
+id: once-flag
+language: TypeScript
+message: "Manual 'run once' via boolean flag. Use once from es-toolkit."
+severity: info
+rule:
+  all:
+    - any:
+        - kind: function_declaration
+        - kind: arrow_function
+        - kind: function_expression
+    - has:
+        pattern: "if ($FLAG) return;"
+        stopBy: end
+    - has:
+        pattern: "$FLAG = true;"
+        stopBy: end
+metadata:
+  replace_catalog: "import { once } from 'es-toolkit'; const init = once(doInit)"
+  priority: P2
+  fallback_regex: "let\\s+\\w+\\s*=\\s*false[\\s\\S]{0,200}=\\s*true"

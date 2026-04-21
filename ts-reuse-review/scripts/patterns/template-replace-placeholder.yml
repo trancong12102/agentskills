@@ -1,0 +1,16 @@
+id: template-replace-placeholder
+language: TypeScript
+message: "String placeholder interpolation via .replace with brace regex/string. Use template literals or a templating lib."
+severity: info
+rule:
+  any:
+    - pattern: "$STR.replace($ARG, $VAL)"
+    - pattern: "$STR.replaceAll($ARG, $VAL)"
+constraints:
+  ARG:
+    regex: "\\\\?[{]\\\\?[{]?\\w+\\\\?[}]\\\\?[}]?"
+metadata:
+  replace_native: "Template literal: `${prefix}${value}${suffix}`"
+  priority: P3
+  fallback_regex: "\\.replace(All)?\\(\\s*/?\\{\\{?\\w+\\}?\\}/?g?"
+  notes: "Single-placeholder interpolation rarely needs .replace. Template literals are ergonomic."

@@ -1,0 +1,19 @@
+id: for-push-spread
+language: TypeScript
+message: "for-loop pushing each element of another array into existing array. Use arr.push(...other) native."
+severity: info
+rule:
+  any:
+    - pattern: |
+        for (const $X of $SRC) {
+          $DEST.push($X);
+        }
+    - pattern: |
+        for (const $X of $SRC) $DEST.push($X);
+    - pattern: |
+        $SRC.forEach(($X) => $DEST.push($X));
+metadata:
+  replace_native: "$DEST.push(...$SRC)"
+  priority: P2
+  fallback_regex: "for\\s*\\([^)]*of\\s+\\w+\\)[\\s\\S]{0,80}\\.push\\(\\s*\\w+\\s*\\)"
+  notes: "Only for 'push each' pattern. If loop has other logic (filter/transform), keep the loop."

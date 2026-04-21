@@ -1,0 +1,15 @@
+id: range-for-push
+language: TypeScript
+message: "for-loop pushing sequential numbers into an array. Use Array.from({length: n}, (_, i) => i) or range from es-toolkit."
+severity: info
+rule:
+  all:
+    - kind: for_statement
+    - has:
+        pattern: "$ARR.push($I)"
+        stopBy: end
+metadata:
+  replace_native: "Array.from({ length: $N }, (_, i) => i)"
+  replace_catalog: "import { range } from 'es-toolkit'; range($N)"
+  priority: P1
+  fallback_regex: "for\\s*\\([^)]*\\bi\\+\\+[^)]*\\)[\\s\\S]{0,80}\\.push\\(\\s*\\w+\\s*\\)"

@@ -1,0 +1,15 @@
+id: manual-pick
+language: TypeScript
+message: "Rebuilding an object from a subset of keys. Use pick from es-toolkit."
+severity: info
+rule:
+  any:
+    - pattern: "const $SUB = { $K1: $OBJ.$K1, $K2: $OBJ.$K2, $$$REST }"
+    - pattern: "const $SUB: $T = { $K1: $OBJ.$K1, $K2: $OBJ.$K2, $$$REST }"
+    - pattern: "let $SUB = { $K1: $OBJ.$K1, $K2: $OBJ.$K2, $$$REST }"
+    - pattern: "return { $K1: $OBJ.$K1, $K2: $OBJ.$K2, $$$REST }"
+metadata:
+  replace_catalog: "import { pick } from 'es-toolkit'; pick($OBJ, ['$K1', '$K2', ...])"
+  priority: P3
+  fallback_regex: "\\{\\s*\\w+\\s*:\\s*(\\w+)\\.\\w+\\s*,\\s*\\w+\\s*:\\s*\\1\\.\\w+"
+  notes: "Pattern requires ≥2 same-source field rebuilds to reduce false positives."

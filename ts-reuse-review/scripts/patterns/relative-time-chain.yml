@@ -1,0 +1,25 @@
+id: relative-time-chain
+language: TypeScript
+message: "Hand-rolled 'X ago' relative time via sec/min/hr/day if-chain. Use Intl.RelativeTimeFormat (native, locale-aware) or formatDistance from date-fns."
+severity: info
+rule:
+  all:
+    - any:
+        - kind: function_declaration
+        - kind: arrow_function
+        - kind: function_expression
+    - has:
+        pattern: "Math.floor($$$ / 1000)"
+        stopBy: end
+    - has:
+        pattern: "Math.floor($$$ / 60)"
+        stopBy: end
+    - has:
+        pattern: "Math.floor($$$ / 24)"
+        stopBy: end
+metadata:
+  replace_native: "new Intl.RelativeTimeFormat('en', { numeric: 'auto' }).format(-minutes, 'minute')"
+  replace_catalog: "import { formatDistanceToNow } from 'date-fns'; formatDistanceToNow(date, { addSuffix: true })"
+  priority: P2
+  fallback_regex: "Math\\.floor\\([^)]*/\\s*1000\\s*\\)[\\s\\S]{0,300}Math\\.floor\\([^)]*/\\s*60\\s*\\)[\\s\\S]{0,300}Math\\.floor\\([^)]*/\\s*24"
+  notes: "Often duplicated across 3+ files in a codebase (this project had formatRelativeTime in 3 places). Also run internal-util scan for consolidation opportunity."

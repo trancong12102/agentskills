@@ -1,0 +1,15 @@
+id: promise-withresolvers
+language: TypeScript
+message: "Leaking resolve/reject out of Promise executor. Use Promise.withResolvers() (ES2024)."
+severity: info
+rule:
+  any:
+    - pattern: "const $P = new Promise(($R, $J) => { $RES = $R; $REJ = $J; })"
+    - pattern: "const $P = new Promise(($R, $J) => { $RES = $R; $REJ = $J })"
+    - pattern: "const $P = new Promise<$_>(($R, $J) => { $RES = $R; $REJ = $J; })"
+    - pattern: "const $P = new Promise<$_>(($R, $J) => { $RES = $R; $REJ = $J })"
+metadata:
+  replace_native: "const { promise: $P, resolve: $RES, reject: $REJ } = Promise.withResolvers()"
+  priority: P2
+  fallback_regex: "new\\s+Promise\\s*(<[^>]+>)?\\s*\\(\\s*\\(\\s*\\w+\\s*,\\s*\\w+\\s*\\)\\s*=>\\s*\\{\\s*\\w+\\s*=\\s*\\w+\\s*;?\\s*\\w+\\s*="
+  notes: "Node ≥22, Bun ≥1.1. High-confidence idiom match — executor body leaks both callbacks to outer scope."

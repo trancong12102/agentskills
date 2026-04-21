@@ -1,0 +1,16 @@
+id: date-getday-weekday
+language: TypeScript
+message: "Manual weekday-name lookup from getDay(). Use date-fns format(d, 'EEEE') or Intl.DateTimeFormat({ weekday: 'long' })."
+severity: info
+rule:
+  any:
+    - pattern: "['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][$D.getDay()]"
+    - pattern: "['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][$D.getDay()]"
+    - pattern: "[\"Sun\", \"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", \"Sat\"][$D.getDay()]"
+    - pattern: "[\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"][$D.getDay()]"
+metadata:
+  replace_native: "new Intl.DateTimeFormat(locale, { weekday: 'long' }).format($D)"
+  replace_catalog: "import { format } from 'date-fns'; format($D, 'EEEE', { locale: $LOC })"
+  priority: P2
+  fallback_regex: "\\[\\s*['\"]Sun['\"]\\s*,[\\s\\S]{0,150}['\"]Sat['\"]\\s*\\]\\s*\\[\\s*\\w+\\.getDay\\(\\)\\s*\\]"
+  notes: "Hardcoded English weekdays break for i18n. Intl handles locale."

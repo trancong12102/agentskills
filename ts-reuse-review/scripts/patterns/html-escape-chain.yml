@@ -1,0 +1,13 @@
+id: html-escape-chain
+language: TypeScript
+message: "Hand-rolled HTML escape via chained .replace(). Use textContent assignment or a well-tested lib (e.g., DOMPurify for HTML output, he for entities). Chains miss cases like quotes, single-quote attrs, and non-ASCII."
+severity: info
+rule:
+  all:
+    - pattern: "$STR.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')"
+metadata:
+  replace_native: "el.textContent = $STR  // if writing to DOM, not string concat"
+  replace_catalog: "import DOMPurify from 'dompurify'; DOMPurify.sanitize(html)  // for full HTML"
+  priority: P2
+  fallback_regex: "\\.replace\\(/&/g[\\s\\S]{0,50}\\.replace\\(/</g"
+  notes: "Chained-escape usually indicates an XSS-prone pattern. Review security context carefully."

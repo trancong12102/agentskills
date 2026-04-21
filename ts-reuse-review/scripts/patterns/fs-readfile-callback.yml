@@ -1,0 +1,15 @@
+id: fs-readfile-callback
+language: TypeScript
+message: "Node fs callback API. Use fs/promises — async/await, typed, composable."
+severity: info
+rule:
+  any:
+    - pattern: "fs.readFile($PATH, $ENC, ($ERR, $DATA) => { $$$ })"
+    - pattern: "fs.readFile($PATH, ($ERR, $DATA) => { $$$ })"
+    - pattern: "fs.writeFile($PATH, $DATA, ($ERR) => { $$$ })"
+    - pattern: "fs.stat($PATH, ($ERR, $STATS) => { $$$ })"
+metadata:
+  replace_native: "import { readFile } from 'node:fs/promises'; const data = await readFile($PATH, 'utf8')"
+  priority: P2
+  fallback_regex: "fs\\.(readFile|writeFile|stat|readdir|mkdir|unlink|rename)\\([^)]+,\\s*\\([^)]*err[^)]*\\)\\s*=>"
+  notes: "Node ≥10 has fs/promises stable. Callback form composes poorly with async/await."

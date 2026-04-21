@@ -1,0 +1,13 @@
+id: tolocalestring-currency
+language: TypeScript
+message: "Number.toLocaleString with currency opts works — but Intl.NumberFormat allows cached instance and consistent opts. Flag only if called repeatedly in hot paths."
+severity: info
+rule:
+  any:
+    - pattern: "$N.toLocaleString($_, { style: 'currency', currency: $CUR })"
+    - pattern: "$N.toLocaleString($_, { style: \"currency\", currency: $CUR })"
+metadata:
+  replace_native: "const fmt = new Intl.NumberFormat(locale, { style: 'currency', currency: $CUR }); fmt.format($N);"
+  priority: P3
+  fallback_regex: "\\.toLocaleString\\([^)]*style\\s*:\\s*['\"]currency['\"]"
+  notes: "Stylistic only. Do not flag if only called once per component render."

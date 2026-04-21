@@ -1,0 +1,13 @@
+id: capitalize-manual
+language: TypeScript
+message: "Manual capitalize via charAt/slice. Use capitalize from es-toolkit."
+severity: info
+rule:
+  any:
+    - pattern: "$S[0].toUpperCase() + $S.slice(1)"
+    - pattern: "$S.charAt(0).toUpperCase() + $S.slice(1)"
+    - pattern: "$S.charAt(0).toUpperCase() + $S.substring(1)"
+metadata:
+  replace_catalog: "import { capitalize } from 'es-toolkit'; capitalize($S)"
+  priority: P3
+  fallback_regex: "\\[0\\]\\.toUpperCase\\(\\)\\s*\\+\\s*\\w+\\.slice\\(1\\)|charAt\\(0\\)\\.toUpperCase"

@@ -1,0 +1,14 @@
+id: pluralize-ternary
+language: TypeScript
+message: "Ternary plural suffix. Use Intl.PluralRules for locale-correct plural forms."
+severity: info
+rule:
+  any:
+    - pattern: "$COUNT === 1 ? $SINGULAR : $PLURAL"
+    - pattern: "$COUNT == 1 ? $SINGULAR : $PLURAL"
+    - pattern: "$COUNT !== 1 ? $PLURAL : $SINGULAR"
+metadata:
+  replace_native: "const pr = new Intl.PluralRules(locale); pr.select($COUNT) === 'one' ? $SINGULAR : $PLURAL"
+  priority: P3
+  fallback_regex: "\\w+\\s*===?\\s*1\\s*\\?\\s*['\"`][^'\"`]+['\"`]\\s*:\\s*['\"`][^'\"`]+['\"`]"
+  notes: "Only flag when both branches are string literals (clear pluralization intent). Locale matters for Polish/Arabic/etc. — for English-only UIs, Intl.PluralRules is overkill; confidence low."

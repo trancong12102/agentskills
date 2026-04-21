@@ -1,0 +1,12 @@
+id: clamp-math
+language: TypeScript
+message: "Math.min(Math.max(n, lo), hi) is a clamp. Use clamp from es-toolkit."
+severity: info
+rule:
+  any:
+    - pattern: "Math.min(Math.max($N, $LO), $HI)"
+    - pattern: "Math.max(Math.min($N, $HI), $LO)"
+metadata:
+  replace_catalog: "import { clamp } from 'es-toolkit'; clamp($N, $LO, $HI)"
+  priority: P2
+  fallback_regex: "Math\\.min\\(\\s*Math\\.max\\(|Math\\.max\\(\\s*Math\\.min\\("

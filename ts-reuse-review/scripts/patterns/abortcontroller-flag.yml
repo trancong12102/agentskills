@@ -1,0 +1,21 @@
+id: abortcontroller-flag
+language: TypeScript
+message: "Manual cancelled flag for async cleanup. Use AbortController for idiomatic cancellation."
+severity: info
+rule:
+  kind: statement_block
+  all:
+    - has:
+        any:
+          - pattern: "let $FLAG = false"
+          - pattern: "let $FLAG: boolean = false"
+        stopBy: end
+    - has:
+        pattern: "if ($FLAG) return"
+        stopBy: end
+metadata:
+  replace_native: "const ctrl = new AbortController(); // pass ctrl.signal downstream; check signal.aborted or signal.throwIfAborted()"
+  priority: P3
+  fallback_regex: "let\\s+(\\w+)\\s*=\\s*false[\\s\\S]{0,300}if\\s*\\(\\s*\\1\\s*\\)\\s*return"
+  notes: "Only flag when the flag is named cancelled/aborted/stopped/cancel. Narrow to cleanup effects to reduce false positives."
+  fallback_keywords: ["cancelled", "aborted", "stopped", "cancel"]

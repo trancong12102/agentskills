@@ -1,0 +1,14 @@
+id: option-match-undefined
+language: TypeScript
+message: "Option.match with onNone returning undefined and onSome returning the value. Use Option.getOrUndefined."
+severity: info
+rule:
+  any:
+    - pattern: "Option.match($V, { onNone: () => undefined, onSome: ($X) => $X })"
+    - pattern: "Option.match($V, { onNone: () => undefined, onSome: $ID })"
+    - pattern: "Option.match({ onNone: () => undefined, onSome: ($X) => $X })($V)"
+metadata:
+  replace_catalog: "import { Option } from 'effect'; Option.getOrUndefined($V)"
+  priority: P2
+  fallback_regex: "Option\\.match\\([\\s\\S]{0,200}onNone:\\s*\\(\\)\\s*=>\\s*undefined"
+  notes: "Effect-specific. Similar pattern for Option.getOrNull (null instead of undefined)."

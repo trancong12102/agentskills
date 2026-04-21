@@ -1,0 +1,17 @@
+id: manual-chunk
+language: TypeScript
+message: "Manual chunk via for-loop + slice. Use chunk from es-toolkit."
+severity: info
+rule:
+  all:
+    - kind: for_statement
+    - has:
+        pattern: "$I += $N"
+        stopBy: end
+    - has:
+        pattern: "$ARR.slice($I, $I + $N)"
+        stopBy: end
+metadata:
+  replace_catalog: "import { chunk } from 'es-toolkit'; chunk($ARR, $N)"
+  priority: P1
+  fallback_regex: "for\\s*\\([^)]*\\+=[^)]*\\)[\\s\\S]{0,150}\\.slice\\("

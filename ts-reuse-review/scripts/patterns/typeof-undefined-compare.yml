@@ -1,0 +1,15 @@
+id: typeof-undefined-compare
+language: TypeScript
+message: "typeof x === 'undefined' is vestigial. In TS, x === undefined is type-checked and shorter."
+severity: info
+rule:
+  any:
+    - pattern: "typeof $X === 'undefined'"
+    - pattern: "typeof $X !== 'undefined'"
+    - pattern: "typeof $X === \"undefined\""
+    - pattern: "typeof $X !== \"undefined\""
+metadata:
+  replace_native: "$X === undefined (or $X !== undefined)"
+  priority: P3
+  fallback_regex: "typeof\\s+\\w+(\\.\\w+)*\\s*[!=]==\\s*['\"]undefined['\"]"
+  notes: "In pre-ES5 global scripts, `undefined` could be shadowed — that's why typeof was safer. In modern TS modules, it can't. Stylistic P3."

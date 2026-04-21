@@ -1,0 +1,15 @@
+id: promise-race-timeout
+language: TypeScript
+message: "Promise.race with setTimeout for timeout. Prefer AbortSignal.timeout(ms) passed to the underlying API."
+severity: info
+rule:
+  all:
+    - pattern: "Promise.race($$$)"
+    - has:
+        pattern: "setTimeout($$$)"
+        stopBy: end
+metadata:
+  replace_native: "AbortSignal.timeout($MS) — pass signal to fetch/etc."
+  replace_catalog: "import { timeout } from 'es-toolkit'; timeout(fn, ms)"
+  priority: P2
+  fallback_regex: "Promise\\.race\\([\\s\\S]*setTimeout"

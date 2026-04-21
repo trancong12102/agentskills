@@ -1,0 +1,19 @@
+id: currency-hardcode
+language: TypeScript
+message: "Hardcoded currency formatting via toFixed(2) + template string. Use Intl.NumberFormat for locale-aware output."
+severity: info
+rule:
+  any:
+    - all:
+        - kind: template_string
+        - has:
+            pattern: "$N.toFixed(2)"
+            stopBy: end
+        - regex: "\\$"
+    - pattern: "'$' + $N.toFixed(2)"
+    - pattern: '"$" + $N.toFixed(2)'
+metadata:
+  replace_native: "new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format($N)"
+  priority: P3
+  fallback_regex: "\\$\\{\\w+\\.toFixed\\(2\\)\\}|['\"]\\$['\"]\\s*\\+\\s*\\w+\\.toFixed"
+  notes: "Hardcoded '$' fails for locales/currencies. Intl handles euro/yen/rounding/spacing."

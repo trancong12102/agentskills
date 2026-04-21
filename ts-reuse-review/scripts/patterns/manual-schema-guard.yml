@@ -1,0 +1,22 @@
+id: manual-schema-guard
+language: TypeScript
+message: "Hand-rolled object-shape type guard. Consider a zod (or valibot/yup if installed) schema."
+severity: info
+rule:
+  all:
+    - kind: function_declaration
+    - has:
+        kind: type_predicate
+        stopBy: end
+    - any:
+        - has:
+            pattern: "typeof $X === 'object'"
+            stopBy: end
+        - has:
+            pattern: "typeof $X !== 'object'"
+            stopBy: end
+metadata:
+  replace_catalog: "import { z } from 'zod'; const Schema = z.object({...}); const isX = (x: unknown): x is X => Schema.safeParse(x).success"
+  priority: P3
+  fallback_regex: "function\\s+\\w+\\([^)]*:\\s*unknown\\)[^{]*:\\s*\\w+\\s+is\\s+"
+  notes: "Confidence medium — prefer when guard body is ≥5 lines or checks ≥3 fields."

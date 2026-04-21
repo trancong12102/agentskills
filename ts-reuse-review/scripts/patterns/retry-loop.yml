@@ -1,0 +1,20 @@
+id: retry-loop
+language: TypeScript
+message: "Manual retry via for/while loop with try/catch + sleep. Use retry from es-toolkit (or p-retry / Effect.retry if installed)."
+severity: info
+rule:
+  all:
+    - any:
+        - kind: for_statement
+        - kind: while_statement
+    - has:
+        kind: try_statement
+        stopBy: end
+    - has:
+        pattern: "setTimeout($$$)"
+        stopBy: end
+metadata:
+  replace_catalog: "import { retry } from 'es-toolkit'; await retry(fn, { retries: 3, delay: 200 })"
+  priority: P1
+  fallback_regex: "(for|while)\\s*\\([\\s\\S]{0,200}try\\s*\\{[\\s\\S]{0,300}setTimeout"
+  notes: "Also flags when `effect` or `p-retry` is installed — those are preferred over es-toolkit."

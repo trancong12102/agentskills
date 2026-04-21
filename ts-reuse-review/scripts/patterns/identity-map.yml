@@ -1,0 +1,15 @@
+id: identity-map
+language: TypeScript
+message: "Identity map callback returning the parameter unchanged. The whole .map(x => x) is a no-op — delete it."
+severity: info
+rule:
+  any:
+    - pattern: "$ARR.map(($X) => $X)"
+    - pattern: "$ARR.map($X => $X)"
+    - pattern: "Effect.map(($X) => $X)"
+    - pattern: "Effect.map($X => $X)"
+metadata:
+  replace_native: "<remove the .map() call entirely>"
+  priority: P2
+  fallback_regex: "\\.map\\(\\s*\\(?(\\w+)\\)?\\s*=>\\s*\\1\\s*\\)"
+  notes: "Identity map usually left over from refactors. Also covers Effect.map — drop the call."

@@ -1,0 +1,30 @@
+id: manual-event-emitter
+language: TypeScript
+message: "Hand-rolled event emitter. Use Node EventEmitter, mitt (browser), or EventTarget (web-standard)."
+severity: info
+rule:
+  kind: class_declaration
+  all:
+    - has:
+        kind: public_field_definition
+        has:
+          field: name
+          regex: "^(listeners|handlers|subscribers|observers)$"
+        stopBy: end
+    - has:
+        kind: method_definition
+        has:
+          field: name
+          regex: "^(on|subscribe|addListener|addEventListener)$"
+        stopBy: end
+    - has:
+        kind: method_definition
+        has:
+          field: name
+          regex: "^(emit|publish|fire|dispatchEvent)$"
+        stopBy: end
+metadata:
+  replace_catalog: "import { EventEmitter } from 'node:events'; class X extends EventEmitter {}  // or mitt (~200B) for browsers"
+  priority: P2
+  fallback_regex: "class\\s+\\w+[\\s\\S]{0,500}(on|subscribe|addListener)\\s*\\([^)]+\\)\\s*\\{[\\s\\S]{0,500}(emit|publish|fire)\\s*\\("
+  notes: "For browsers use mitt (~200B) or native EventTarget. For Node, EventEmitter. Do not flag if class has additional domain logic — just exporting a pub/sub is what triggers this."

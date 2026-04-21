@@ -1,0 +1,15 @@
+id: path-concat-string
+language: TypeScript
+message: "String concatenation for paths. Use path.join / path.resolve — handles separators, redundant slashes, cross-platform."
+severity: info
+rule:
+  any:
+    - pattern: "$DIR + '/' + $FILE"
+    - pattern: "$DIR + \"/\" + $FILE"
+    - pattern: "`${$DIR}/${$FILE}`"
+metadata:
+  replace_native: "import { join } from 'node:path'; join($DIR, $FILE)  // or new URL($FILE, $BASE) for URLs"
+  priority: P3
+  fallback_regex: "\\w+\\s*\\+\\s*['\"]/['\"]?\\s*\\+\\s*\\w+"
+  notes: "Windows path separators, double-slashes, and trailing-slash issues are real. Only flag if both operands read as path-ish (names ending in Dir/Path/Root/Base, or absolute-path strings)."
+  fallback_keywords: ["path", "dir", "file", "root", "base"]

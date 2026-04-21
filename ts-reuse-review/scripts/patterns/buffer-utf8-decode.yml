@@ -1,0 +1,14 @@
+id: buffer-utf8-decode
+language: TypeScript
+message: "Buffer.from(bytes).toString('utf8') decodes binary to string. Use new TextDecoder().decode(bytes) — native, works in Node + browser + workers."
+severity: info
+rule:
+  any:
+    - pattern: "Buffer.from($BYTES).toString('utf8')"
+    - pattern: 'Buffer.from($BYTES).toString("utf8")'
+    - pattern: "Buffer.from($BYTES).toString('utf-8')"
+metadata:
+  replace_native: "new TextDecoder().decode($BYTES)"
+  priority: P2
+  fallback_regex: "Buffer\\.from\\([^)]*\\)\\.toString\\(['\"]utf-?8['\"]\\)"
+  notes: "Important for Cloudflare Workers / Edge runtimes where Node Buffer is not available."

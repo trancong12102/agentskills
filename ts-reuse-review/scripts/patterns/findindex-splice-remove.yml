@@ -1,0 +1,23 @@
+id: findindex-splice-remove
+language: TypeScript
+message: "findIndex + splice to remove an item. Prefer arr.filter() — non-mutating, one pass, no index arithmetic."
+severity: info
+rule:
+  kind: statement_block
+  all:
+    - has:
+        any:
+          - pattern: "const $I = $ARR.findIndex($PRED)"
+          - pattern: "let $I = $ARR.findIndex($PRED)"
+        stopBy: end
+    - has:
+        any:
+          - pattern: "$ARR.splice($I, 1)"
+          - pattern: "if ($I !== -1) $ARR.splice($I, 1)"
+          - pattern: "if ($I >= 0) $ARR.splice($I, 1)"
+        stopBy: end
+metadata:
+  replace_native: "$ARR = $ARR.filter(x => !($PRED)(x))  // or keep splice if in-place mutation is required"
+  priority: P2
+  fallback_regex: "findIndex\\([\\s\\S]{0,200}splice\\(\\s*\\w+\\s*,\\s*1\\s*\\)"
+  notes: "Only suggest filter if the array is reassigned or local. If callers hold a reference and rely on mutation, keep splice."

@@ -1,0 +1,14 @@
+id: map-values-dedup
+language: TypeScript
+message: "Dedup via new Map with key extraction + values(). Use uniqBy from es-toolkit."
+severity: info
+rule:
+  any:
+    - pattern: "[...new Map($ARR.map(($X) => [$X.$K, $X])).values()]"
+    - pattern: "Array.from(new Map($ARR.map(($X) => [$X.$K, $X])).values())"
+    - pattern: "[...new Map($ARR.map(($X) => [$KEY, $X])).values()]"
+metadata:
+  replace_catalog: "import { uniqBy } from 'es-toolkit'; uniqBy($ARR, (x) => x.$K)"
+  priority: P1
+  fallback_regex: "\\[\\s*\\.\\.\\.new Map\\([^)]*\\.map\\([^)]*=>\\s*\\[[^)]*\\][^)]*\\)\\)\\.values\\(\\)\\s*\\]"
+  notes: "The new Map(...).values() trick is 'last-write-wins' dedup by key — identical to uniqBy semantics."

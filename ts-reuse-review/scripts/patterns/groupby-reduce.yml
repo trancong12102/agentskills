@@ -1,0 +1,22 @@
+id: groupby-reduce
+language: TypeScript
+message: "Manual groupBy via reduce + push into record. Use groupBy from es-toolkit or native Object.groupBy (Node 21+)."
+severity: info
+rule:
+  all:
+    - pattern: "$ARR.reduce(($ACC, $X) => { $$$BODY }, $$$INIT)"
+    - has:
+        pattern: "$$$.push($$$)"
+        stopBy: end
+    - has:
+        pattern: "return $ACC"
+        stopBy: end
+    - not:
+        has:
+          pattern: "{ ...$ACC, $$$REST }"
+          stopBy: end
+metadata:
+  replace_native: "Object.groupBy($ARR, ($X) => $K)  // ES2024 / Node 21+"
+  replace_catalog: "import { groupBy } from 'es-toolkit'; groupBy($ARR, ($X) => $K)"
+  priority: P1
+  fallback_regex: "\\.reduce\\([\\s\\S]{0,200}\\.push\\([\\s\\S]{0,100}return\\s+\\w+"

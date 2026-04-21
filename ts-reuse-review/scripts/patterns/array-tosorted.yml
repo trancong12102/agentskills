@@ -1,0 +1,17 @@
+id: array-tosorted
+language: TypeScript
+message: "Copy-then-sort via spread. Use arr.toSorted() (ES2023) — one call, no intermediate array."
+severity: info
+rule:
+  any:
+    - pattern: "[...$ARR].sort()"
+    - pattern: "[...$ARR].sort($CMP)"
+    - pattern: "Array.from($ARR).sort()"
+    - pattern: "Array.from($ARR).sort($CMP)"
+    - pattern: "$ARR.slice().sort()"
+    - pattern: "$ARR.slice().sort($CMP)"
+metadata:
+  replace_native: "$ARR.toSorted($CMP)"
+  priority: P3
+  fallback_regex: "\\[\\s*\\.\\.\\.\\w+\\s*\\]\\s*\\.sort\\("
+  notes: "Node ≥20, modern browsers. Downgrade to medium if tsconfig target < ES2023."

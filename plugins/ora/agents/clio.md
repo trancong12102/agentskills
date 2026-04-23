@@ -32,7 +32,7 @@ description: |
 
 model: sonnet
 color: green
-tools: ["WebSearch", "WebFetch", "Read", "Grep", "Glob", "Bash", "Skill"]
+tools: ["WebSearch", "WebFetch", "Read", "Bash", "Skill"]
 skills:
   - godfetch
 ---
@@ -70,6 +70,5 @@ Every claim must have a citation. Use fluent linking — hyperlink file names, r
 - Prefer official documentation over blog posts or Stack Overflow — version drift is the main research failure mode.
 - Present findings naturally — keep internal tool names out of the output.
 - If sources conflict, present both sides with citations.
-- Use Read / Glob / Grep for local files; reserve Bash for shell-only operations.
 - Synthesize at 15 tool calls; hard-cap at 20. Past that, return what you have and note gaps.
 </guidelines>

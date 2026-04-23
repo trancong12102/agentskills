@@ -1,6 +1,6 @@
 ---
 name: godgrep
-description: "Unified local codebase search combining semantic search and structural AST matching. Use when searching a codebase for code patterns, tracing how features work across files, finding structural code issues, or exploring unfamiliar projects. Covers three search modes: semantic questions (codebase-search), AST-structural patterns (ast-grep), and keyword/symbol lookup (Grep/Glob). Do not use for external library docs or GitHub searches."
+description: "Unified local codebase search combining semantic search and structural AST matching. Use when searching a codebase for code patterns, tracing how features work across files, finding structural code issues, or exploring unfamiliar projects. Covers three search modes: semantic questions (codebase-search), AST-structural patterns (ast-grep), and keyword/file lookup (`ugrep`/`bfs`). Do not use for external library docs or GitHub searches."
 ---
 
 # godgrep
@@ -11,19 +11,19 @@ Unified codebase search skill. Routes search tasks to the right tool based on in
 
 | Intent                       | Primary tool             | Also consider                 |
 | ---------------------------- | ------------------------ | ----------------------------- |
-| Architecture / broad explore | `codebase-search`        | Glob for dir structure        |
+| Architecture / broad explore | `codebase-search`        | `bfs` for dir structure       |
 | Trace a flow / feature       | `codebase-search` → Read | LSP for call chains           |
 | Find all usages of X         | `codebase-search`        | LSP find-references           |
-| Explore risks / dependencies | `codebase-search` → Read | Grep for specific checks      |
-| Find a specific symbol       | LSP go-to-definition     | Grep                          |
-| Structural code patterns     | `ast-grep`               | Grep as fallback              |
-| Keyword / symbol search      | Grep                     | codebase-search if conceptual |
-| File discovery               | Glob                     | Grep for content matches      |
+| Explore risks / dependencies | `codebase-search` → Read | `ugrep` for specific checks   |
+| Find a specific symbol       | LSP go-to-definition     | `ugrep`                       |
+| Structural code patterns     | `ast-grep`               | `ugrep` as fallback           |
+| Keyword / symbol search      | `ugrep`                  | codebase-search if conceptual |
+| File discovery               | `bfs`                    | `ugrep` for content matches   |
 | Git history / blame          | Bash (git log/blame)     | —                             |
 
-**Decision rule**: Can you write the grep pattern? Use Grep. Need a symbol definition or references? Use LSP. Need AST structure? Use ast-grep. Conceptual question? Use codebase-search.
+**Decision rule**: Can you write the grep pattern? Use `ugrep`. Need a symbol definition or references? Use LSP. Need AST structure? Use ast-grep. Conceptual question? Use codebase-search.
 
-Start broad with `codebase-search`, then drill down with Grep/Read/LSP. Do not start with 20+ Grep calls when 1-2 `codebase-search` calls can map the landscape first.
+Start broad with `codebase-search`, then drill down with `ugrep`/Read/LSP. Do not start with 20+ `ugrep` calls when 1-2 `codebase-search` calls can map the landscape first.
 
 For broad questions, break into 2-3 search angles and launch in parallel. Read files surfaced by search to get full context before answering.
 
@@ -140,7 +140,7 @@ has:
 
 Reference: `references/ast-grep/ast-grep.md` for full guide, `references/ast-grep/rule_reference.md` for YAML rule syntax.
 
-Do not reach for codebase-search or ast-grep when Grep/Glob/LSP would suffice -- they are slower and consume more resources. Escalate only when:
+Do not reach for codebase-search or ast-grep when `ugrep`/`bfs`/LSP suffice -- they are slower and consume more resources. Escalate only when:
 
 - The question is conceptual and you cannot write a grep pattern (use codebase-search)
 - The search requires understanding code structure, not just text (use ast-grep)

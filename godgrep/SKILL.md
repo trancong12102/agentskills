@@ -9,7 +9,7 @@ Unified codebase search skill. Routes search tasks to the right tool based on in
 
 ## Tool Routing
 
-Prefer `fff` MCP tools (`mcp__plugin_ora_fff__grep`, `mcp__plugin_ora_fff__find_files`, `mcp__plugin_ora_fff__multi_grep`) for keyword and file search in git-indexed directories. Frecency-ranked, faster, dirty-file boost. Fall back to `ugrep`/`bfs` only when fff unavailable or target is outside git index.
+Prefer `fff` MCP tools (`mcp__plugin_ora_fff__grep`, `mcp__plugin_ora_fff__find_files`, `mcp__plugin_ora_fff__multi_grep`) for keyword and file search in git-indexed directories. Frecency-ranked, faster, dirty-file boost. Fall back to `rg`/`fd` only when fff unavailable or target is outside git index.
 
 | Intent                       | Primary tool                      | Also consider                                       |
 | ---------------------------- | --------------------------------- | --------------------------------------------------- |
@@ -22,7 +22,7 @@ Prefer `fff` MCP tools (`mcp__plugin_ora_fff__grep`, `mcp__plugin_ora_fff__find_
 | Keyword / symbol search      | `mcp__plugin_ora_fff__grep`       | codebase-search if conceptual                       |
 | Multi-pattern / OR search    | `mcp__plugin_ora_fff__multi_grep` | sequential `mcp__plugin_ora_fff__grep` calls        |
 | File discovery               | `mcp__plugin_ora_fff__find_files` | `mcp__plugin_ora_fff__grep` for content matches     |
-| Outside git index            | `ugrep` / `bfs`                   | —                                                   |
+| Outside git index            | `rg` / `fd`                       | —                                                   |
 | Git history / blame          | Bash (git log/blame)              | —                                                   |
 
 **Decision rule**: Can you write the grep pattern? Use `mcp__plugin_ora_fff__grep`. Need multiple patterns at once? Use `mcp__plugin_ora_fff__multi_grep`. Need a symbol definition or references? Use LSP. Need AST structure? Use ast-grep. Conceptual question? Use codebase-search.
@@ -97,9 +97,9 @@ Fast file finder MCP. Frecency-ranked results — frequent/recent files first, g
   - Good: `multi_grep(['ActorAuth', 'PopulatedActorAuth', 'actor_auth'])`
   - Bad: sequential grep calls with variants
 
-### Fallback to ugrep/bfs
+### Fallback to rg/fd
 
-Use `ugrep` / `bfs` only when:
+Use `rg` / `fd` only when:
 
 - Target outside git index (untracked dirs, system paths)
 - fff MCP unavailable in session

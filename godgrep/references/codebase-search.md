@@ -15,23 +15,23 @@ Requires `MORPH_API_KEY` environment variable.
 
 ## When NOT to Use
 
-- Simple keyword or symbol searches (e.g., finding all uses of `handleSubmit`) — use `ugrep`
-- Finding files by name or pattern — use `bfs`
+- Simple keyword or symbol searches (e.g., finding all uses of `handleSubmit`) — use `rg`
+- Finding files by name or pattern — use `fd`
 - Looking up library documentation — use context7
 - Questions unrelated to the current codebase
 
 ## Decision Rule
 
-**Can you write the grep pattern yourself?** Use `ugrep` — it's faster.
+**Can you write the grep pattern yourself?** Use `rg` — it's faster.
 **Can't write the pattern because the question is conceptual?** Use codebase-search.
 
 | Task                                        | Tool            |
 | ------------------------------------------- | --------------- |
-| Find all imports of `AuthService`           | `ugrep`         |
+| Find all imports of `AuthService`           | `rg`            |
 | How does AuthService validate tokens?       | codebase-search |
-| Find files named `*.config.ts`              | `bfs`           |
+| Find files named `*.config.ts`              | `fd`            |
 | How is the config system structured?        | codebase-search |
-| Find `TODO` comments                        | `ugrep`         |
+| Find `TODO` comments                        | `rg`            |
 | What's left unfinished in the payment flow? | codebase-search |
 
 ## Workflow
@@ -94,11 +94,11 @@ Here is the content of files:
 </file>
 ```
 
-The output lists relevant files found and their full content. Use these results directly — do not re-search the same files with `ugrep`/Read.
+The output lists relevant files found and their full content. Use these results directly — do not re-search the same files with `rg`/Read.
 
 ## Rules
 
 - **Write queries as natural language questions** — `"How does the auth middleware validate JWT tokens?"` works far better than `"auth JWT"`, because codebase search is an RL-trained agent that plans its own search strategy based on your question.
 - **Be specific about what you want to know** — `"What happens when a user submits the settings form?"` beats `"settings form"`. The more context you give, the better it can target its internal searches.
-- **Use for understanding, not for finding** — If you already know the symbol or keyword, `ugrep` is faster. codebase-search shines when you don't know what to look for.
+- **Use for understanding, not for finding** — If you already know the symbol or keyword, `rg` is faster. codebase-search shines when you don't know what to look for.
 - **Default timeout is 120s** — codebase search runs many internal operations. For large codebases, increase with `--timeout 180` or higher.

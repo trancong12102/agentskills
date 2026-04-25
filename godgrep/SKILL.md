@@ -9,25 +9,25 @@ Unified codebase search skill. Routes search tasks to the right tool based on in
 
 ## Tool Routing
 
-Prefer `fff` MCP tools (`mcp__fff__grep`, `mcp__fff__find_files`, `mcp__fff__multi_grep`) for keyword and file search in git-indexed directories. Frecency-ranked, faster, dirty-file boost. Fall back to `ugrep`/`bfs` only when fff unavailable or target is outside git index.
+Prefer `fff` MCP tools (`mcp__plugin_ora_fff__grep`, `mcp__plugin_ora_fff__find_files`, `mcp__plugin_ora_fff__multi_grep`) for keyword and file search in git-indexed directories. Frecency-ranked, faster, dirty-file boost. Fall back to `ugrep`/`bfs` only when fff unavailable or target is outside git index.
 
-| Intent                       | Primary tool             | Also consider                            |
-| ---------------------------- | ------------------------ | ---------------------------------------- |
-| Architecture / broad explore | `codebase-search`        | `mcp__fff__find_files` for dir structure |
-| Trace a flow / feature       | `codebase-search` → Read | LSP for call chains                      |
-| Find all usages of X         | `codebase-search`        | LSP find-references                      |
-| Explore risks / dependencies | `codebase-search` → Read | `mcp__fff__grep` for specific checks     |
-| Find a specific symbol       | LSP go-to-definition     | `mcp__fff__grep`                         |
-| Structural code patterns     | `ast-grep`               | `mcp__fff__grep` as fallback             |
-| Keyword / symbol search      | `mcp__fff__grep`         | codebase-search if conceptual            |
-| Multi-pattern / OR search    | `mcp__fff__multi_grep`   | sequential `mcp__fff__grep` calls        |
-| File discovery               | `mcp__fff__find_files`   | `mcp__fff__grep` for content matches     |
-| Outside git index            | `ugrep` / `bfs`          | —                                        |
-| Git history / blame          | Bash (git log/blame)     | —                                        |
+| Intent                       | Primary tool                      | Also consider                                       |
+| ---------------------------- | --------------------------------- | --------------------------------------------------- |
+| Architecture / broad explore | `codebase-search`                 | `mcp__plugin_ora_fff__find_files` for dir structure |
+| Trace a flow / feature       | `codebase-search` → Read          | LSP for call chains                                 |
+| Find all usages of X         | `codebase-search`                 | LSP find-references                                 |
+| Explore risks / dependencies | `codebase-search` → Read          | `mcp__plugin_ora_fff__grep` for specific checks     |
+| Find a specific symbol       | LSP go-to-definition              | `mcp__plugin_ora_fff__grep`                         |
+| Structural code patterns     | `ast-grep`                        | `mcp__plugin_ora_fff__grep` as fallback             |
+| Keyword / symbol search      | `mcp__plugin_ora_fff__grep`       | codebase-search if conceptual                       |
+| Multi-pattern / OR search    | `mcp__plugin_ora_fff__multi_grep` | sequential `mcp__plugin_ora_fff__grep` calls        |
+| File discovery               | `mcp__plugin_ora_fff__find_files` | `mcp__plugin_ora_fff__grep` for content matches     |
+| Outside git index            | `ugrep` / `bfs`                   | —                                                   |
+| Git history / blame          | Bash (git log/blame)              | —                                                   |
 
-**Decision rule**: Can you write the grep pattern? Use `mcp__fff__grep`. Need multiple patterns at once? Use `mcp__fff__multi_grep`. Need a symbol definition or references? Use LSP. Need AST structure? Use ast-grep. Conceptual question? Use codebase-search.
+**Decision rule**: Can you write the grep pattern? Use `mcp__plugin_ora_fff__grep`. Need multiple patterns at once? Use `mcp__plugin_ora_fff__multi_grep`. Need a symbol definition or references? Use LSP. Need AST structure? Use ast-grep. Conceptual question? Use codebase-search.
 
-Start broad with `codebase-search`, then drill down with `mcp__fff__grep`/Read/LSP. Do not start with 20+ grep calls when 1-2 `codebase-search` calls can map the landscape first.
+Start broad with `codebase-search`, then drill down with `mcp__plugin_ora_fff__grep`/Read/LSP. Do not start with 20+ grep calls when 1-2 `codebase-search` calls can map the landscape first.
 
 For broad questions, break into 2-3 search angles and launch in parallel. Read files surfaced by search to get full context before answering.
 
@@ -82,9 +82,9 @@ Fast file finder MCP. Frecency-ranked results — frequent/recent files first, g
 
 ### Tool selection
 
-- **`mcp__fff__grep`** — DEFAULT. Search file CONTENTS for definitions, usages, patterns. Use when you have specific name or pattern.
-- **`mcp__fff__find_files`** — Explore which files/modules exist for topic. Use when you DO NOT have specific identifier or are LOOKING FOR FILE.
-- **`mcp__fff__multi_grep`** — OR logic across multiple patterns. Use for case variants (e.g. `['PrepareUpload', 'prepare_upload']`) or 2+ different identifiers in one call.
+- **`mcp__plugin_ora_fff__grep`** — DEFAULT. Search file CONTENTS for definitions, usages, patterns. Use when you have specific name or pattern.
+- **`mcp__plugin_ora_fff__find_files`** — Explore which files/modules exist for topic. Use when you DO NOT have specific identifier or are LOOKING FOR FILE.
+- **`mcp__plugin_ora_fff__multi_grep`** — OR logic across multiple patterns. Use for case variants (e.g. `['PrepareUpload', 'prepare_upload']`) or 2+ different identifiers in one call.
 
 ### Search rules
 
@@ -93,7 +93,7 @@ Fast file finder MCP. Frecency-ranked results — frequent/recent files first, g
   - Bad: `'load.*metadata.*InProgressQuote'` (regex spanning tokens), `'struct ActorAuth'` (keyword narrows results)
 - Plain text > regex. Patterns like `.*`, `\d+`, `\s+` rarely match within single lines. Use regex only for true alternation.
 - Stop after 2 grep calls — READ code instead. More greps != better understanding.
-- Use `mcp__fff__multi_grep` for multiple identifiers in single call:
+- Use `mcp__plugin_ora_fff__multi_grep` for multiple identifiers in single call:
   - Good: `multi_grep(['ActorAuth', 'PopulatedActorAuth', 'actor_auth'])`
   - Bad: sequential grep calls with variants
 
@@ -176,7 +176,7 @@ Reference: `references/ast-grep/ast-grep.md` for full guide, `references/ast-gre
 
 ---
 
-Do not reach for codebase-search or ast-grep when `mcp__fff__grep`/`mcp__fff__find_files`/LSP suffice — they are slower and consume more resources. Escalate only when:
+Do not reach for codebase-search or ast-grep when `mcp__plugin_ora_fff__grep`/`mcp__plugin_ora_fff__find_files`/LSP suffice — they are slower and consume more resources. Escalate only when:
 
 - The question is conceptual and you cannot write a grep pattern (use codebase-search)
 - The search requires understanding code structure, not just text (use ast-grep)

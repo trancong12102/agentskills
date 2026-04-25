@@ -13,6 +13,23 @@ Both isolate search context from the main conversation — broad queries never p
 
 ## Getting Started
 
+### Prerequisites
+
+ora bundles [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) (fast file finder, frecency-ranked) as an MCP server, so the binary must exist on `PATH` before installing the plugin:
+
+```shell
+# Install the prebuilt binary to ~/.local/bin/fff-mcp
+curl -L https://dmtrkovalenko.dev/install-fff-mcp.sh | bash
+
+# Ensure ~/.local/bin is on PATH (zsh shown — adjust for bash/fish)
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+
+# Verify
+which fff-mcp   # should print ~/.local/bin/fff-mcp
+```
+
+The binary is statically linked (musl on Linux); no Node, Rust toolchain, or runtime dependency is required.
+
 ### Install
 
 ```shell
@@ -76,6 +93,10 @@ Do not serialize independent subagent work. Fan out parallel: spawn multiple sub
 
 Do not respawn agents. Follow-up on agent already spawned this session → SendMessage with returned agentId. Fresh spawn lose cached context and repeat tool calls. New Agent call only when topic genuinely different.
 </subagent_routing>
+
+<file_search_tools>
+Do not use built-in Grep/Glob or shell `grep`/`find`/`rg` for file search in git-indexed dir. Use fff tools shipped with ora plugin: `mcp__plugin_ora_fff__find_files` (file lookup), `mcp__plugin_ora_fff__grep` (content search), `mcp__plugin_ora_fff__multi_grep` (OR logic across patterns). Frecency-ranked, faster, dirty-file boost. Fallback to built-in only when outside git index.
+</file_search_tools>
 
 <plan_before_implementing>
 Do not implement without calling EnterPlanMode tool first when task ambiguous, spans multiple subsystems, or acceptance criteria unclear. Skip plan mode for clearly-scoped changes: single-file bug fix with obvious fix site, mechanical rename/refactor, config/typo fix.

@@ -1,6 +1,6 @@
 ---
 name: oracle
-description: "Deep analysis and expert reasoning via a separate model (Codex CLI). Use when the user asks for 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from deep, independent reasoning. Do not use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
+description: "Deep analysis and expert reasoning. Use when the user asks for 'oracle', 'second opinion', architecture analysis, elusive bug debugging, impact assessment, security reasoning, refactoring strategy, or trade-off evaluation — problems that benefit from deep, independent reasoning. Do not use for simple factual questions, code generation, code review (use council-review), or tasks needing file modifications."
 ---
 
 # Oracle
@@ -68,9 +68,7 @@ Once you have a complete, clear answer from the oracle (after one or more rounds
 
 ## Rules
 
-- **Do not start your own parallel analysis while Codex runs** — Codex is the analyst. Your role is to formulate the question, launch Codex, and present the results.
-- **Wait for Codex to complete before presenting results** — the oracle's value depends on Codex's deep reasoning output.
-- **Organize findings by theme** — group related insights together, not by severity alone. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
-- **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead.
-- **Do not poll or probe background tasks** — Do not read output files, check process status, or run any commands while waiting. End your response after launching. You will be notified automatically when Codex completes.
-- **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.
+- **Codex is the analyst — your role is to formulate, launch, and present.** Do not start your own parallel analysis while Codex runs.
+- **Organize findings by theme, not severity.** Group related insights together. Structure adapts to question type (architecture → components/trade-offs, bug → root cause hypotheses, security → threat model, etc.).
+- **Read background-task output via the `Read` tool on the `output-file` path** from the completion notification. `TaskOutput` cannot find background Bash task IDs and will fail.
+- **Always use the wrapper script** for Codex. The script sets the correct model and read-only mode; calling `codex` CLI directly bypasses these.

@@ -1,6 +1,6 @@
 ---
 name: godfetch
-description: "Unified external research skill for documentation, GitHub code, and package versions. Use when the user needs to look up library docs or API references, search code in a public GitHub repo, check the latest version of a package, or verify whether a dependency is deprecated. Triggers on phrases like 'look up the docs for X', 'how does X work internally', 'what version of X should I use', 'is X deprecated', or any task requiring external knowledge beyond the local codebase and training data."
+description: "Unified external research for documentation, GitHub code, and package versions. Use when the user needs to look up library docs or API references, search code in a public GitHub repo, check the latest version of a package, verify whether a dependency is deprecated, or any task requiring external knowledge beyond the local codebase and training data."
 ---
 
 # godfetch

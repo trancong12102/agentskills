@@ -1,6 +1,6 @@
 ---
 name: ts-reuse-review
-description: "Reviews TypeScript/JavaScript diffs for reinvented utilities and missed library or native reuse. Use when reviewing TS/JS code changes, auditing a diff, checking a PR before merge, writing new utility helpers, or refactoring existing helpers. Scans for functions matching es-toolkit / date-fns / zod signatures, ES2020+ native APIs that supersede hand-rolled code, and existing internal utilities in the workspace. Also detects installed project libraries (effect, remeda, rxjs, ts-pattern, neverthrow, valibot, yup, dayjs) and prefers those when present. Reports findings as text only — never edits files. Do not use for non-JS/TS code, documentation, configuration, or trivial single-line changes."
+description: "Reviews TypeScript/JavaScript diffs for reinvented utilities and missed reuse of standard libraries, native APIs, or existing workspace helpers. Use when reviewing TS/JS code changes, auditing a diff, checking a PR before merge, writing new utility helpers, or refactoring existing helpers. Detects installed project libraries and prefers those when present. Reports findings as text only — never edits files. Do not use for non-JS/TS code, documentation, configuration, or trivial single-line changes."
 ---
 
 # TS Reuse Review
@@ -49,22 +49,7 @@ For each changed file, get the new-side hunks via `git diff` and keep only added
 
 Run `scripts/run-patterns.sh <file1> [<file2> ...]` on each changed file. The wrapper runs all rules in `scripts/patterns/` with the correct language per extension (`TypeScript` for .ts/.js/.mjs/.cjs, `Tsx` for .tsx/.jsx — ast-grep has separate parsers). Only keep matches whose line range overlaps the changed region.
 
-Rule categories (80 rules, grouped for orientation):
-
-- **collection shape**: chunk, groupBy, keyBy, partition, uniqBy, sortBy, mapValues, pick, omit, zip, maxBy, minBy, sum, range, compact, findindex-splice-remove
-- **timing / async**: debounce, throttle, sleep, retry, timeout, once, memoize, abort-controller-flag, concurrency-chunk, manual-semaphore, console-timer-manual
-- **equality / clone / update**: deepClone (structuredClone), isEqual, merge, nested-spread-update → immer
-- **date**: addDays, startOfDay, differenceInDays, isSameDay, relative-time, date-getday-weekday
-- **schema / validation**: hand-rolled object-shape assertions → zod/valibot; email-regex, url-validate-try, regex-uuid, regex-ipv4, regex-iso-datetime, zod-discriminated-union
-- **effect-specific**: switch-on-`._tag` → Match.tag, Option.match→getOrUndefined, Duration.hours/minutes, exhaust(never)→Match.exhaustive, identity Effect.map, Promise.all inside Effect.gen, custom Error with `_tag` → Data.TaggedError
-- **web / runtime (Workers/Edge)**: URL/URLSearchParams parsing, HTML escape, btoa, TextDecoder, crypto-createhash-node → subtle.digest
-- **node fs / path / crypto**: fs-readfile-callback, path-concat-string, crypto-createhash-node
-- **native supersedes**: `JSON.parse(JSON.stringify(x))`, `Object.fromEntries`, `arr.at(-1)`, `Array.from({length})`, `crypto.randomUUID`, `Object.hasOwn`, `arr.toSorted`/`arr.toReversed`, `Promise.withResolvers`, typeof-undefined-compare, nullish-chain-coerce, new-map-chained-set
-- **correctness bugs (P1 auto)**: array-fill-same-init (shared ref), react-object-literal-dep (defeats memoization)
-- **React hooks**: usePrevious, useLatest-ref, react-fetch-useeffect, react-object-literal-dep
-- **event / pub-sub**: manual-event-emitter → Node EventEmitter / mitt
-- **i18n / format**: Intl.Collator for locale sort, Intl.PluralRules for plural forms, Intl.NumberFormat for currency
-- **stringly**: template-literal via `.replace({key})`
+The catalog is ~80 rules grouped into 14 categories (collection shape, timing/async, equality/clone, date, schema, effect-specific, web runtime, node APIs, native supersedes, correctness bugs, React hooks, event/pub-sub, i18n, stringly). Load `references/rule-categories.md` when you need to understand which rules fire for a diff or are adding new rules.
 
 If ast-grep is unavailable, fall back to the ripgrep heuristic patterns embedded in each rule's `fallback_regex` metadata field and mark matches as `confidence: low`.
 

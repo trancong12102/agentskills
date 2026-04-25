@@ -1,6 +1,6 @@
 ---
 name: council-review
-description: "Multi-model AI code review — runs Codex, Claude, and Simplify reviews in parallel, then synthesizes a unified report. Use when the user asks to review code changes, audit a diff, check code quality, review a PR, review commits, or review uncommitted changes. Also covers 'code review', 'review my changes', 'check this before I merge', or wanting multiple perspectives on code. Do not use for documentation/markdown review or trivial single-line changes."
+description: "Multi-perspective code review that synthesizes findings from multiple reviewers into a unified report. Use when the user asks to review code changes, audit a diff, check code quality, review a PR, review commits, or review uncommitted changes. Also covers 'code review', 'review my changes', 'check this before I merge', or wanting multiple perspectives on code. Do not use for documentation/markdown review or trivial single-line changes."
 ---
 
 # Council Review
@@ -70,14 +70,12 @@ Load `references/output-format.md` for the report template. Load `references/mer
 
 ## Rules
 
-- **Run all three reviewers in parallel** — Codex, `/review`, and `/simplify` are independent reads of the same diff. Launch all three in a single message.
-- **Use the same review scope for all reviewers** — comparing different scopes would make deduplication meaningless.
-- **Wait for all three reviews to complete before cross-validation** — the council's value depends on comparing complete outputs.
-- **Run `/simplify` agent as report-only** — the agent must return findings as text, not apply edits to the workspace. Instruct the agent explicitly to skip code fixes.
-- **Write one unified opinion** — the report should read as a single reviewer's assessment. Never structure findings by reviewer (no "Codex found..." or "Simplify found..." sections).
+- **Use the same review scope for all reviewers.** Comparing different scopes would make deduplication meaningless.
+- **Run `/simplify` agent as report-only.** Instruct the agent explicitly to return findings as text and skip code fixes.
+- **Write one unified opinion.** The report reads as a single reviewer's assessment. Do not structure findings by reviewer (no "Codex found..." or "Simplify found..." sections).
 - **Sort findings by priority** — P0 → P1 → P2 → P3 → P4.
-- **Exclude low-confidence findings** — If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
-- **Always use the wrapper script** for Codex — do not call `codex` CLI directly, because the script sets the correct model and read-only mode.
-- **Suppress intermediate outputs** — Do not display raw reviewer outputs to the user. Running each skill in a subagent keeps its output out of the main conversation naturally. The only review output the user should see is the final unified report.
-- **Never use `TaskOutput` for background tasks** — `TaskOutput` cannot find background Bash task IDs and will fail. Use the `Read` tool on the `output-file` path from the completion notification instead. For background Agents, read the result directly from the completion notification.
-- **If a reviewer fails at runtime** — fall back to the remaining reviewers if at least two succeed. If fewer than two reviewers succeed, stop the review and report the error — a single-reviewer result lacks cross-validation.
+- **Exclude low-confidence findings.** If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
+- **Always use the wrapper script** for Codex. The script sets the correct model and read-only mode; calling `codex` CLI directly bypasses these.
+- **Suppress intermediate outputs.** Running each skill in a subagent keeps raw reviewer output out of the main conversation. The only review output the user should see is the final unified report.
+- **Read background-task output via the `Read` tool on the `output-file` path** from the completion notification. `TaskOutput` cannot find background Bash task IDs and will fail. For background Agents, read the result directly from the completion notification.
+- **If a reviewer fails at runtime**, fall back to the remaining reviewers when at least two succeed. With fewer than two reviewers, stop and report the error — a single-reviewer result lacks cross-validation.

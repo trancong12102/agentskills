@@ -15,24 +15,26 @@ Requires `MORPH_API_KEY` environment variable.
 
 ## When NOT to Use
 
-- Simple keyword or symbol searches (e.g., finding all uses of `handleSubmit`) — use `rg`
-- Finding files by name or pattern — use `fd`
+- Simple keyword or symbol searches (e.g., finding all uses of `handleSubmit`) — use `fff` MCP grep, or shell `rg`/`grep`/`ugrep` as fallback
+- Finding files by name or pattern — use `fff` MCP find_files, or shell `fd`/`find`/`bfs` as fallback
 - Looking up library documentation — use context7
 - Questions unrelated to the current codebase
 
 ## Decision Rule
 
-**Can you write the grep pattern yourself?** Use `rg` — it's faster.
+**Can you write the grep pattern yourself?** Use `fff` MCP grep (or whichever shell grep tool — `rg`/`grep`/`ugrep` — is installed, as fallback). Faster than codebase-search.
 **Can't write the pattern because the question is conceptual?** Use codebase-search.
 
-| Task                                        | Tool            |
-| ------------------------------------------- | --------------- |
-| Find all imports of `AuthService`           | `rg`            |
-| How does AuthService validate tokens?       | codebase-search |
-| Find files named `*.config.ts`              | `fd`            |
-| How is the config system structured?        | codebase-search |
-| Find `TODO` comments                        | `rg`            |
-| What's left unfinished in the payment flow? | codebase-search |
+Shell tools (`rg`/`grep`/`ugrep`, `fd`/`find`/`bfs`) sit below both codebase-search and `fff` — only reach for them when fff is unavailable or the target is outside the git index.
+
+| Task                                        | Tool                                           |
+| ------------------------------------------- | ---------------------------------------------- |
+| Find all imports of `AuthService`           | `fff` grep (fallback: `rg`/`grep`/`ugrep`)     |
+| How does AuthService validate tokens?       | codebase-search                                |
+| Find files named `*.config.ts`              | `fff` find_files (fallback: `fd`/`find`/`bfs`) |
+| How is the config system structured?        | codebase-search                                |
+| Find `TODO` comments                        | `fff` grep (fallback: `rg`/`grep`/`ugrep`)     |
+| What's left unfinished in the payment flow? | codebase-search                                |
 
 ## Workflow
 
@@ -94,11 +96,11 @@ Here is the content of files:
 </file>
 ```
 
-The output lists relevant files found and their full content. Use these results directly — do not re-search the same files with `rg`/Read.
+The output lists relevant files found and their full content. Use these results directly — do not re-search the same files with shell grep or Read.
 
 ## Rules
 
 - **Write queries as natural language questions** — `"How does the auth middleware validate JWT tokens?"` works far better than `"auth JWT"`, because codebase search is an RL-trained agent that plans its own search strategy based on your question.
 - **Be specific about what you want to know** — `"What happens when a user submits the settings form?"` beats `"settings form"`. The more context you give, the better it can target its internal searches.
-- **Use for understanding, not for finding** — If you already know the symbol or keyword, `rg` is faster. codebase-search shines when you don't know what to look for.
+- **Use for understanding, not for finding** — If you already know the symbol or keyword, `fff` grep (or shell `rg`/`grep`/`ugrep` as fallback) is faster. codebase-search shines when you don't know what to look for.
 - **Default timeout is 120s** — codebase search runs many internal operations. For large codebases, increase with `--timeout 180` or higher.

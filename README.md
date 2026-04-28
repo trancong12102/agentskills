@@ -91,7 +91,7 @@ Do not use built-in Explore or general-purpose agent — use ora:Ariadne (local 
 </subagent_routing>
 
 <file_search_tools>
-Do not use shell `grep`/`find`/`rg` for file search in git-indexed dir. Use fff tools shipped with ora plugin: `mcp__plugin_ora_fff__find_files` (file lookup), `mcp__plugin_ora_fff__grep` (content search), `mcp__plugin_ora_fff__multi_grep` (OR logic across patterns). Frecency-ranked, faster, dirty-file boost. Fallback to shell only when outside git index.
+Do not use shell grep/find tools (`rg`/`grep`/`ugrep`, `fd`/`find`/`bfs`) for file search in git-indexed dir. Use fff tools shipped with ora plugin: `mcp__plugin_ora_fff__find_files` (file lookup), `mcp__plugin_ora_fff__grep` (content search), `mcp__plugin_ora_fff__multi_grep` (OR logic across patterns). Frecency-ranked, faster, dirty-file boost. Fallback to whichever shell tool is installed only when outside git index.
 </file_search_tools>
 
 <plan_before_implementing>

@@ -9,21 +9,21 @@ Unified codebase search skill. Routes search tasks to the right tool based on in
 
 ## Tool Routing
 
-Prefer `fff` MCP tools (`mcp__plugin_ora_fff__grep`, `mcp__plugin_ora_fff__find_files`, `mcp__plugin_ora_fff__multi_grep`) for keyword and file search in git-indexed directories. Frecency-ranked, faster, dirty-file boost. Fall back to `rg`/`fd` only when fff unavailable or target is outside git index.
+Primary tools: `codebase-search` for conceptual questions, `fff` MCP tools (`mcp__plugin_ora_fff__grep`, `mcp__plugin_ora_fff__find_files`, `mcp__plugin_ora_fff__multi_grep`) for keyword and file search in git-indexed directories — frecency-ranked, faster, dirty-file boost. Shell tools (`rg`/`grep`/`ugrep` for content, `fd`/`find`/`bfs` for files — whichever is installed) are last-resort fallback, used only when both `codebase-search` and `fff` are unsuitable (e.g. fff MCP unavailable or target is outside git index).
 
-| Intent                       | Primary tool                      | Also consider                                       |
-| ---------------------------- | --------------------------------- | --------------------------------------------------- |
-| Architecture / broad explore | `codebase-search`                 | `mcp__plugin_ora_fff__find_files` for dir structure |
-| Trace a flow / feature       | `codebase-search` → Read          | LSP for call chains                                 |
-| Find all usages of X         | `codebase-search`                 | LSP find-references                                 |
-| Explore risks / dependencies | `codebase-search` → Read          | `mcp__plugin_ora_fff__grep` for specific checks     |
-| Find a specific symbol       | LSP go-to-definition              | `mcp__plugin_ora_fff__grep`                         |
-| Structural code patterns     | `ast-grep`                        | `mcp__plugin_ora_fff__grep` as fallback             |
-| Keyword / symbol search      | `mcp__plugin_ora_fff__grep`       | codebase-search if conceptual                       |
-| Multi-pattern / OR search    | `mcp__plugin_ora_fff__multi_grep` | sequential `mcp__plugin_ora_fff__grep` calls        |
-| File discovery               | `mcp__plugin_ora_fff__find_files` | `mcp__plugin_ora_fff__grep` for content matches     |
-| Outside git index            | `rg` / `fd`                       | —                                                   |
-| Git history / blame          | Bash (git log/blame)              | —                                                   |
+| Intent                       | Primary tool                                         | Also consider                                       |
+| ---------------------------- | ---------------------------------------------------- | --------------------------------------------------- |
+| Architecture / broad explore | `codebase-search`                                    | `mcp__plugin_ora_fff__find_files` for dir structure |
+| Trace a flow / feature       | `codebase-search` → Read                             | LSP for call chains                                 |
+| Find all usages of X         | `codebase-search`                                    | LSP find-references                                 |
+| Explore risks / dependencies | `codebase-search` → Read                             | `mcp__plugin_ora_fff__grep` for specific checks     |
+| Find a specific symbol       | LSP go-to-definition                                 | `mcp__plugin_ora_fff__grep`                         |
+| Structural code patterns     | `ast-grep`                                           | `mcp__plugin_ora_fff__grep` as fallback             |
+| Keyword / symbol search      | `mcp__plugin_ora_fff__grep`                          | codebase-search if conceptual                       |
+| Multi-pattern / OR search    | `mcp__plugin_ora_fff__multi_grep`                    | sequential `mcp__plugin_ora_fff__grep` calls        |
+| File discovery               | `mcp__plugin_ora_fff__find_files`                    | `mcp__plugin_ora_fff__grep` for content matches     |
+| Outside git index / fallback | shell tools (`rg`/`grep`/`ugrep`, `fd`/`find`/`bfs`) | last resort, after `codebase-search` and `fff`      |
+| Git history / blame          | Bash (git log/blame)                                 | —                                                   |
 
 **Decision rule**: Can you write the grep pattern? Use `mcp__plugin_ora_fff__grep`. Need multiple patterns at once? Use `mcp__plugin_ora_fff__multi_grep`. Need a symbol definition or references? Use LSP. Need AST structure? Use ast-grep. Conceptual question? Use codebase-search.
 
@@ -97,9 +97,9 @@ Fast file finder MCP. Frecency-ranked results — frequent/recent files first, g
   - Good: `multi_grep(['ActorAuth', 'PopulatedActorAuth', 'actor_auth'])`
   - Bad: sequential grep calls with variants
 
-### Fallback to rg/fd
+### Fallback to shell tools
 
-Use `rg` / `fd` only when:
+Lowest-priority fallback — try `codebase-search` and `fff` MCP tools first. Use whichever shell tool is installed: `rg`/`grep`/`ugrep` for content search, `fd`/`find`/`bfs` for file discovery. Only reach for these when:
 
 - Target outside git index (untracked dirs, system paths)
 - fff MCP unavailable in session

@@ -60,7 +60,7 @@ Add to `~/.codex/config.toml`:
 
 ```toml
 [profiles.oracle]
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 approval_policy = "never"
 sandbox_mode = "read-only"

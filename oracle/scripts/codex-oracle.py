@@ -185,7 +185,7 @@ def run_codex(prompt, session_id, dry_run):
     if session_id:
         cmd = [
             "codex", "exec", "resume", session_id,
-            "-m", "gpt-5.4",
+            "-m", "gpt-5.5",
             "-c", 'model_reasoning_effort="xhigh"',
             "-c", 'approval_policy="never"',
             "--json",

@@ -80,38 +80,53 @@ sandbox_mode = "read-only"
 ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`. Recommended setup:
 
 ```markdown
-<investigate_before_responding>
-Do not respond to tech task without loading matching skill or spawning ora:Clio research first. Cost near zero; stale knowledge break implementations. Skip only when task clearly unrelated to any skill.
-
-Never speculate on code not opened. User reference specific file → read file first. Ground all claims in investigated state.
-</investigate_before_responding>
-
 <subagent_routing>
-Do not use built-in Explore or general-purpose agent — use ora:Ariadne (local codebase) and ora:Clio (external sources). general-purpose escape hatch only when no ora agent fits.
+For codebase exploration use ora:Ariadne. For external research (docs, GitHub repos, library APIs) use ora:Clio. Do not call built-in Explore or general-purpose unless no ora agent fits.
 </subagent_routing>
 
 <file_search_tools>
-Do not use shell grep/find tools (`rg`/`grep`/`ugrep`, `fd`/`find`/`bfs`) for file search in git-indexed dir. Use fff tools shipped with ora plugin: `mcp__plugin_ora_fff__find_files` (file lookup), `mcp__plugin_ora_fff__grep` (content search), `mcp__plugin_ora_fff__multi_grep` (OR logic across patterns). Frecency-ranked, faster, dirty-file boost. Fallback to whichever shell tool is installed only when outside git index.
+For code search inside git-indexed dirs use fff, not shell tools (`rg`/`grep`/`ugrep` for content, `fd`/`find`/`bfs` for files):
+
+- File lookup → `mcp__plugin_ora_fff__find_files`
+- Content search → `mcp__plugin_ora_fff__grep`
+- 2+ patterns in one call → `mcp__plugin_ora_fff__multi_grep`
+
+Why: frecency-ranked, dirty-file boosted, faster on large repos.
+Shell tools OK only for: non-git paths (/tmp, ~/.claude, /private), system inspection, log parsing, piped filtering of command output. Whichever shell tool is installed works — no preference among `rg`/`grep`/`ugrep` or `fd`/`find`/`bfs`.
 </file_search_tools>
 
+<investigate_before_claiming>
+Read code before making claims about it. User mentions a specific file → read it first, do not speculate from memory.
+
+For external libraries with non-trivial API surface → spawn ora:Clio rather than relying on training data; library APIs change.
+</investigate_before_claiming>
+
 <plan_before_implementing>
-Do not implement without calling EnterPlanMode tool first when task ambiguous, spans multiple subsystems, or acceptance criteria unclear. Skip plan mode for clearly-scoped changes: single-file bug fix with obvious fix site, mechanical rename/refactor, config/typo fix.
+Use EnterPlanMode when ANY of:
+
+- Task touches >3 files
+- Data migration, API contract, or auth changes
+- Acceptance criteria not stated by user
+- Cross-subsystem changes
+
+Skip plan mode for: single-file fix with obvious site, mechanical rename, config/typo fix, clearly-scoped refactor.
 </plan_before_implementing>
 
-<think_before_coding>
-Do not start implementing without stating assumptions and flagging tradeoffs. Multiple reasonable interpretations → present them, do not pick silent. Simpler approach exist than asked → say so, push back. Unclear enough to block correct execution → stop and ask, do not guess.
-</think_before_coding>
+<think_before_acting>
 
-<goal_driven_execution>
-Do not accept vague goals. Translate each task into verifiable success criterion before implementing ("add validation" → "write tests for invalid inputs, then make them pass"). Do not mark task complete until success criterion met — read actual code, run actual check, do not trust own summary.
-</goal_driven_execution>
+- Multiple reasonable interpretations of the task → state them, do not pick silently
+- Simpler approach exists than asked → say so, push back
+- Unclear enough to block correct execution → stop and ask the user (via AskUserQuestion); do not guess
+- Translate vague goals into verifiable success criterion ("add validation" → "tests for invalid inputs pass")
+- Mark task complete only after running actual check; do not trust own summary
+  </think_before_acting>
 
 <ask_user_question_tool>
-Do not ask user via plain response. Use AskUserQuestion tool — load via `ToolSearch` with `select:AskUserQuestion`.
+When asking the user, use AskUserQuestion tool (not plain text). Load once per session via `ToolSearch` with `select:AskUserQuestion` — tool stays available after.
 </ask_user_question_tool>
 ```
 
-`think_before_coding` and `goal_driven_execution` are adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).
+`think_before_acting` is adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).
 
 ## License
 

@@ -4,7 +4,7 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 ## Why ora
 
-Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.6, that complexity burns tokens without improving output. ora ships exactly two research agents:
+Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.7, that complexity burns tokens without improving output. ora ships exactly two research agents:
 
 - **Ariadne** — codebase exploration (enhanced contextual grep over local files)
 - **Clio** — external research (docs, web, GitHub repos)

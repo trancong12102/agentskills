@@ -4,7 +4,8 @@
       "type": "stdio",
       "command": "fff-mcp",
       "args": [],
-      "env": {}
+      "env": {},
+      "alwaysLoad": true
     }
   }
 }

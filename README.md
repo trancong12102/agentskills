@@ -80,53 +80,37 @@ sandbox_mode = "read-only"
 ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`. Recommended setup:
 
 ```markdown
-<subagent_routing>
-For codebase exploration use ora:Ariadne. For external research (docs, GitHub repos, library APIs) use ora:Clio. Do not call built-in Explore or general-purpose unless no ora agent fits.
-</subagent_routing>
+## Subagent routing
 
-<file_search_tools>
-For code search inside git-indexed dirs use fff, not shell tools (`rg`/`grep`/`ugrep` for content, `fd`/`find`/`bfs` for files):
+- **Codebase exploration** → ora:Ariadne, not built-in Explore.
+- **External research** (docs, GitHub repos, library APIs) → ora:Clio, not general-purpose web search.
+
+Fall back to built-in only if both ora agents unavailable or task falls outside codebase and external-research categories.
+
+## File search tools
+
+For code search inside git-indexed dirs use fff, not shell tools:
 
 - File lookup → `mcp__plugin_ora_fff__find_files`
 - Content search → `mcp__plugin_ora_fff__grep`
 - 2+ patterns in one call → `mcp__plugin_ora_fff__multi_grep`
 
-Why: frecency-ranked, dirty-file boosted, faster on large repos.
-Shell tools OK only for: non-git paths (/tmp, ~/.claude, /private), system inspection, log parsing, piped filtering of command output. Whichever shell tool is installed works — no preference among `rg`/`grep`/`ugrep` or `fd`/`find`/`bfs`.
-</file_search_tools>
+Why: frecency-ranked, dirty-file boosted, faster than rg/grep/fd on large repos.
 
-<investigate_before_claiming>
-Read code before making claims about it. User mentions a specific file → read it first, do not speculate from memory.
+Shell tools (rg/grep/ugrep for content, fd/find/bfs for files) are OK only for non-git paths (/tmp, ~/.claude, /private), system inspection, log parsing, and piped filtering of command output.
 
-For external libraries with non-trivial API surface → spawn ora:Clio rather than relying on training data; library APIs change.
-</investigate_before_claiming>
+## Before acting
 
-<plan_before_implementing>
-Use EnterPlanMode when ANY of:
-
-- Task touches >3 files
-- Data migration, API contract, or auth changes
-- Acceptance criteria not stated by user
-- Cross-subsystem changes
-
-Skip plan mode for: single-file fix with obvious site, mechanical rename, config/typo fix, clearly-scoped refactor.
-</plan_before_implementing>
-
-<think_before_acting>
-
-- Multiple reasonable interpretations of the task → state them, do not pick silently
-- Simpler approach exists than asked → say so, push back
-- Unclear enough to block correct execution → stop and ask the user (via AskUserQuestion); do not guess
-- Translate vague goals into verifiable success criterion ("add validation" → "tests for invalid inputs pass")
-- Mark task complete only after running actual check; do not trust own summary
-  </think_before_acting>
-
-<ask_user_question_tool>
-When asking the user, use AskUserQuestion tool (not plain text). Load once per session via `ToolSearch` with `select:AskUserQuestion` — tool stays available after.
-</ask_user_question_tool>
+- **Investigate local code first** — read code before claiming. User mentions a specific file → read it, do not speculate from memory. Why: training data does not reflect this codebase; speculation produces confidently wrong answers.
+- **Look up libraries, frameworks, tools first** — these (plus package versions, framework patterns / best practices, cloud APIs, deprecation status) change frequently; training data goes stale. Do not answer without loading the matching skill or spawning ora:Clio first — trigger on the topic, not on self-judgment of "do I know this". Cost is near zero; stale knowledge breaks implementations. Skip only when task is clearly outside these categories (pure language syntax, math, project-internal code).
+- **Plan when scope is non-trivial** — do not implement without calling EnterPlanMode tool first when task touches >3 files, involves data migration / API contract / auth changes, acceptance criteria not stated, or crosses subsystems. Skip for single-file fix with obvious site, mechanical rename, config/typo fix, refactor fully contained in one file.
+- **State ambiguity before acting** — multiple reasonable interpretations → list them and ask. Do not pick silently.
+- **Push back on scope** — simpler approach exists than asked → say so before implementing.
+- **Ask when blocked** — task unclear enough to block correct execution → ask via AskUserQuestion tool, do not guess.
+- **Mark complete only after verification** — translate vague goals into a verifiable criterion first ("add validation" → "tests for invalid inputs pass"). Do not mark done from own summary — run the actual check.
 ```
 
-`think_before_acting` is adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).
+The decision-discipline bullets under "Before acting" (State ambiguity, Push back on scope, Ask when blocked, Mark complete only after verification) are adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).
 
 ## License
 

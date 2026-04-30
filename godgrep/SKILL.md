@@ -20,7 +20,7 @@ Routes codebase search tasks to the right tool based on intent.
 | Keyword / symbol search      | `mcp__plugin_ora_fff__grep`                          | LSP for definitions                             |
 | Multi-pattern / OR search    | `mcp__plugin_ora_fff__multi_grep`                    | sequential `mcp__plugin_ora_fff__grep` calls    |
 | File discovery               | `mcp__plugin_ora_fff__find_files`                    | `mcp__plugin_ora_fff__grep` for content matches |
-| Outside git index / fallback | shell tools (`rg`/`grep`/`ugrep`, `fd`/`find`/`bfs`) | last resort, after `fff`                        |
+| Outside git index / fallback | shell `grep` / `find`                                | last resort, after `fff`                        |
 | Git history / blame          | Bash (git log/blame)                                 | —                                               |
 
 For broad questions, break into 2-3 search angles and launch in parallel.

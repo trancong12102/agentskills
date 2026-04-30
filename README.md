@@ -93,9 +93,9 @@ For code search inside git-indexed dirs use fff, not shell tools:
 - Content search → `mcp__plugin_ora_fff__grep`
 - 2+ patterns in one call → `mcp__plugin_ora_fff__multi_grep`
 
-Why: frecency-ranked, dirty-file boosted, faster than rg/grep/fd on large repos.
+Why: frecency-ranked, dirty-file boosted, faster than shell `grep`/`find` on large repos.
 
-Shell tools (rg/grep/ugrep for content, fd/find/bfs for files) are OK only for non-git paths (/tmp, ~/.claude, /private), system inspection, log parsing, and piped filtering of command output.
+Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
 
 ## Before acting
 

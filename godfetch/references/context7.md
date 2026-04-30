@@ -1,19 +1,18 @@
 # Context7
 
-Retrieve current documentation for software libraries via the official `ctx7` CLI. This is especially useful when you're unsure about an API's current interface — library docs change frequently and your training data may be outdated.
+Fallback documentation source via the official `ctx7` CLI when `scripts/llms-probe.sh` returns no `llms.txt` for the library. Covers ~33K libraries via community-curated indexes — broader reach than llms.txt adoption, but goes through an enrichment layer that can drift from the source.
 
 Auth is handled by the CLI itself. Run `bunx ctx7@latest login` once; verify with `bunx ctx7@latest whoami`. No API key env var.
 
 ## When to Use
 
-- Looking up how a library function works (e.g., "how does `useEffect` cleanup work?")
-- Checking if an API has changed in a newer version
-- Finding code examples for a specific library feature
-- Verifying correct import paths or function signatures
-- Installing or configuring a library and needing setup docs
+- `llms-probe.sh` returned no result for the library's docs domain
+- The library is small/niche and unlikely to publish llms.txt
+- You need semantic ranking across a multi-thousand-snippet corpus that an llms-full.txt fetch cannot serve
 
 ## When NOT to Use
 
+- The library publishes llms.txt — `WebFetch` it directly for canonical content
 - General programming questions (e.g., "how do closures work in JS?")
 - Questions about your own project's internal code
 - Topics unrelated to a specific open-source library or framework

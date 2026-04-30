@@ -32,7 +32,6 @@ description: |
 
 model: sonnet
 color: cyan
-tools: ["Read", "LSP", "Bash", "Skill"]
 skills:
   - godgrep
 ---

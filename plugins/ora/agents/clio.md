@@ -32,7 +32,6 @@ description: |
 
 model: sonnet
 color: green
-tools: ["WebSearch", "WebFetch", "Read", "Bash", "Skill"]
 skills:
   - godfetch
 ---

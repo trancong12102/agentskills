@@ -46,12 +46,12 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code
 
 ### Credentials
 
-| Skill      | Credential                 | How to get                                                                      |
-| ---------- | -------------------------- | ------------------------------------------------------------------------------- |
-| `godgrep`  | `MORPH_API_KEY` env var    | Sign up at [morphllm.com](https://morphllm.com) (codebase-search)               |
-| `godfetch` | `CONTEXT7_API_KEY` env var | Sign up at [context7.com](https://context7.com) (library docs)                  |
-| `godfetch` | `MORPH_API_KEY` env var    | Sign up at [morphllm.com](https://morphllm.com) (GitHub code search)            |
-| `oracle`   | Codex CLI auth             | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex) |
+| Skill      | Credential              | How to get                                                                                           |
+| ---------- | ----------------------- | ---------------------------------------------------------------------------------------------------- |
+| `godgrep`  | `MORPH_API_KEY` env var | Sign up at [morphllm.com](https://morphllm.com) (codebase-search)                                    |
+| `godfetch` | `ctx7 login`            | One-time login via `bunx ctx7@latest login` (library docs from [context7.com](https://context7.com)) |
+| `godfetch` | `MORPH_API_KEY` env var | Sign up at [morphllm.com](https://morphllm.com) (GitHub code search)                                 |
+| `oracle`   | Codex CLI auth          | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex)                      |
 
 <details>
 <summary>Codex CLI setup for oracle / council-review</summary>

@@ -12,6 +12,6 @@
     "MD033": false,
 
     // Allow bare URLs
-    "MD034": false
-  }
+    "MD034": false,
+  },
 }

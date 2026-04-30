@@ -1,8 +1,8 @@
 # Context7
 
-Retrieve current documentation for software libraries by querying the Context7 API. This is especially useful when you're unsure about an API's current interface — library docs change frequently and your training data may be outdated.
+Retrieve current documentation for software libraries via the official `ctx7` CLI. This is especially useful when you're unsure about an API's current interface — library docs change frequently and your training data may be outdated.
 
-Requires `CONTEXT7_API_KEY` environment variable.
+Auth is handled by the CLI itself. Run `bunx ctx7@latest login` once; verify with `bunx ctx7@latest whoami`. No API key env var.
 
 ## When to Use
 
@@ -20,50 +20,54 @@ Requires `CONTEXT7_API_KEY` environment variable.
 
 ## Workflow
 
-**DO NOT read script source code.** Run scripts directly and use `--help` for usage.
-
-### Step 1: Search for the Library
+### Step 1: Resolve the library ID
 
 ```bash
-python3 scripts/context7.py search <library> <topic>
+bunx ctx7@latest library <name> [query]
 ```
 
-Returns TSV with top 5 matches: `id`, `title`, `snippets`. Use the `id` from the best-matching row for the fetch step.
+Lists candidate libraries with Context7 IDs (e.g. `/websites/react_dev`), trust scores, snippet counts, and benchmark scores. The optional `[query]` re-ranks results by relevance. Pick the highest-trust ID that matches the library you want.
 
-### Step 2: Fetch Documentation
+Add `--json` for machine-readable output:
 
 ```bash
-python3 scripts/context7.py fetch <library_id> <topic> [--max-tokens N]
+bunx ctx7@latest library react "useState hook" --json
 ```
 
-Fetches documentation snippets relevant to the topic, truncated to a token budget (default: 5000).
+### Step 2: Query documentation
 
-**Choosing `--max-tokens`:**
+```bash
+bunx ctx7@latest docs <libraryId> "<query>"
+```
 
-| Scenario                                              | Tokens         | Why                                       |
-| ----------------------------------------------------- | -------------- | ----------------------------------------- |
-| Quick lookup (one function signature)                 | 2000           | Keeps output focused, faster response     |
-| Typical usage (API patterns, examples)                | 5000 (default) | Good balance of depth and brevity         |
-| Broad exploration (migration guide, full API surface) | 8000–10000     | Needed when topic spans multiple sections |
+Returns markdown snippets ordered by relevance to your query.
 
-Run `python3 scripts/context7.py --help` for full usage.
+If the first answer is shallow or wrong, retry with `--research`:
+
+```bash
+bunx ctx7@latest docs /websites/react_dev "useState hook" --research
+```
+
+`--research` spins up sandboxed agents that pull the source repo, inspect it, and run a live web search before synthesizing. It's slower and more expensive — use as a retry, not by default.
+
+Run `bunx ctx7@latest --help`, `bunx ctx7@latest library --help`, or `bunx ctx7@latest docs --help` for full usage.
 
 ## Examples
 
 ```bash
 # Find React library ID, then fetch useState docs
-python3 scripts/context7.py search react "useState hook"
-python3 scripts/context7.py fetch /websites/react_dev "useState hook with objects"
+bunx ctx7@latest library react "useState hook"
+bunx ctx7@latest docs /websites/react_dev "useState hook with objects"
 
-# Smaller budget for a quick lookup
-python3 scripts/context7.py fetch /vercel/next.js "middleware redirect" --max-tokens 2000
+# Quick API check
+bunx ctx7@latest docs /vercel/next.js "middleware redirect"
 
-# Broader exploration
-python3 scripts/context7.py fetch /langchain-ai/langchainjs "retrieval chain setup" --max-tokens 8000
+# Retry with deep research when the default answer was insufficient
+bunx ctx7@latest docs /langchain-ai/langchainjs "retrieval chain setup" --research
 ```
 
 ## Rules
 
-- **Write specific queries** — `"useState hook with objects"` retrieves much better results than `"hooks"`, because the API ranks snippets by relevance to your query.
-- **Always search before fetching** — Library IDs aren't guessable (e.g., `/websites/react_dev`), so you need the search step to find the right one.
-- **Match `--max-tokens` to the task** — Use the table above. Overshooting wastes context window; undershooting may miss the answer.
+- **Write specific queries** — `"useState hook with objects"` retrieves much better results than `"hooks"`, because the API ranks snippets by relevance to your query. Pass a query to `library` too — it improves ID ranking.
+- **Always resolve library ID first** — IDs are not guessable (e.g., `/websites/react_dev` vs `/facebook/react`), and the wrong ID returns the wrong corpus.
+- **Use `--research` as a retry, not default** — it pulls source repos and runs a live web search; reserve it for follow-ups when the default answer was shallow.

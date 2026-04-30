@@ -5,18 +5,18 @@
       "id": 0,
       "name": "lookup-library-docs",
       "prompt": "how does useOptimistic work in React 19? the examples I found online are all outdated and I need the current API signature and usage pattern",
-      "expected_output": "Should use context7 (search then fetch) for React docs, not WebSearch as primary. Should return current API with examples.",
+      "expected_output": "Should use the ctx7 CLI (library then docs) for React, not WebSearch as primary. Should return current API with examples.",
       "files": [],
       "assertions": [
         {
-          "text": "Uses context7 search as first step",
+          "text": "Resolves the library ID via ctx7 library as the first step",
           "type": "pattern",
-          "pattern": "context7\\.py.*search"
+          "pattern": "ctx7(@latest)?\\s+library"
         },
         {
-          "text": "Uses context7 fetch after search",
+          "text": "Fetches documentation via ctx7 docs after resolving the ID",
           "type": "pattern",
-          "pattern": "context7\\.py.*fetch"
+          "pattern": "ctx7(@latest)?\\s+docs"
         },
         {
           "text": "Does not use WebSearch as the primary lookup method",

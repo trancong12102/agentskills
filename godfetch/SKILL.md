@@ -47,36 +47,30 @@ Do not use WebFetch on github.com or raw.githubusercontent.com URLs — use the 
 
 ## context7 — Library Documentation
 
-Two-step workflow. Requires `CONTEXT7_API_KEY`.
+Two-step workflow via the official `ctx7` CLI. Requires `ctx7 login` once (no API key env var).
 
-### Step 1: Search
-
-```bash
-python3 scripts/context7.py search <library> <topic>
-```
-
-Returns TSV with columns: `id`, `title`, `snippets`. Use the `id` from the best match for step 2.
-
-### Step 2: Fetch
+### Step 1: Resolve library ID
 
 ```bash
-python3 scripts/context7.py fetch <library_id> <topic> [--max-tokens N]
+bunx ctx7@latest library <name> [query]
 ```
 
-**`--max-tokens` guidance:**
+Lists library candidates with their Context7 IDs (e.g. `/websites/react_dev`), trust scores, and snippet counts. The optional `[query]` re-ranks results by relevance — pass it whenever you already know the topic. Add `--json` for machine-readable output.
 
-| Scenario                                              | Tokens         | Why                               |
-| ----------------------------------------------------- | -------------- | --------------------------------- |
-| Quick lookup (one function signature)                 | 2000           | Keeps output focused              |
-| Typical usage (API patterns, examples)                | 5000 (default) | Good balance of depth and brevity |
-| Broad exploration (migration guide, full API surface) | 8000-10000     | Topic spans multiple sections     |
+### Step 2: Fetch documentation
+
+```bash
+bunx ctx7@latest docs <libraryId> "<query>"
+```
+
+Returns markdown snippets ranked by relevance. Add `--json` for structured output. If the first answer is shallow or off-topic, retry with `--research` — it spins up sandboxed agents that read the source repo and run a live web search, at higher cost.
 
 **Rules:**
 
-- Do not read script source code. Run directly or use `--help`.
-- Always search before fetch — library IDs are not guessable.
-- Write specific queries — `"useState hook with objects"` beats `"hooks"`.
-- Match `--max-tokens` to the task scope.
+- One-time setup: `bunx ctx7@latest login` (interactive). Verify with `bunx ctx7@latest whoami`.
+- Always resolve the library ID first — IDs are not guessable.
+- Write specific queries — `"useState hook with objects"` beats `"hooks"`. The query drives relevance ranking on both commands.
+- Use `--research` only as a retry when the default answer was insufficient, not by default — it's slower and more expensive.
 
 Reference: `references/context7.md`
 

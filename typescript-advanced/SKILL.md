@@ -13,18 +13,6 @@ For detailed API documentation of TypeScript features, use other appropriate too
 (documentation lookup, web search, etc.) — this skill focuses on **when**, **why**, and
 **how** to use advanced type features correctly.
 
-## Table of Contents
-
-1. [Type Safety Philosophy](#type-safety-philosophy)
-2. [Discriminated Unions & Exhaustive Checks](#discriminated-unions--exhaustive-checks)
-3. [Branded Types — Nominal Safety in a Structural System](#branded-types--nominal-safety-in-a-structural-system)
-4. [Modern Inference Tools](#modern-inference-tools)
-5. [type-fest: Don't Reinvent the Wheel](#type-fest-dont-reinvent-the-wheel)
-6. [Common Pitfalls](#common-pitfalls)
-7. [Reference Files](#reference-files)
-
----
-
 ## Type Safety Philosophy
 
 ### `any` vs `unknown` vs `never` — the only rule you need

@@ -13,18 +13,6 @@ For detailed API documentation, use other appropriate tools (documentation looku
 web search, etc.) — this skill focuses on **how** and **why** to use Effect idiomatically,
 not the full API surface.
 
-## Table of Contents
-
-1. [Core Conventions](#core-conventions)
-2. [Error Handling Philosophy](#error-handling-philosophy)
-3. [Dependency Injection Architecture](#dependency-injection-architecture)
-4. [Resource & Scope Rules](#resource--scope-rules)
-5. [Concurrency Model](#concurrency-model)
-6. [Common Pitfalls](#common-pitfalls)
-7. [Reference Files](#reference-files)
-
----
-
 ## Core Conventions
 
 ### Use `Effect.gen` for business logic

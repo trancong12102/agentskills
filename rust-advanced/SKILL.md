@@ -13,20 +13,6 @@ For detailed API documentation of any crate mentioned here, use other appropriat
 tools (documentation lookup, web search, etc.) — this skill focuses on **how** and
 **why** to use these patterns, not full API surfaces.
 
-## Table of Contents
-
-1. [Ownership & Borrowing Rules](#ownership--borrowing-rules)
-2. [Error Handling Strategy](#error-handling-strategy)
-3. [Trait System Conventions](#trait-system-conventions)
-4. [Async Rust Rules](#async-rust-rules)
-5. [Type System Patterns](#type-system-patterns)
-6. [Performance Decision Framework](#performance-decision-framework)
-7. [Unsafe Policy](#unsafe-policy)
-8. [Common Pitfalls](#common-pitfalls)
-9. [Reference Files](#reference-files)
-
----
-
 ## Ownership & Borrowing Rules
 
 ### Interior mutability — decision flowchart

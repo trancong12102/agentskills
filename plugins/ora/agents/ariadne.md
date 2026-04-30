@@ -8,7 +8,7 @@ description: |
   user: "How does authentication work in this project?"
   assistant: "I'll use the ariadne agent to trace the auth flow across the codebase."
   <commentary>
-  Cross-cutting concern — ariadne uses semantic search (codebase-search) to trace the flow across multiple files without needing exact symbol names.
+  Cross-cutting concern — ariadne anchors on directory structure and keyword variants via fff, reads the surfaced files, and synthesizes the flow across files.
   </commentary>
   </example>
 
@@ -26,7 +26,7 @@ description: |
   user: "Give me an overview of this project's architecture"
   assistant: "I'll use the ariadne agent to explore the project structure and key components."
   <commentary>
-  Architecture overview — ariadne combines semantic search for broad mapping with ast-grep for structural pattern matching across the codebase.
+  Architecture overview — ariadne combines fff-driven exploration for broad mapping with ast-grep for structural pattern matching across the codebase.
   </commentary>
   </example>
 

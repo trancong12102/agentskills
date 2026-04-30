@@ -18,17 +18,6 @@ For detailed API documentation of any library mentioned here, use other appropri
 (documentation lookup, web search, etc.) — this skill focuses on **how** and **why** to
 use these tools, not their full API surface.
 
-## Table of Contents
-
-1. [The useEffect Ban](#the-useeffect-ban)
-2. [State Management Philosophy](#state-management-philosophy)
-3. [Architecture: Which Library Owns What](#architecture-which-library-owns-what)
-4. [Component Composition](#component-composition)
-5. [Common Pitfalls](#common-pitfalls)
-6. [Reference Files](#reference-files)
-
----
-
 ## The useEffect Ban
 
 Do not use `useEffect` for:

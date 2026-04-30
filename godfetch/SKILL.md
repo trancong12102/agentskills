@@ -5,45 +5,42 @@ description: "Unified external research for documentation, GitHub code, and pack
 
 # godfetch
 
-Unified external research — look up library documentation, search GitHub source code, and check package versions from a single skill.
+Unified external research — look up library documentation, search source code in any git repository, and check package versions from a single skill.
 
 ## Routing
 
-| Intent                         | Primary tool                       | Fallback                              |
-| ------------------------------ | ---------------------------------- | ------------------------------------- |
-| Library docs, API reference    | `context7`                         | WebSearch for niche/undocumented libs |
-| Changelogs, breaking changes   | `context7`                         | `gh api contents` for CHANGELOG.md    |
-| Code in GitHub repos           | `github-codebase-search`           | `gh search code` for exact matches    |
-| GitHub issues                  | `gh issue view <N>`                | `gh search issues` for discovery      |
-| GitHub PRs                     | `gh pr view <N>`                   | `gh search prs` for discovery         |
-| GitHub file (known path)       | `gh api repos/.../contents/<path>` | `github-codebase-search`              |
-| Package version, deprecation   | `deps-dev`                         | `npm view` for npm-only metadata      |
-| npm package info (non-version) | `npm view <pkg>` (Bash)            | WebSearch for community sentiment     |
-| General web lookup             | WebSearch → WebFetch               | —                                     |
-| Comparison / decision          | `context7` + WebSearch             | `github-codebase-search` for usage    |
+| Intent                          | Primary tool                       | Fallback                              |
+| ------------------------------- | ---------------------------------- | ------------------------------------- |
+| Library docs, API reference     | `context7`                         | WebSearch for niche/undocumented libs |
+| Changelogs, breaking changes    | `context7`                         | `gh api contents` for CHANGELOG.md    |
+| Code in public git repos        | `git-clone` + shell tools          | `gh search code` for exact matches    |
+| GitHub issues                   | `gh issue view <N>`                | `gh search issues` for discovery      |
+| GitHub PRs                      | `gh pr view <N>`                   | `gh search prs` for discovery         |
+| Single GitHub file (known path) | `gh api repos/.../contents/<path>` | `git-clone` + shell tools             |
+| Package version, deprecation    | `deps-dev`                         | `npm view` for npm-only metadata      |
+| npm package info (non-version)  | `npm view <pkg>` (Bash)            | WebSearch for community sentiment     |
+| General web lookup              | WebSearch → WebFetch               | —                                     |
+| Comparison / decision           | `context7` + WebSearch             | `git-clone` + shell tools for usage   |
 
-For mixed requests, launch all relevant tools in parallel.
+For mixed requests, launch all relevant tools in parallel. Cloning is I/O-bound — start `git-clone` in the background and run `context7`/WebSearch concurrently to mask clone latency.
 
 ### GitHub access rules
 
 Do not use WebFetch on github.com or raw.githubusercontent.com URLs — use the right tool:
 
-| GitHub content           | Use                                   | Never                                |
-| ------------------------ | ------------------------------------- | ------------------------------------ |
-| Source code (semantic)   | `github-codebase-search`              | browsing files via `gh api contents` |
-| Source file (known path) | `gh api repos/.../contents/<path>`    | `WebFetch` raw.githubusercontent.com |
-| Issues                   | `gh issue view <N> --repo owner/repo` | `WebFetch` github.com/.../issues/N   |
-| Pull requests            | `gh pr view <N> --repo owner/repo`    | `WebFetch` github.com/.../pull/N     |
-| Issue/PR search          | `gh search issues "q" --repo ...`     | `WebFetch` github.com/issues?q=...   |
-| CHANGELOG.md             | `context7` or `gh api contents`       | `WebFetch` blob/ or raw URLs         |
+| GitHub content            | Use                                   | Never                                |
+| ------------------------- | ------------------------------------- | ------------------------------------ |
+| Source code (exploration) | `git-clone` + shell tools             | browsing files via `gh api contents` |
+| Source file (known path)  | `gh api repos/.../contents/<path>`    | `WebFetch` raw.githubusercontent.com |
+| Issues                    | `gh issue view <N> --repo owner/repo` | `WebFetch` github.com/.../issues/N   |
+| Pull requests             | `gh pr view <N> --repo owner/repo`    | `WebFetch` github.com/.../pull/N     |
+| Issue/PR search           | `gh search issues "q" --repo ...`     | `WebFetch` github.com/issues?q=...   |
+| CHANGELOG.md              | `context7` or `gh api contents`       | `WebFetch` blob/ or raw URLs         |
 
 ### Search discipline
 
 - **deps-dev for versions**: when checking latest version, deprecation, or comparing installed vs latest — always use `deps-dev` first. Only fall back to `npm view` or WebSearch if deps-dev errors or the package is private.
 - **Context7 first**: for any library with >1K GitHub stars, try `context7` before WebSearch.
-- **Per-topic budget**: max 4 WebSearch queries on the same topic. If 4 don't answer it, switch tools or note the gap.
-- **Fetch budget**: max 6 WebFetch calls per research task. Read results thoroughly before fetching more.
-- **No duplicates**: do not fetch the same URL twice.
 
 ## context7 — Library Documentation
 
@@ -74,31 +71,30 @@ Returns markdown snippets ranked by relevance. Add `--json` for structured outpu
 
 Reference: `references/context7.md`
 
-## github-codebase-search — GitHub Source Code
+## git-clone — Source Code Exploration
 
-Single-command semantic search. Requires `MORPH_API_KEY`.
+Shallow-clone any public git repo into a local cache and explore the working tree with shell tools. Cache lives at `~/.cache/clio-repos/` and is reused across sessions.
 
 ```bash
-python3 scripts/github-codebase-search.py search "<query>" --repo <owner/repo>
+bash scripts/git-clone.sh <repo> [--branch X] [--refresh]
 ```
 
-**Alternative flags:**
+The script echoes the absolute path of the cached clone. Subsequent calls for the same repo return the cached path instantly (no re-clone).
 
-- `--url <github_url>` — use instead of `--repo` when you have a full URL
-- `--branch <branch>` — search a specific branch (defaults to repo default)
-- `--timeout N` — seconds to wait (default: 120, increase for large repos)
+**Repo argument forms:**
 
-Must provide either `--repo` or `--url`.
+- `owner/repo` — GitHub shortcut (e.g. `vercel/next.js`)
+- Full HTTPS URL — works for any host (`https://gitlab.com/...`, `https://gitlab.jmango360.com/...`)
+- SSH form — `git@host:path` (requires SSH key configured)
+
+**Parallelization:** clone is I/O-bound (1-3s for small/medium repos). When researching a topic that needs both docs and source code, dispatch the clone and `context7`/WebSearch in parallel — by the time docs return, the clone is ready to explore.
 
 **Rules:**
 
-- Do not read script source code. Run directly or use `--help`.
-- Write queries as natural language questions — the search agent plans its own strategy.
-- Be specific — `"How does Prisma handle relation loading in findMany?"` beats `"Prisma relations"`.
-- Provide the repo — the tool needs to know which GitHub repository to search.
-- Default timeout is 120s — use `--timeout 180` or higher for large repos.
-
-Reference: `references/github-codebase-search.md`
+- Do not read script source code. Run with `--help` for usage.
+- Default cache is `~/.cache/clio-repos/`; override with `--cache-dir` when needed.
+- Caches are reused — pass `--refresh` only when you need the latest commit.
+- For one-off file fetches by exact path, prefer `gh api repos/.../contents/<path>` — no clone overhead.
 
 ## deps-dev — Package Versions
 

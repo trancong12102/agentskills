@@ -9,17 +9,6 @@ Web-specific patterns for React apps built on the TanStack Router + Start + Virt
 This skill extends `react-advanced` (core cross-platform patterns). Read that skill first for
 React Query, XState, Zustand, Zod, TanStack Form, and TanStack Table conventions.
 
-## Table of Contents
-
-1. [Web Architecture](#web-architecture)
-2. [Route Loader + React Query Pattern](#route-loader--react-query-pattern)
-3. [Performance Patterns](#performance-patterns)
-4. [File Organization](#file-organization)
-5. [Common Pitfalls](#common-pitfalls)
-6. [Reference Files](#reference-files)
-
----
-
 ## Web Architecture
 
 The web stack adds three layers on top of the shared core:

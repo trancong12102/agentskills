@@ -64,7 +64,6 @@ Once you have a complete, clear answer from the oracle (after one or more rounds
 
 1. Synthesize all Codex responses into a single coherent answer for the user.
 2. Use your own judgment on formatting and what to highlight — you do not need to echo every detail from every round.
-3. Structure adapts to question type (architecture -> components/trade-offs, bug -> root cause hypotheses, security -> threat model, etc.).
 
 ## Rules
 

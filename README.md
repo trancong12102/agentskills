@@ -81,7 +81,7 @@ ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`
 ## Subagent routing
 
 - **Codebase exploration** → ora:Ariadne, not built-in Explore.
-- **External research** (docs, GitHub repos, library APIs) → ora:Clio, not general-purpose web search.
+- **External research** (docs, GitHub repos, library APIs) → ora:Clio, not main-agent curl/gh/WebFetch. Even a single independent lookup goes to Clio. Multiple independent lookups in the same turn → spawn parallel Clio agents in one message. "Independent" = query does not depend on a prior tool call's output in this turn. Why: main-agent curl|grep dumps raw HTML/grep noise into context; Clio returns synthesized answers and parallelizes trivially. Skip Clio for empirical tests against actual endpoints, iterative drilldown (step N+1 needs step N's output), and system inspection (dig/brew/ps).
 
 Fall back to built-in only if both ora agents unavailable or task falls outside codebase and external-research categories.
 

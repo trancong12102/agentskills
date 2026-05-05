@@ -9,21 +9,45 @@ Routes codebase search tasks to the right tool based on intent.
 
 ## Tool Routing
 
-| Intent                       | Primary tool                                         | Also consider                                   |
-| ---------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
-| Conceptual / semantic Q      | `mcp__plugin_ora_fff__find_files` + grep → Read loop | LSP for call chains                             |
-| Architecture / broad explore | `mcp__plugin_ora_fff__find_files` for dir structure  | `mcp__plugin_ora_fff__grep` for keyword anchors |
-| Trace a flow / feature       | `mcp__plugin_ora_fff__grep` → Read                   | LSP for call chains                             |
-| Find all usages of X         | LSP find-references                                  | `mcp__plugin_ora_fff__grep`                     |
-| Find a specific symbol       | LSP go-to-definition                                 | `mcp__plugin_ora_fff__grep`                     |
-| Structural code patterns     | `ast-grep`                                           | `mcp__plugin_ora_fff__grep` as fallback         |
-| Keyword / symbol search      | `mcp__plugin_ora_fff__grep`                          | LSP for definitions                             |
-| Multi-pattern / OR search    | `mcp__plugin_ora_fff__multi_grep`                    | sequential `mcp__plugin_ora_fff__grep` calls    |
-| File discovery               | `mcp__plugin_ora_fff__find_files`                    | `mcp__plugin_ora_fff__grep` for content matches |
-| Outside git index / fallback | shell `grep` / `find`                                | last resort, after `fff`                        |
-| Git history / blame          | Bash (git log/blame)                                 | —                                               |
+| Intent                                               | Primary tool                                        | Also consider                                       |
+| ---------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| Semantic / "how does X work" — exact keyword unknown | `mcp__plugin_ora_ccc__search`                       | `mcp__plugin_ora_fff__grep` once a keyword surfaces |
+| Architecture / broad explore                         | `mcp__plugin_ora_fff__find_files` for dir structure | `mcp__plugin_ora_ccc__search` for entry points      |
+| Trace a flow / feature                               | `mcp__plugin_ora_fff__grep` → Read                  | LSP for call chains                                 |
+| Find all usages of X                                 | LSP find-references                                 | `mcp__plugin_ora_fff__grep`                         |
+| Find a specific symbol                               | LSP go-to-definition                                | `mcp__plugin_ora_fff__grep`                         |
+| Structural code patterns                             | `ast-grep`                                          | `mcp__plugin_ora_fff__grep` as fallback             |
+| Keyword / symbol search                              | `mcp__plugin_ora_fff__grep`                         | LSP for definitions                                 |
+| Multi-pattern / OR search                            | `mcp__plugin_ora_fff__multi_grep`                   | sequential `mcp__plugin_ora_fff__grep` calls        |
+| File discovery                                       | `mcp__plugin_ora_fff__find_files`                   | `mcp__plugin_ora_fff__grep` for content matches     |
+| Outside git index / fallback                         | shell `grep` / `find`                               | last resort, after `fff`                            |
+| Git history / blame                                  | Bash (git log/blame)                                | —                                                   |
 
 For broad questions, break into 2-3 search angles and launch in parallel.
+
+## ccc — cocoindex-code (semantic search)
+
+Vector-based code search — finds chunks by meaning, not text match. Returns top-K hits ranked by relevance score with file path + line range.
+
+```python
+mcp__plugin_ora_ccc__search(query="natural language or code snippet", limit=5)
+```
+
+Optional filters: `paths` (glob), `languages` (e.g. `["python", "typescript"]`), `offset` (pagination).
+
+Use when:
+
+- Question is conceptual ("how does auth work", "where do we handle retries") and you do not know the identifier to grep for.
+- Exploring an unfamiliar codebase and want entry points, not exhaustive enumeration.
+- Looking for code similar to a snippet (paste snippet as query).
+
+Do not use when:
+
+- You already have a specific keyword/identifier — `mcp__plugin_ora_fff__grep` is faster and exhaustive.
+- You need every match (ccc returns top-K by score, not all hits).
+- You need a file by name — `mcp__plugin_ora_fff__find_files`.
+
+Typical flow: ccc surfaces relevant files → switch to fff grep + Read on those paths for precise follow-up.
 
 ## ast-grep
 

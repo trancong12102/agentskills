@@ -5,7 +5,8 @@ __pycache__/
 *.pyc
 .AppleDouble
 .LSOverride
-Icon[]
+Icon[
+]
 
 # Thumbnails
 ._*
@@ -33,3 +34,5 @@ bun.lock
 Network Trash Folder
 Temporary Items
 .apdisk
+# CocoIndex Code (ccc)
+/.cocoindex_code/

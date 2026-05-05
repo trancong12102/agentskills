@@ -15,7 +15,12 @@ Both isolate search context from the main conversation — broad queries never p
 
 ### Prerequisites
 
-ora bundles [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) (fast file finder, frecency-ranked) as an MCP server, so the binary must exist on `PATH` before installing the plugin:
+ora ships two MCP servers — both binaries must exist on `PATH` before installing the plugin:
+
+- [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) — fast file finder, frecency-ranked.
+- [`ccc`](https://github.com/cocoindex-io/cocoindex-code) — semantic code search (cocoindex-code). See the repo for install and configuration.
+
+Install `fff-mcp`:
 
 ```shell
 # Install the prebuilt binary to ~/.local/bin/fff-mcp
@@ -87,13 +92,14 @@ Fall back to built-in only if both ora agents unavailable or task falls outside 
 
 ## File search tools
 
-For code search inside git-indexed dirs use fff, not shell tools:
+For code search inside git-indexed dirs use fff or ccc, not shell tools:
 
 - File lookup → `mcp__plugin_ora_fff__find_files`
-- Content search → `mcp__plugin_ora_fff__grep`
+- Content search (known keyword/identifier) → `mcp__plugin_ora_fff__grep`
 - 2+ patterns in one call → `mcp__plugin_ora_fff__multi_grep`
+- Semantic / "how does X work" when keyword unknown → `mcp__plugin_ora_ccc__search`
 
-Why: frecency-ranked, dirty-file boosted, faster than shell `grep`/`find` on large repos.
+Why: fff is frecency-ranked, dirty-file boosted, exhaustive — best when you have a keyword. ccc returns code-by-meaning with relevance scores — best when you don't, or for conceptual questions on unfamiliar code. Both faster than shell `grep`/`find` on large repos.
 
 Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
 

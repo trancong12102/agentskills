@@ -11,14 +11,15 @@ Routes codebase search tasks to the right tool based on intent.
 
 | Intent                                               | Primary tool                                        | Also consider                                       |
 | ---------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
-| Semantic / "how does X work" — exact keyword unknown | `mcp__plugin_ora_ccc__search`                       | `mcp__plugin_ora_fff__grep` once a keyword surfaces |
+| Concept / feature / "how does X work"                | `mcp__plugin_ora_ccc__search`                       | `mcp__plugin_ora_fff__grep` once a keyword surfaces |
+| Trace a flow when no single identifier covers it     | `mcp__plugin_ora_ccc__search` to find entry points  | `mcp__plugin_ora_fff__grep` to follow refs          |
 | Architecture / broad explore                         | `mcp__plugin_ora_fff__find_files` for dir structure | `mcp__plugin_ora_ccc__search` for entry points      |
-| Trace a flow / feature                               | `mcp__plugin_ora_fff__grep` → Read                  | LSP for call chains                                 |
 | Find all usages of X                                 | LSP find-references                                 | `mcp__plugin_ora_fff__grep`                         |
 | Find a specific symbol                               | LSP go-to-definition                                | `mcp__plugin_ora_fff__grep`                         |
 | Structural code patterns                             | `ast-grep`                                          | `mcp__plugin_ora_fff__grep` as fallback             |
-| Keyword / symbol search                              | `mcp__plugin_ora_fff__grep`                         | LSP for definitions                                 |
-| Multi-pattern / OR search                            | `mcp__plugin_ora_fff__multi_grep`                   | sequential `mcp__plugin_ora_fff__grep` calls        |
+| Keyword / symbol search (exact identifier known)     | `mcp__plugin_ora_fff__grep`                         | LSP for definitions                                 |
+| Multi-pattern OR — naming variants of one identifier | `mcp__plugin_ora_fff__multi_grep`                   | sequential `mcp__plugin_ora_fff__grep` calls        |
+| Multi-pattern OR — enumerating a feature's keywords  | `mcp__plugin_ora_ccc__search` first                 | fall back to `mcp__plugin_ora_fff__multi_grep`      |
 | File discovery                                       | `mcp__plugin_ora_fff__find_files`                   | `mcp__plugin_ora_fff__grep` for content matches     |
 | Outside git index / fallback                         | shell `grep` / `find`                               | last resort, after `fff`                            |
 | Git history / blame                                  | Bash (git log/blame)                                | —                                                   |
@@ -40,6 +41,7 @@ Use when:
 - Question is conceptual ("how does auth work", "where do we handle retries") and you do not know the identifier to grep for.
 - Exploring an unfamiliar codebase and want entry points, not exhaustive enumeration.
 - Looking for code similar to a snippet (paste snippet as query).
+- You are about to run a multi-keyword OR-grep enumerating a feature's likely names — that is the shotgun-grep anti-pattern below.
 
 Do not use when:
 
@@ -48,6 +50,24 @@ Do not use when:
 - You need a file by name — `mcp__plugin_ora_fff__find_files`.
 
 Typical flow: ccc surfaces relevant files → switch to fff grep + Read on those paths for precise follow-up.
+
+### Anti-pattern: shotgun OR-grep for features
+
+If you find yourself writing a long OR-pattern enumerating guesses for one feature, switch to ccc:
+
+```text
+# Shotgun-grep — fragile; misses synonyms, drowns in noise
+grep -r "FreeGift|ProgressBar|GiftModal|BuyXGetY|percentOff|fixedOff|salepify"
+grep -r "appUpdate|checkAppUpdate|versionCheck|setAppUpdateHandler|needUpdate"
+grep -r "darkMode|dark_mode|DarkMode|ColorScheme|useColorScheme|theme"
+
+# ccc — meaning-ranked, one query
+mcp__plugin_ora_ccc__search(query="free gift and discount rules", limit=5)
+mcp__plugin_ora_ccc__search(query="force update / version check flow", limit=5)
+mcp__plugin_ora_ccc__search(query="dark mode color scheme handling", limit=5)
+```
+
+`multi_grep` is for naming variants of **one identifier** (e.g. `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`), not for guessing a feature's vocabulary.
 
 ## ast-grep
 

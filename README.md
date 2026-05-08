@@ -6,7 +6,7 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.7, that complexity burns tokens without improving output. ora ships exactly two research agents:
 
-- **Ariadne** — codebase exploration (enhanced contextual grep over local files)
+- **Ariadne** — codebase exploration (semantic + keyword search across local files)
 - **Clio** — external research (docs, web, GitHub repos)
 
 Both isolate search context from the main conversation — broad queries never pollute your main window. The plugin has no hooks and no planning/verification/execution agents. Planning and verification happen inline in the main agent, shaped by behavioral rules in your `CLAUDE.md` (see Configuration below).
@@ -95,11 +95,13 @@ Fall back to built-in only if both ora agents unavailable or task falls outside 
 For code search inside git-indexed dirs use fff or ccc, not shell tools:
 
 - File lookup → `mcp__plugin_ora_fff__find_files`
-- Content search (known keyword/identifier) → `mcp__plugin_ora_fff__grep`
-- 2+ patterns in one call → `mcp__plugin_ora_fff__multi_grep`
-- Semantic / "how does X work" when keyword unknown → `mcp__plugin_ora_ccc__search`
+- Content search, exact identifier known → `mcp__plugin_ora_fff__grep`
+- Naming variants of **one** identifier (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`
+- Concept / feature / "how does X work" → `mcp__plugin_ora_ccc__search`
 
-Why: fff is frecency-ranked, dirty-file boosted, exhaustive — best when you have a keyword. ccc returns code-by-meaning with relevance scores — best when you don't, or for conceptual questions on unfamiliar code. Both faster than shell `grep`/`find` on large repos.
+Why: fff is frecency-ranked, dirty-file boosted, exhaustive — best when you have the exact name. ccc returns code-by-meaning with relevance scores — best for concepts, features, or unfamiliar code. Both faster than shell `grep`/`find` on large repos.
+
+Shotgun-grep anti-pattern: about to write an OR-pattern enumerating guesses for one feature — `grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`, `grep "appUpdate|checkAppUpdate|versionCheck|needUpdate"` — use ccc instead. Why: ccc ranks by meaning so one query catches synonyms a guess-list misses, while a 5-term OR-grep is fragile and noisy. `multi_grep` is for variants of **one identifier**, not for guessing a feature's vocabulary.
 
 Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
 

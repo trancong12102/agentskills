@@ -92,16 +92,14 @@ Fall back to built-in only if both ora agents unavailable or task falls outside 
 
 ## File search tools
 
-For code search inside git-indexed dirs use fff or ccc, not shell tools:
+For code search inside git-indexed dirs use ccc or fff, not shell tools. Route by what you have in hand:
 
-- File lookup → `mcp__plugin_ora_fff__find_files`
-- Content search, exact identifier known → `mcp__plugin_ora_fff__grep`
-- Naming variants of **one** identifier (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`
-- Concept / feature / "how does X work" → `mcp__plugin_ora_ccc__search`
+- **Only a concept / feature / question, no symbol to type** → `mcp__plugin_ora_ccc__search`. Triggers: "how does X work", "where do we handle Y", a feature described in prose, or you are about to enumerate guess-words for one feature. Why: ccc ranks by meaning, so one query catches synonyms a grep would miss.
+- **Exact identifier you can spell** (function / class / variable / constant name) → `mcp__plugin_ora_fff__grep`. Why: faster and exhaustive vs ccc's top-K-by-score; do not pay the semantic-search cost for a known token.
+- **Naming variants of ONE identifier** (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`. Scope: variants of one symbol like `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']` — not for enumerating a feature's vocabulary, that is ccc.
+- **File by name** → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
 
-Why: fff is frecency-ranked, dirty-file boosted, exhaustive — best when you have the exact name. ccc returns code-by-meaning with relevance scores — best for concepts, features, or unfamiliar code. Both faster than shell `grep`/`find` on large repos.
-
-Shotgun-grep anti-pattern: about to write an OR-pattern enumerating guesses for one feature — `grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`, `grep "appUpdate|checkAppUpdate|versionCheck|needUpdate"` — use ccc instead. Why: ccc ranks by meaning so one query catches synonyms a guess-list misses, while a 5-term OR-grep is fragile and noisy. `multi_grep` is for variants of **one identifier**, not for guessing a feature's vocabulary.
+Shotgun-grep anti-pattern: about to write an OR-pattern enumerating guesses for one feature — `grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`, `grep "modal\.com|import modal|@app\.function|@stub"`, `multi_grep(['safeAreaInset','tabViewBottomAccessory','tabBarMinimizeBehavior','toolbar(.hidden'])` — use ccc instead. Why: a 5-term OR-pattern is fragile and noisy; ccc with one prose query catches synonyms by meaning. Trigger check: ≥3 guess-words for the same feature → switch to ccc.
 
 Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
 

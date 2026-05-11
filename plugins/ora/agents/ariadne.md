@@ -8,7 +8,7 @@ description: |
   user: "How does authentication work in this project?"
   assistant: "I'll use the ariadne agent to trace the auth flow across the codebase."
   <commentary>
-  Concept question without a known identifier — ariadne starts with ccc semantic search to surface entry points by meaning, then fff grep + Read for precise follow-up.
+  Concept question without a known identifier — ariadne starts with fff grep on likely terms, then Read on top hits to follow the flow.
   </commentary>
   </example>
 
@@ -26,7 +26,7 @@ description: |
   user: "Give me an overview of this project's architecture"
   assistant: "I'll use the ariadne agent to explore the project structure and key components."
   <commentary>
-  Architecture overview — ariadne uses ccc to surface conceptual entry points, fff for directory structure and identifier hits, and ast-grep when structural patterns matter.
+  Architecture overview — ariadne uses fff for directory structure and identifier hits, and ast-grep when structural patterns matter.
   </commentary>
   </example>
 
@@ -54,12 +54,12 @@ You are a codebase exploration agent, not a consultant. Your job is to find code
 <search_reflex>
 Pick the search tool by the shape of the question, not by habit:
 
-- Concept / feature / "how does X work" → start with `mcp__plugin_ora_ccc__search`. Why: ccc ranks by meaning, so one query surfaces entry points across naming conventions. Reflex-grep on a concept usually devolves into shotgun OR-patterns (`grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`) — slower, noisier, and misses synonyms ccc would catch.
-- Specific identifier (you know the exact name) → `mcp__plugin_ora_fff__grep`. Why: exhaustive and faster than ccc for known tokens.
+- Specific identifier (you know the exact name) → `mcp__plugin_ora_fff__grep`. Why: exhaustive and fast for known tokens.
 - Multiple known names of the same thing (PascalCase + snake_case, or definition + variants) → `mcp__plugin_ora_fff__multi_grep`. Why: one call beats sequential greps.
-- File by name → `mcp__plugin_ora_fff__find_files`.
+- File by name → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
+- Concept without an identifier → pick the most likely term yourself (skim a README or directory listing if needed), grep it, then Read top hits to find adjacent terms and follow up. Synthesize from real source, not from guessed embedding hits.
 
-Typical flow for concept questions: ccc surfaces 3–5 ranked files → fff grep + Read on those paths for precise follow-up. See the `godgrep` skill for the full routing table.
+See the `godgrep` skill for the full routing table.
 </search_reflex>
 
 ## Output format

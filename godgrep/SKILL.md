@@ -9,65 +9,31 @@ Routes codebase search tasks to the right tool based on intent.
 
 ## Tool Routing
 
-| Intent                                               | Primary tool                                        | Also consider                                       |
-| ---------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
-| Concept / feature / "how does X work"                | `mcp__plugin_ora_ccc__search`                       | `mcp__plugin_ora_fff__grep` once a keyword surfaces |
-| Trace a flow when no single identifier covers it     | `mcp__plugin_ora_ccc__search` to find entry points  | `mcp__plugin_ora_fff__grep` to follow refs          |
-| Architecture / broad explore                         | `mcp__plugin_ora_fff__find_files` for dir structure | `mcp__plugin_ora_ccc__search` for entry points      |
-| Find all usages of X                                 | LSP find-references                                 | `mcp__plugin_ora_fff__grep`                         |
-| Find a specific symbol                               | LSP go-to-definition                                | `mcp__plugin_ora_fff__grep`                         |
-| Structural code patterns                             | `ast-grep`                                          | `mcp__plugin_ora_fff__grep` as fallback             |
-| Keyword / symbol search (exact identifier known)     | `mcp__plugin_ora_fff__grep`                         | LSP for definitions                                 |
-| Multi-pattern OR — naming variants of one identifier | `mcp__plugin_ora_fff__multi_grep`                   | sequential `mcp__plugin_ora_fff__grep` calls        |
-| Multi-pattern OR — enumerating a feature's keywords  | `mcp__plugin_ora_ccc__search` first                 | fall back to `mcp__plugin_ora_fff__multi_grep`      |
-| File discovery                                       | `mcp__plugin_ora_fff__find_files`                   | `mcp__plugin_ora_fff__grep` for content matches     |
-| Outside git index / fallback                         | shell `grep` / `find`                               | last resort, after `fff`                            |
-| Git history / blame                                  | Bash (git log/blame)                                | —                                                   |
+| Intent                                               | Primary tool                                        | Also consider                                |
+| ---------------------------------------------------- | --------------------------------------------------- | -------------------------------------------- |
+| Keyword / symbol search (exact identifier known)     | `mcp__plugin_ora_fff__grep`                         | LSP for definitions                          |
+| Multi-pattern OR — naming variants of one identifier | `mcp__plugin_ora_fff__multi_grep`                   | sequential `mcp__plugin_ora_fff__grep` calls |
+| File discovery                                       | `mcp__plugin_ora_fff__find_files`                   | `mcp__plugin_ora_fff__grep` for content      |
+| Find all usages of X                                 | LSP find-references                                 | `mcp__plugin_ora_fff__grep`                  |
+| Find a specific symbol                               | LSP go-to-definition                                | `mcp__plugin_ora_fff__grep`                  |
+| Structural code patterns                             | `ast-grep`                                          | `mcp__plugin_ora_fff__grep` as fallback      |
+| Concept / "how does X work" / unfamiliar codebase    | `mcp__plugin_ora_fff__find_files` for dir structure | grep a likely term, Read top hits, follow up |
+| Architecture / broad explore                         | `mcp__plugin_ora_fff__find_files` for dir structure | Read README/docs, then grep entry points     |
+| Outside git index / fallback                         | shell `grep` / `find`                               | last resort, after `fff`                     |
+| Git history / blame                                  | Bash (git log/blame)                                | —                                            |
 
 For broad questions, break into 2-3 search angles and launch in parallel.
 
-## ccc — cocoindex-code (semantic search)
+## Concept questions without a known identifier
 
-Vector-based code search — finds chunks by meaning, not text match. Returns top-K hits ranked by relevance score with file path + line range.
+When the question is conceptual ("how does auth work", "where do we handle retries") and no single keyword covers it:
 
-```python
-mcp__plugin_ora_ccc__search(query="natural language or code snippet", limit=5)
-```
+1. Look at directory structure with `find_files` or a quick `ls` of likely roots (`src/auth`, `apps/*/services`).
+2. Skim a top-level README or index file to learn the vocabulary used in this repo.
+3. Grep one likely term — read the top hit fully, not just the snippet — and let the imports/calls in that file point you to the next term.
+4. Repeat. Two reads beat ten greps.
 
-Optional filters: `paths` (glob), `languages` (e.g. `["python", "typescript"]`), `offset` (pagination).
-
-Use when:
-
-- Question is conceptual ("how does auth work", "where do we handle retries") and you do not know the identifier to grep for.
-- Exploring an unfamiliar codebase and want entry points, not exhaustive enumeration.
-- Looking for code similar to a snippet (paste snippet as query).
-- You are about to run a multi-keyword OR-grep enumerating a feature's likely names — that is the shotgun-grep anti-pattern below.
-
-Do not use when:
-
-- You already have a specific keyword/identifier — `mcp__plugin_ora_fff__grep` is faster and exhaustive.
-- You need every match (ccc returns top-K by score, not all hits).
-- You need a file by name — `mcp__plugin_ora_fff__find_files`.
-
-Typical flow: ccc surfaces relevant files → switch to fff grep + Read on those paths for precise follow-up.
-
-### Anti-pattern: shotgun OR-grep for features
-
-If you find yourself writing a long OR-pattern enumerating guesses for one feature, switch to ccc:
-
-```text
-# Shotgun-grep — fragile; misses synonyms, drowns in noise
-grep -r "FreeGift|ProgressBar|GiftModal|BuyXGetY|percentOff|fixedOff|salepify"
-grep -r "appUpdate|checkAppUpdate|versionCheck|setAppUpdateHandler|needUpdate"
-grep -r "darkMode|dark_mode|DarkMode|ColorScheme|useColorScheme|theme"
-
-# ccc — meaning-ranked, one query
-mcp__plugin_ora_ccc__search(query="free gift and discount rules", limit=5)
-mcp__plugin_ora_ccc__search(query="force update / version check flow", limit=5)
-mcp__plugin_ora_ccc__search(query="dark mode color scheme handling", limit=5)
-```
-
-`multi_grep` is for naming variants of **one identifier** (e.g. `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`), not for guessing a feature's vocabulary.
+The point is to converge on the real vocabulary of the repo before grepping. Guessed multi-keyword OR-patterns (`grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`) are fragile — they miss synonyms and drown in noise. `multi_grep` is for naming variants of **one identifier** (e.g. `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`), not for guessing a feature's likely names.
 
 ## ast-grep
 

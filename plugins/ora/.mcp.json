@@ -6,13 +6,6 @@
       "args": [],
       "env": {},
       "alwaysLoad": true
-    },
-    "ccc": {
-      "type": "stdio",
-      "command": "ccc",
-      "args": ["mcp"],
-      "env": {},
-      "alwaysLoad": true
     }
   }
 }

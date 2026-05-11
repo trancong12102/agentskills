@@ -6,7 +6,7 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.7, that complexity burns tokens without improving output. ora ships exactly two research agents:
 
-- **Ariadne** — codebase exploration (semantic + keyword search across local files)
+- **Ariadne** — codebase exploration (keyword search and file discovery across local files)
 - **Clio** — external research (docs, web, GitHub repos)
 
 Both isolate search context from the main conversation — broad queries never pollute your main window. The plugin has no hooks and no planning/verification/execution agents. Planning and verification happen inline in the main agent, shaped by behavioral rules in your `CLAUDE.md` (see Configuration below).
@@ -15,10 +15,9 @@ Both isolate search context from the main conversation — broad queries never p
 
 ### Prerequisites
 
-ora ships two MCP servers — both binaries must exist on `PATH` before installing the plugin:
+ora ships one MCP server — the binary must exist on `PATH` before installing the plugin:
 
 - [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) — fast file finder, frecency-ranked.
-- [`ccc`](https://github.com/cocoindex-io/cocoindex-code) — semantic code search (cocoindex-code). See the repo for install and configuration.
 
 Install `fff-mcp`:
 
@@ -92,14 +91,12 @@ Fall back to built-in only if both ora agents unavailable or task falls outside 
 
 ## File search tools
 
-For code search inside git-indexed dirs use ccc or fff, not shell tools. Route by what you have in hand:
+For code search inside git-indexed dirs use fff, not shell tools. Route by what you have in hand:
 
-- **Only a concept / feature / question, no symbol to type** → `mcp__plugin_ora_ccc__search`. Triggers: "how does X work", "where do we handle Y", a feature described in prose, or you are about to enumerate guess-words for one feature. Why: ccc ranks by meaning, so one query catches synonyms a grep would miss.
-- **Exact identifier you can spell** (function / class / variable / constant name) → `mcp__plugin_ora_fff__grep`. Why: faster and exhaustive vs ccc's top-K-by-score; do not pay the semantic-search cost for a known token.
-- **Naming variants of ONE identifier** (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`. Scope: variants of one symbol like `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']` — not for enumerating a feature's vocabulary, that is ccc.
+- **Exact identifier you can spell** (function / class / variable / constant name) → `mcp__plugin_ora_fff__grep`. Why: fast and exhaustive for known tokens.
+- **Naming variants of ONE identifier** (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`. Scope: variants of one symbol like `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`.
 - **File by name** → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
-
-Shotgun-grep anti-pattern: about to write an OR-pattern enumerating guesses for one feature — `grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`, `grep "modal\.com|import modal|@app\.function|@stub"`, `multi_grep(['safeAreaInset','tabViewBottomAccessory','tabBarMinimizeBehavior','toolbar(.hidden'])` — use ccc instead. Why: a 5-term OR-pattern is fragile and noisy; ccc with one prose query catches synonyms by meaning. Trigger check: ≥3 guess-words for the same feature → switch to ccc.
+- **Concept without an identifier** → pick the most likely term yourself (skim a README or directory listing first if needed), grep it, then Read top hits to find adjacent terms and follow up. Why: agent reasoning over real source beats guessing embedding hits.
 
 Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
 

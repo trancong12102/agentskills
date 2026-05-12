@@ -9,31 +9,67 @@ Routes codebase search tasks to the right tool based on intent.
 
 ## Tool Routing
 
-| Intent                                               | Primary tool                                        | Also consider                                |
-| ---------------------------------------------------- | --------------------------------------------------- | -------------------------------------------- |
-| Keyword / symbol search (exact identifier known)     | `mcp__plugin_ora_fff__grep`                         | LSP for definitions                          |
-| Multi-pattern OR — naming variants of one identifier | `mcp__plugin_ora_fff__multi_grep`                   | sequential `mcp__plugin_ora_fff__grep` calls |
-| File discovery                                       | `mcp__plugin_ora_fff__find_files`                   | `mcp__plugin_ora_fff__grep` for content      |
-| Find all usages of X                                 | LSP find-references                                 | `mcp__plugin_ora_fff__grep`                  |
-| Find a specific symbol                               | LSP go-to-definition                                | `mcp__plugin_ora_fff__grep`                  |
-| Structural code patterns                             | `ast-grep`                                          | `mcp__plugin_ora_fff__grep` as fallback      |
-| Concept / "how does X work" / unfamiliar codebase    | `mcp__plugin_ora_fff__find_files` for dir structure | grep a likely term, Read top hits, follow up |
-| Architecture / broad explore                         | `mcp__plugin_ora_fff__find_files` for dir structure | Read README/docs, then grep entry points     |
-| Outside git index / fallback                         | shell `grep` / `find`                               | last resort, after `fff`                     |
-| Git history / blame                                  | Bash (git log/blame)                                | —                                            |
+| Intent                                               | Primary tool                                      | Also consider                                       |
+| ---------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| Default — concept / feature / "how does X work"      | `ccc search`                                      | follow `[summary]`/`[guide]` hints in output        |
+| File / directory summary (path known)                | `ccc describe <path>`                             | Read raw source when no summary exists              |
+| Concept guide (cross-cutting topic)                  | `ccc guide <slug>` after `ccc search` surfaces it | —                                                   |
+| Trace a flow when no single identifier covers it     | `ccc search` to find entry points                 | `mcp__plugin_ora_fff__grep` to follow refs          |
+| Architecture / broad explore                         | `ccc describe .` then drill via `ccc search`      | `mcp__plugin_ora_fff__find_files` for dir structure |
+| Keyword / symbol search (exact identifier known)     | `mcp__plugin_ora_fff__grep`                       | LSP for definitions                                 |
+| Multi-pattern OR — naming variants of one identifier | `mcp__plugin_ora_fff__multi_grep`                 | sequential `mcp__plugin_ora_fff__grep` calls        |
+| Multi-pattern OR — enumerating a feature's keywords  | `ccc search` first                                | fall back to `mcp__plugin_ora_fff__multi_grep`      |
+| File discovery (by name)                             | `mcp__plugin_ora_fff__find_files`                 | `mcp__plugin_ora_fff__grep` for content matches     |
+| Find all usages of X                                 | LSP find-references                               | `mcp__plugin_ora_fff__grep`                         |
+| Find a specific symbol                               | LSP go-to-definition                              | `mcp__plugin_ora_fff__grep`                         |
+| Structural code patterns                             | `ast-grep`                                        | `mcp__plugin_ora_fff__grep` as fallback             |
+| Outside git index / fallback                         | shell `grep` / `find`                             | last resort, after `fff`                            |
+| Git history / blame                                  | Bash (git log/blame)                              | —                                                   |
 
 For broad questions, break into 2-3 search angles and launch in parallel.
 
-## Concept questions without a known identifier
+## ccc — semantic search and synthesised summaries
 
-When the question is conceptual ("how does auth work", "where do we handle retries") and no single keyword covers it:
+`ccc` is the default starting point for codebase exploration. Three commands cover the common reads:
 
-1. Look at directory structure with `find_files` or a quick `ls` of likely roots (`src/auth`, `apps/*/services`).
-2. Skim a top-level README or index file to learn the vocabulary used in this repo.
-3. Grep one likely term — read the top hit fully, not just the snippet — and let the imports/calls in that file point you to the next term.
-4. Repeat. Two reads beat ten greps.
+- `ccc search <prose query>` — semantic code search ranked by meaning. Use for concepts, features, or any "how does X work" / "where do we handle Y" question. Returns mixed hits: code chunks, file/directory summaries tagged `[summary]`, and curated concept guides tagged `[guide]`.
+- `ccc describe <path>` — pre-synthesised summary of one file or directory (condenses public API, contracts, and role). Use when you already know the path; the summary is typically a faster read than the source. `ccc describe .` gives a project-root overview.
+- `ccc guide <slug>` — curated guide for a cross-cutting topic (named subsystems, lifecycles, end-to-end data paths). Discovery is search-driven: `[guide]` hits in `ccc search` carry the slug. Do not run `ccc guide` (no args) as a routine first step — let search surface what is relevant.
 
-The point is to converge on the real vocabulary of the repo before grepping. Guessed multi-keyword OR-patterns (`grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"`) are fragile — they miss synonyms and drown in noise. `multi_grep` is for naming variants of **one identifier** (e.g. `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`), not for guessing a feature's likely names.
+```bash
+ccc search database connection pooling
+ccc search --lang python --lang markdown user authentication
+ccc search --path 'src/api/*' request validation
+ccc search --offset 5 --limit 5 error handling retry logic
+ccc describe src/auth/session.py
+ccc guide memoization
+```
+
+Follow tagged hints in search output: `[summary]` and `[guide]` results carry the exact follow-up command. The synthesised text is usually a faster read than chasing the underlying files.
+
+Do not use `ccc` when:
+
+- You already have a specific identifier — `mcp__plugin_ora_fff__grep` is faster and exhaustive.
+- You need every match of a token (ccc returns top-K by score, not all hits).
+- You need a file by name — `mcp__plugin_ora_fff__find_files`.
+
+Typical flow: `ccc search` surfaces relevant files → switch to `fff__grep` + Read on those paths for precise follow-up.
+
+### Anti-pattern: shotgun OR-grep for features
+
+If you find yourself writing a long OR-pattern enumerating guesses for one feature, switch to ccc:
+
+```text
+# Shotgun-grep — fragile; misses synonyms, drowns in noise
+grep -r "FreeGift|ProgressBar|GiftModal|BuyXGetY|percentOff|fixedOff|salepify"
+grep -r "appUpdate|checkAppUpdate|versionCheck|setAppUpdateHandler|needUpdate"
+
+# ccc — meaning-ranked, one query
+ccc search free gift and discount rules
+ccc search force update / version check flow
+```
+
+`multi_grep` is for naming variants of **one identifier** (e.g. `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`), not for guessing a feature's vocabulary.
 
 ## ast-grep
 

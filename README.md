@@ -6,7 +6,7 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.7, that complexity burns tokens without improving output. ora ships exactly two research agents:
 
-- **Ariadne** — codebase exploration (keyword search and file discovery across local files)
+- **Ariadne** — codebase exploration (semantic search, keyword search, and file discovery across local files)
 - **Clio** — external research (docs, web, GitHub repos)
 
 Both isolate search context from the main conversation — broad queries never pollute your main window. The plugin has no hooks and no planning/verification/execution agents. Planning and verification happen inline in the main agent, shaped by behavioral rules in your `CLAUDE.md` (see Configuration below).
@@ -15,9 +15,10 @@ Both isolate search context from the main conversation — broad queries never p
 
 ### Prerequisites
 
-ora ships one MCP server — the binary must exist on `PATH` before installing the plugin:
+ora ships one MCP server (`fff-mcp`). The recommended `~/.claude/CLAUDE.md` config below also routes codebase search through `ccc`, a separate CLI tool. Both must be on `PATH`:
 
-- [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) — fast file finder, frecency-ranked.
+- [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) — fast file finder, frecency-ranked. Bundled MCP server, installed below.
+- [`ccc`](https://github.com/cocoindex-io/cocoindex-code) — semantic code search CLI (cocoindex-code). Maintains its own index independent of git. Ships its own `/ccc` skill that handles `init` / `index` / `search` / `describe` / `guide` lifecycle. Install with `pipx install 'cocoindex-code[full]'` or `uv tool install cocoindex-code`; see the repo for details.
 
 Install `fff-mcp`:
 
@@ -91,12 +92,14 @@ Fall back to built-in only if both ora agents unavailable or task falls outside 
 
 ## File search tools
 
-For code search inside git-indexed dirs use fff, not shell tools. Route by what you have in hand:
+For code search default to `ccc` (uses its own index, independent of git). Fall through to `fff` for exact-identifier or file-by-name lookups inside git-indexed dirs. Avoid shell tools for code search. Route by what you have in hand:
 
-- **Exact identifier you can spell** (function / class / variable / constant name) → `mcp__plugin_ora_fff__grep`. Why: fast and exhaustive for known tokens.
-- **Naming variants of ONE identifier** (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`. Scope: variants of one symbol like `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`.
+- **Default for codebase search** → `ccc` skill. Use `ccc search <prose query>` for concepts, features, or unfamiliar code ("how does X work", "where do we handle Y"). Use `ccc describe <path>` when you already know the file/dir — the pre-synthesised summary is usually a faster read than the source. Follow `[guide]` hints in search output with `ccc guide <slug>`. Why: semantic ranking catches synonyms grep would miss, and describe/guide outputs are pre-synthesised so they save a Read. Works on any indexed directory — no git required.
+- **Exact identifier you can spell** (function / class / variable / constant name) → `mcp__plugin_ora_fff__grep`. Why: faster and exhaustive than ccc's top-K-by-score; do not pay the semantic-search cost for a known token.
+- **Naming variants of ONE identifier** (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`. Scope: variants of one symbol like `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']` — not for enumerating a feature's vocabulary, use `ccc search` for that.
 - **File by name** → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
-- **Concept without an identifier** → pick the most likely term yourself (skim a README or directory listing first if needed), grep it, then Read top hits to find adjacent terms and follow up. Why: agent reasoning over real source beats guessing embedding hits.
+
+Shotgun-grep anti-pattern: about to write an OR-pattern enumerating guesses for one feature — `grep "FreeGift|ProgressBar|GiftModal|percentOff|salepify"` — use `ccc search` instead. Why: a 5-term OR-pattern is fragile and noisy; ccc with one prose query catches synonyms by meaning.
 
 Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
 

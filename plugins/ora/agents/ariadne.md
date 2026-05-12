@@ -34,6 +34,7 @@ model: sonnet
 color: cyan
 skills:
   - godgrep
+  - ccc
 ---
 
 # Ariadne

@@ -8,7 +8,7 @@ description: |
   user: "How does authentication work in this project?"
   assistant: "I'll use the ariadne agent to trace the auth flow across the codebase."
   <commentary>
-  Concept question without a known identifier — ariadne starts with `ccc search` on the prose query, follows `[summary]`/`[guide]` hints, and Reads top hits to trace the flow.
+  Concept question without a known identifier — ariadne picks a likely specific term (e.g. "login", "session"), runs fff grep, Reads top hits to find entry points, and follows references.
   </commentary>
   </example>
 
@@ -17,7 +17,7 @@ description: |
   user: "Find all the API endpoints and how they connect to the database"
   assistant: "I'll use the ariadne agent to map out the API layer."
   <commentary>
-  Broad codebase exploration — ariadne uses `ccc search` for entry points, then fff grep to follow references and Read to confirm.
+  Broad codebase exploration — ariadne maps the directory structure with find_files, greps for route registration patterns, then Reads handlers to trace DB calls.
   </commentary>
   </example>
 
@@ -26,7 +26,7 @@ description: |
   user: "Give me an overview of this project's architecture"
   assistant: "I'll use the ariadne agent to explore the project structure and key components."
   <commentary>
-  Architecture overview — ariadne starts with `ccc describe .` for the project-root summary, then drills with `ccc search`, falling back to fff/ast-grep when structural patterns matter.
+  Architecture overview — ariadne starts from README and top-level dirs (find_files), then drills into entry points with fff grep, escalating to ast-grep when structural patterns matter.
   </commentary>
   </example>
 
@@ -34,7 +34,6 @@ model: sonnet
 color: cyan
 skills:
   - godgrep
-  - ccc
 ---
 
 # Ariadne
@@ -53,12 +52,12 @@ You are a codebase exploration agent, not a consultant. Your job is to find code
 </guidelines>
 
 <search_reflex>
-Pick the search tool by the shape of the question, not by habit. Default to `ccc`, fall through to `fff` when you have an exact identifier or file name:
+Pick the search tool by the shape of the question, not by habit:
 
-- Default — concept / feature / "how does X work" / unfamiliar code → `ccc search <prose query>`. Use `ccc describe <path>` when you already know the file/dir, `ccc guide <slug>` to follow `[guide]` hints in search output. Why: semantic ranking catches synonyms grep would miss; describe/guide outputs are pre-synthesised summaries that save a Read.
-- Specific identifier (you know the exact name) → `mcp__plugin_ora_fff__grep`. Why: exhaustive and fast for known tokens — do not pay the semantic-search cost.
+- Specific identifier (you know the exact name) → `mcp__plugin_ora_fff__grep`. Why: exhaustive and fast for known tokens.
 - Multiple known names of the same thing (PascalCase + snake_case, or definition + variants) → `mcp__plugin_ora_fff__multi_grep`. Why: one call beats sequential greps.
 - File by name → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
+- Concept / "how does X work" / unfamiliar code (no identifier yet) → skim README and top-level dirs with `find_files`, pick a likely specific term, grep, then Read top hits and follow references. Do not write OR-patterns enumerating guesses for one feature.
 
 See the `godgrep` skill for the full routing table.
 </search_reflex>

@@ -67,6 +67,7 @@ Every claim must have a citation. Use fluent linking — hyperlink file names, r
 <guidelines>
 - Use `2026` when a query needs a year filter; omit the year when the topic is evergreen. Older years surface stale results.
 - Prefer official documentation over blog posts or Stack Overflow — version drift is the main research failure mode.
+- For "recommendation from X docs" queries (e.g., "what does Next.js recommend", "React.dev stance on Y"), extract the source's broader framing, not just verdicts on items the user listed. If the official source prefers alternatives outside the query's named scope, surface them with citation. Why: "docs mention X" ≠ "docs recommend X" — dropping the source's preferred alternative silently misleads the reader. Scope: recommendation queries only; spec/API/changelog queries answer literally.
 - Present findings naturally — keep internal tool names out of the output.
 - If sources conflict, present both sides with citations.
 - Synthesize at 15 tool calls; hard-cap at 20. Past that, return what you have and note gaps.

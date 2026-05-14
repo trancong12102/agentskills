@@ -128,15 +128,17 @@ Indexes 2M+ OSS repos across GitHub + GitLab + Bitbucket. Sub-second cross-repo 
 
 **Tools by intent:**
 
-- `keyword_search` — cross-repo keyword/regex search with `repo:`, `file:`, `lang:`, `rev:` filters
-- `nls_search` — natural-language semantic ranking
-- `read_file` — single-file content (128KB cap; `repo`, `path`, optional `revision` / `startLine` / `endLine`)
-- `list_files` — directory listing
-- `list_repos` — repo discovery
-- `go_to_definition`, `find_references` — symbol navigation
-- `commit_search`, `diff_search`, `compare_revisions` — git history
-- `get_contributor_repos` — contributor lookup
-- `deepsearch` — AI synthesis (heavy; spawns subagents over the codebase)
+| Intent                          | Tool                                                                                   |
+| ------------------------------- | -------------------------------------------------------------------------------------- |
+| Cross-repo keyword/regex search | `keyword_search` — supports `repo:`, `file:`, `lang:`, `rev:` filters                  |
+| Natural-language code search    | `nls_search` — semantic ranking                                                        |
+| Read single file                | `read_file` — 128KB cap; `repo`, `path`, optional `revision` / `startLine` / `endLine` |
+| List directory                  | `list_files`                                                                           |
+| Find repos                      | `list_repos`                                                                           |
+| Symbol navigation               | `go_to_definition`, `find_references`                                                  |
+| Git history / diffs             | `commit_search`, `diff_search`, `compare_revisions`                                    |
+| Contributor lookup              | `get_contributor_repos`                                                                |
+| AI synthesis over codebase      | `deepsearch` — heavy; spawns subagents                                                 |
 
 **Rules:**
 

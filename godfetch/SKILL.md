@@ -9,18 +9,19 @@ Unified external research — look up library documentation, search source code 
 
 ## Routing
 
-| Intent                          | Primary tool                       | Fallback                            |
-| ------------------------------- | ---------------------------------- | ----------------------------------- |
-| Library docs, API reference     | `llms-probe` → `WebFetch` llms.txt | `context7` if no llms.txt published |
-| Changelogs, breaking changes    | `llms-probe` → `WebFetch` llms.txt | `gh api contents` for CHANGELOG.md  |
-| Code in public git repos        | `git-clone` + shell tools          | `gh search code` for exact matches  |
-| GitHub issues                   | `gh issue view <N>`                | `gh search issues` for discovery    |
-| GitHub PRs                      | `gh pr view <N>`                   | `gh search prs` for discovery       |
-| Single GitHub file (known path) | `gh api repos/.../contents/<path>` | `git-clone` + shell tools           |
-| Package version, deprecation    | `deps-dev`                         | `npm view` for npm-only metadata    |
-| npm package info (non-version)  | `npm view <pkg>` (Bash)            | WebSearch for community sentiment   |
-| General web lookup              | WebSearch → WebFetch               | —                                   |
-| Comparison / decision           | `llms-probe` per lib + WebSearch   | `context7` for additional snippets  |
+| Intent                                   | Primary tool                              | Fallback                                         |
+| ---------------------------------------- | ----------------------------------------- | ------------------------------------------------ |
+| Library docs, API reference              | `llms-probe` → `WebFetch` llms.txt        | `context7` if no llms.txt published              |
+| Changelogs, breaking changes             | `llms-probe` → `WebFetch` llms.txt        | `gh api contents` for CHANGELOG.md               |
+| Code in public git repos                 | `git-clone` + shell tools                 | `gh search code` for exact matches               |
+| GitHub issues                            | `gh issue view <N>`                       | `gh search issues` for discovery                 |
+| GitHub PRs                               | `gh pr view <N>`                          | `gh search prs` for discovery                    |
+| GitHub releases (versions, dates, notes) | `gh release view <tag> --repo owner/repo` | `gh release list --repo owner/repo` for browsing |
+| Single GitHub file (known path)          | `gh api repos/.../contents/<path>`        | `git-clone` + shell tools                        |
+| Package version, deprecation             | `deps-dev`                                | `npm view` for npm-only metadata                 |
+| npm package info (non-version)           | `npm view <pkg>` (Bash)                   | WebSearch for community sentiment                |
+| General web lookup                       | WebSearch → WebFetch                      | —                                                |
+| Comparison / decision                    | `llms-probe` per lib + WebSearch          | `context7` for additional snippets               |
 
 For mixed requests, launch all relevant tools in parallel. Probe and clone are I/O-bound — start them in the background and run `WebFetch`/`context7`/WebSearch concurrently to mask latency.
 
@@ -28,14 +29,15 @@ For mixed requests, launch all relevant tools in parallel. Probe and clone are I
 
 Do not use WebFetch on github.com or raw.githubusercontent.com URLs — use the right tool:
 
-| GitHub content            | Use                                      | Never                                |
-| ------------------------- | ---------------------------------------- | ------------------------------------ |
-| Source code (exploration) | `git-clone` + shell tools                | browsing files via `gh api contents` |
-| Source file (known path)  | `gh api repos/.../contents/<path>`       | `WebFetch` raw.githubusercontent.com |
-| Issues                    | `gh issue view <N> --repo owner/repo`    | `WebFetch` github.com/.../issues/N   |
-| Pull requests             | `gh pr view <N> --repo owner/repo`       | `WebFetch` github.com/.../pull/N     |
-| Issue/PR search           | `gh search issues "q" --repo ...`        | `WebFetch` github.com/issues?q=...   |
-| CHANGELOG.md              | `gh api repos/.../contents/CHANGELOG.md` | `WebFetch` blob/ or raw URLs         |
+| GitHub content                    | Use                                                                     | Never                                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Source code (exploration)         | `git-clone` + shell tools                                               | browsing files via `gh api contents`                                                                          |
+| Source file (known path)          | `gh api repos/.../contents/<path>`                                      | `WebFetch` raw.githubusercontent.com                                                                          |
+| Issues                            | `gh issue view <N> --repo owner/repo`                                   | `WebFetch` github.com/.../issues/N                                                                            |
+| Pull requests                     | `gh pr view <N> --repo owner/repo`                                      | `WebFetch` github.com/.../pull/N                                                                              |
+| Issue/PR search                   | `gh search issues "q" --repo ...`                                       | `WebFetch` github.com/issues?q=...                                                                            |
+| Releases (versions, dates, notes) | `gh release view/list --repo owner/repo` or `gh api repos/.../releases` | `WebFetch` github.com/.../releases — relative timestamps on the HTML get hallucinated into training-era years |
+| CHANGELOG.md                      | `gh api repos/.../contents/CHANGELOG.md`                                | `WebFetch` blob/ or raw URLs                                                                                  |
 
 ### Search discipline
 

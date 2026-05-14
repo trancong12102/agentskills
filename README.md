@@ -15,11 +15,9 @@ Both isolate search context from the main conversation — broad queries never p
 
 ### Prerequisites
 
-ora ships one MCP server (`fff-mcp`):
+ora ships two MCP servers, each with its own setup:
 
-- [`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim) — fast file finder, frecency-ranked. Bundled MCP server, installed below.
-
-Install `fff-mcp`:
+**[`fff-mcp`](https://github.com/dmtrKovalenko/fff.nvim)** — stdio MCP, fast file finder (frecency-ranked). Install the binary:
 
 ```shell
 # Install the prebuilt binary to ~/.local/bin/fff-mcp
@@ -32,7 +30,9 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 which fff-mcp   # should print ~/.local/bin/fff-mcp
 ```
 
-The binary is statically linked (musl on Linux); no Node, Rust toolchain, or runtime dependency is required.
+Statically linked (musl on Linux) — no Node, Rust toolchain, or runtime dependency.
+
+**[`sourcegraph`](https://sourcegraph.com/docs/api/mcp)** — HTTP MCP, cross-repo code search across 2M+ OSS repos. See [Credentials](#credentials) for OAuth login.
 
 ### Install
 
@@ -50,10 +50,11 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code
 
 ### Credentials
 
-| Skill      | Credential     | How to get                                                                                           |
-| ---------- | -------------- | ---------------------------------------------------------------------------------------------------- |
-| `godfetch` | `ctx7 login`   | One-time login via `bunx ctx7@latest login` (library docs from [context7.com](https://context7.com)) |
-| `oracle`   | Codex CLI auth | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex)                      |
+| Skill / Plugin | Credential        | How to get                                                                                           |
+| -------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
+| `godfetch`     | `ctx7 login`      | One-time login via `bunx ctx7@latest login` (library docs from [context7.com](https://context7.com)) |
+| `oracle`       | Codex CLI auth    | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex)                      |
+| `ora` (MCP)    | Sourcegraph OAuth | Run `/mcp` in Claude Code, select `sourcegraph`, complete the OAuth flow                             |
 
 <details>
 <summary>Codex CLI setup for oracle / council-review</summary>

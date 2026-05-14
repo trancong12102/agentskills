@@ -138,8 +138,6 @@ Indexes 2M+ OSS repos across GitHub + GitLab + Bitbucket. Sub-second cross-repo 
 - `get_contributor_repos` — contributor lookup
 - `deepsearch` — AI synthesis (heavy; spawns subagents over the codebase)
 
-**Auth:** OAuth 2.0 Dynamic Client Registration — Claude Code triggers OAuth flow on first tool use, no token to hardcode. For token-based auth (CI / scripted use), add `"headers": { "Authorization": "token YOUR_SOURCEGRAPH_TOKEN" }` in `.mcp.json`.
-
 **Rules:**
 
 - **Discovery vs forensics** — `keyword_search` / `nls_search` for "find repos that…"; `git-clone` for tracing flow through 5+ files in one repo.

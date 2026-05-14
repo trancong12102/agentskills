@@ -9,19 +9,22 @@ Unified external research — look up library documentation, search source code 
 
 ## Routing
 
-| Intent                                   | Primary tool                              | Fallback                                         |
-| ---------------------------------------- | ----------------------------------------- | ------------------------------------------------ |
-| Library docs, API reference              | `llms-probe` → `WebFetch` llms.txt        | `context7` if no llms.txt published              |
-| Changelogs, breaking changes             | `llms-probe` → `WebFetch` llms.txt        | `gh api contents` for CHANGELOG.md               |
-| Code in public git repos                 | `git-clone` + shell tools                 | `gh search code` for exact matches               |
-| GitHub issues                            | `gh issue view <N>`                       | `gh search issues` for discovery                 |
-| GitHub PRs                               | `gh pr view <N>`                          | `gh search prs` for discovery                    |
-| GitHub releases (versions, dates, notes) | `gh release view <tag> --repo owner/repo` | `gh release list --repo owner/repo` for browsing |
-| Single GitHub file (known path)          | `gh api repos/.../contents/<path>`        | `git-clone` + shell tools                        |
-| Package version, deprecation             | `deps-dev`                                | `npm view` for npm-only metadata                 |
-| npm package info (non-version)           | `npm view <pkg>` (Bash)                   | WebSearch for community sentiment                |
-| General web lookup                       | WebSearch → WebFetch                      | —                                                |
-| Comparison / decision                    | `llms-probe` per lib + WebSearch          | `context7` for additional snippets               |
+| Intent                                   | Primary tool                                                      | Fallback                                         |
+| ---------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
+| Library docs, API reference              | `llms-probe` → `WebFetch` llms.txt                                | `context7` if no llms.txt published              |
+| Changelogs, breaking changes             | `llms-probe` → `WebFetch` llms.txt                                | `gh api contents` for CHANGELOG.md               |
+| Cross-repo code search (discovery)       | Sourcegraph MCP `keyword_search`                                  | `gh search code`, then `git-clone` for follow-up |
+| Deep dive in known repo (3+ files)       | `git-clone` + shell tools                                         | Sourcegraph `read_file` for one-off reads        |
+| GitHub issues                            | `gh issue view <N>`                                               | `gh search issues` for discovery                 |
+| GitHub PRs                               | `gh pr view <N>`                                                  | `gh search prs` for discovery                    |
+| GitHub releases (versions, dates, notes) | `gh release view <tag> --repo owner/repo`                         | `gh release list --repo owner/repo` for browsing |
+| Single file (known repo + path)          | Sourcegraph MCP `read_file`                                       | `gh api repos/.../contents/<path>` (GitHub only) |
+| Symbol navigation (def, references)      | Sourcegraph `go_to_definition` / `find_references`                | `git-clone` + ast-grep                           |
+| Git history / diff search across repos   | Sourcegraph `commit_search` / `diff_search` / `compare_revisions` | `gh api /repos/.../commits`                      |
+| Package version, deprecation             | `deps-dev`                                                        | `npm view` for npm-only metadata                 |
+| npm package info (non-version)           | `npm view <pkg>` (Bash)                                           | WebSearch for community sentiment                |
+| General web lookup                       | WebSearch → WebFetch                                              | —                                                |
+| Comparison / decision                    | `llms-probe` per lib + WebSearch                                  | `context7` for additional snippets               |
 
 For mixed requests, launch all relevant tools in parallel. Probe and clone are I/O-bound — start them in the background and run `WebFetch`/`context7`/WebSearch concurrently to mask latency.
 
@@ -116,6 +119,36 @@ Returns markdown snippets ranked by relevance. Add `--json` for structured outpu
 - Use `--research` only as a retry when the default answer was insufficient, not by default — it's slower and more expensive.
 
 Reference: `references/context7.md`
+
+## Sourcegraph — Cross-Repo Search & Code Navigation (MCP)
+
+Sourcegraph public instance exposes an HTTP MCP server at `https://sourcegraph.com/.api/mcp` providing 13+ tools for cross-repo search, code navigation, and git history. Configured in ora plugin's `.mcp.json` — tools auto-available to Clio.
+
+Indexes 2M+ OSS repos across GitHub + GitLab + Bitbucket. Sub-second cross-repo queries, no local clone overhead.
+
+**Tools by intent:**
+
+- `keyword_search` — cross-repo keyword/regex search with `repo:`, `file:`, `lang:`, `rev:` filters
+- `nls_search` — natural-language semantic ranking
+- `read_file` — single-file content (128KB cap; `repo`, `path`, optional `revision` / `startLine` / `endLine`)
+- `list_files` — directory listing
+- `list_repos` — repo discovery
+- `go_to_definition`, `find_references` — symbol navigation
+- `commit_search`, `diff_search`, `compare_revisions` — git history
+- `get_contributor_repos` — contributor lookup
+- `deepsearch` — AI synthesis (heavy; spawns subagents over the codebase)
+
+**Auth:** OAuth 2.0 Dynamic Client Registration — Claude Code triggers OAuth flow on first tool use, no token to hardcode. For token-based auth (CI / scripted use), add `"headers": { "Authorization": "token YOUR_SOURCEGRAPH_TOKEN" }` in `.mcp.json`.
+
+**Rules:**
+
+- **Discovery vs forensics** — `keyword_search` / `nls_search` for "find repos that…"; `git-clone` for tracing flow through 5+ files in one repo.
+- **Index lag** — Code published within the last ~24 hours may not be indexed. Fall back to `git-clone --refresh` for just-released versions.
+- **Repo not indexed = fallback** — If `read_file` returns null repository, drop to `git-clone` or `gh api contents`.
+- **`deepsearch` is heavy** — Spawns AI subagents. Use only when `keyword_search` + `read_file` can't synthesize the answer.
+- **Plan tier caveat** — Sourcegraph docs note MCP access is part of Enterprise plans; public `sourcegraph.com` MCP endpoint's free-tier behavior is unverified. If first tool call returns 401/403, drop to `git-clone`.
+
+Reference: [Sourcegraph MCP docs](https://sourcegraph.com/docs/api/mcp)
 
 ## git-clone — Source Code Exploration
 

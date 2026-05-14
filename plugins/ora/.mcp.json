@@ -4,8 +4,11 @@
       "type": "stdio",
       "command": "fff-mcp",
       "args": [],
-      "env": {},
-      "alwaysLoad": true
+      "env": {}
+    },
+    "sourcegraph": {
+      "type": "http",
+      "url": "https://sourcegraph.com/.api/mcp"
     }
   }
 }

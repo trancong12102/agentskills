@@ -1,5 +1,5 @@
 {
   "name": "ora",
-  "version": "0.39.0",
+  "version": "0.40.0",
   "description": "Research agents for codebase exploration (Ariadne) and external sources (Clio)"
 }

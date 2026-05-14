@@ -9,22 +9,23 @@ Unified external research — look up library documentation, search source code 
 
 ## Routing
 
-| Intent                                   | Primary tool                                                      | Fallback                                         |
-| ---------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
-| Library docs, API reference              | `llms-probe` → `WebFetch` llms.txt                                | `context7` if no llms.txt published              |
-| Changelogs, breaking changes             | `llms-probe` → `WebFetch` llms.txt                                | `gh api contents` for CHANGELOG.md               |
-| Cross-repo code search (discovery)       | Sourcegraph MCP `keyword_search`                                  | `gh search code`, then `git-clone` for follow-up |
-| Deep dive in known repo (3+ files)       | `git-clone` + shell tools                                         | Sourcegraph `read_file` for one-off reads        |
-| GitHub issues                            | `gh issue view <N>`                                               | `gh search issues` for discovery                 |
-| GitHub PRs                               | `gh pr view <N>`                                                  | `gh search prs` for discovery                    |
-| GitHub releases (versions, dates, notes) | `gh release view <tag> --repo owner/repo`                         | `gh release list --repo owner/repo` for browsing |
-| Single file (known repo + path)          | Sourcegraph MCP `read_file`                                       | `gh api repos/.../contents/<path>` (GitHub only) |
-| Symbol navigation (def, references)      | Sourcegraph `go_to_definition` / `find_references`                | `git-clone` + ast-grep                           |
-| Git history / diff search across repos   | Sourcegraph `commit_search` / `diff_search` / `compare_revisions` | `gh api /repos/.../commits`                      |
-| Package version, deprecation             | `deps-dev`                                                        | `npm view` for npm-only metadata                 |
-| npm package info (non-version)           | `npm view <pkg>` (Bash)                                           | WebSearch for community sentiment                |
-| General web lookup                       | WebSearch → WebFetch                                              | —                                                |
-| Comparison / decision                    | `llms-probe` per lib + WebSearch                                  | `context7` for additional snippets               |
+| Intent                                    | Primary tool                                                      | Fallback                                         |
+| ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
+| Library docs, API reference               | `llms-probe` → `WebFetch` llms.txt                                | `context7` if no llms.txt published              |
+| Changelogs, breaking changes              | `llms-probe` → `WebFetch` llms.txt                                | `gh api contents` for CHANGELOG.md               |
+| Cross-repo code search (exact identifier) | Sourcegraph MCP `keyword_search`                                  | `gh search code`, then `git-clone` for follow-up |
+| Cross-repo code search (concept, no name) | Sourcegraph MCP `nls_search` with 2-5 extracted keywords          | `keyword_search` after picking a literal term    |
+| Deep dive in known repo (3+ files)        | `git-clone` + shell tools                                         | Sourcegraph `read_file` for one-off reads        |
+| GitHub issues                             | `gh issue view <N>`                                               | `gh search issues` for discovery                 |
+| GitHub PRs                                | `gh pr view <N>`                                                  | `gh search prs` for discovery                    |
+| GitHub releases (versions, dates, notes)  | `gh release view <tag> --repo owner/repo`                         | `gh release list --repo owner/repo` for browsing |
+| Single file (known repo + path)           | Sourcegraph MCP `read_file`                                       | `gh api repos/.../contents/<path>` (GitHub only) |
+| Symbol navigation (def, references)       | Sourcegraph `go_to_definition` / `find_references`                | `git-clone` + ast-grep                           |
+| Git history / diff search across repos    | Sourcegraph `commit_search` / `diff_search` / `compare_revisions` | `gh api /repos/.../commits`                      |
+| Package version, deprecation              | `deps-dev`                                                        | `npm view` for npm-only metadata                 |
+| npm package info (non-version)            | `npm view <pkg>` (Bash)                                           | WebSearch for community sentiment                |
+| General web lookup                        | WebSearch → WebFetch                                              | —                                                |
+| Comparison / decision                     | `llms-probe` per lib + WebSearch                                  | `context7` for additional snippets               |
 
 For mixed requests, launch all relevant tools in parallel. Probe and clone are I/O-bound — start them in the background and run `WebFetch`/`context7`/WebSearch concurrently to mask latency.
 
@@ -128,20 +129,25 @@ Indexes 2M+ OSS repos across GitHub + GitLab + Bitbucket. Sub-second cross-repo 
 
 **Tools by intent:**
 
-| Intent                          | Tool                                                                                   |
-| ------------------------------- | -------------------------------------------------------------------------------------- |
-| Cross-repo keyword/regex search | `keyword_search` — supports `repo:`, `file:`, `lang:`, `rev:` filters                  |
-| Natural-language code search    | `nls_search` — semantic ranking                                                        |
-| Read single file                | `read_file` — 128KB cap; `repo`, `path`, optional `revision` / `startLine` / `endLine` |
-| List directory                  | `list_files`                                                                           |
-| Find repos                      | `list_repos`                                                                           |
-| Symbol navigation               | `go_to_definition`, `find_references`                                                  |
-| Git history / diffs             | `commit_search`, `diff_search`, `compare_revisions`                                    |
-| Contributor lookup              | `get_contributor_repos`                                                                |
-| AI synthesis over codebase      | `deepsearch` — heavy; spawns subagents                                                 |
+| Intent                            | Tool                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Search by exact identifier (AND)  | `keyword_search` — literal match, ALL terms required. Filters: `repo:`, `file:`, `lang:`, `rev:` |
+| Search by concept / vocab unknown | `nls_search` — OR logic + word stemming (`handler` matches `handle`). NOT semantic embedding     |
+| Read single file                  | `read_file` — 128KB cap; `repo`, `path`, optional `revision` / `startLine` / `endLine`           |
+| List directory                    | `list_files`                                                                                     |
+| Find repos                        | `list_repos`                                                                                     |
+| Symbol navigation                 | `go_to_definition`, `find_references`                                                            |
+| Git history / diffs               | `commit_search`, `diff_search`, `compare_revisions`                                              |
+| Contributor lookup                | `get_contributor_repos`                                                                          |
+| AI synthesis over codebase        | `deepsearch` — heavy; spawns subagents                                                           |
 
 **Rules:**
 
+- **Pick `keyword_search` vs `nls_search` by what you know.** Concrete identifier (function/class/constant name, error string, literal phrase) → `keyword_search`. Vocab unknown / conceptual ("how does X work", cross-library pattern) → `nls_search`. Why: `keyword_search` is AND + literal — missing one term zeroes the result; `nls_search` is OR + stemming — broader recall but noisier ranking.
+- **Extract keywords before `nls_search`.** Strip question words (how, what, where, does, is) and articles. Pass 2-5 meaningful nouns/verbs, not full sentences. Example: "how does the router match incoming requests" → `router match request handler`. Why: tool stems and OR-matches each term — natural-language fillers dilute the signal.
+- **Scope with `repo:^...$` anchors** to avoid matching forks. `repo:foo/bar` matches `foo/bar-fork` too; `repo:^github\.com/foo/bar$` does not.
+- **Pattern: search → verify path → `read_file`.** When a search result is annotated `repo@revision` (e.g. `github.com/foo/bar@abc123`), split it and pass `repo` + `revision` separately to `read_file`. Omitting `revision` silently reads HEAD of the default branch and may return different content.
+- **Parallelize independent searches.** Three repos to compare → fire three `keyword_search`/`nls_search` calls in one message, not sequentially.
 - **Discovery vs forensics** — `keyword_search` / `nls_search` for "find repos that…"; `git-clone` for tracing flow through 5+ files in one repo.
 - **Index lag** — Code published within the last ~24 hours may not be indexed. Fall back to `git-clone --refresh` for just-released versions.
 - **Repo not indexed = fallback** — If `read_file` returns null repository, drop to `git-clone` or `gh api contents`.

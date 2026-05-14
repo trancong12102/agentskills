@@ -2,7 +2,7 @@
   "globs": ["**/*.md"],
   "ignores": ["node_modules/**", "*-workspace/**"],
   "config": {
-    // Disable rules that conflict with Prettier
+    // Disable rules that conflict with the formatter (oxfmt targets Prettier-compatible output)
     "extends": "markdownlint/style/prettier",
 
     // Allow multiple top-level headings (skills often have structured sections)

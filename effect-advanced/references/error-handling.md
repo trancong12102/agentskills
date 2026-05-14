@@ -26,7 +26,10 @@ import { Schema } from "effect";
 
 class ValidationError extends Schema.TaggedError<ValidationError>()(
   "ValidationError",
-  { field: Schema.String, message: Schema.String },
+  {
+    field: Schema.String,
+    message: Schema.String,
+  },
 ) {}
 ```
 

@@ -2,13 +2,13 @@
   "name": "agentskills",
   "private": true,
   "scripts": {
-    "format": "prettier --write \"**/*.md\"",
+    "format": "oxfmt \"**/*.{md,json,jsonc}\"",
     "lint": "markdownlint-cli2",
     "lint:fix": "markdownlint-cli2 --fix"
   },
   "devDependencies": {
     "markdownlint": "^0.40.0",
     "markdownlint-cli2": "^0.22.1",
-    "prettier": "^3.8.3"
+    "oxfmt": "^0.49.0"
   }
 }

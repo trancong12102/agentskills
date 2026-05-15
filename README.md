@@ -99,7 +99,7 @@ For code search default to `fff` (MCP-backed, frecency-ranked, dirty-file booste
 - **File by name** → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
 - **Concept / unfamiliar code** (no identifier yet) → skim README/dir structure first, pick a specific term, then `fff__grep` → Read top hits → iterate. Do not write OR-patterns enumerating guesses for one feature; pick one specific term and follow the references.
 
-Shell `grep`/`find` are OK only for non-git paths, system inspection, log parsing, and piped filtering of command output.
+Shell `grep`/`find` are OK only for system inspection, log parsing, and piped filtering of command output.
 
 ## Before acting
 

@@ -8,7 +8,10 @@
     },
     "sourcegraph": {
       "type": "http",
-      "url": "https://sourcegraph.com/.api/mcp"
+      "url": "https://sourcegraph.com/.api/mcp",
+      "headers": {
+        "Authorization": "token ${SOURCEGRAPH_TOKEN}"
+      }
     }
   }
 }

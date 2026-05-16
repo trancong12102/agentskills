@@ -32,7 +32,7 @@ which fff-mcp   # should print ~/.local/bin/fff-mcp
 
 Statically linked (musl on Linux) — no Node, Rust toolchain, or runtime dependency.
 
-**[`sourcegraph`](https://sourcegraph.com/docs/api/mcp)** — HTTP MCP, cross-repo code search across 2M+ OSS repos. See [Credentials](#credentials) for OAuth login.
+**[`sourcegraph`](https://sourcegraph.com/docs/api/mcp)** — HTTP MCP, cross-repo code search across 2M+ OSS repos. See [Credentials](#credentials) for token setup.
 
 ### Install
 
@@ -50,11 +50,13 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code
 
 ### Credentials
 
-| Skill / Plugin | Credential        | How to get                                                                                           |
-| -------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-| `godfetch`     | `ctx7 login`      | One-time login via `bunx ctx7@latest login` (library docs from [context7.com](https://context7.com)) |
-| `oracle`       | Codex CLI auth    | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex)                      |
-| `ora` (MCP)    | Sourcegraph OAuth | Run `/mcp` in Claude Code, select `sourcegraph`, complete the OAuth flow                             |
+| Skill / Plugin | Credential          | How to get                                                                                                                                                                          |
+| -------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `godfetch`     | `ctx7 login`        | One-time login via `bunx ctx7@latest login` (library docs from [context7.com](https://context7.com))                                                                                |
+| `oracle`       | Codex CLI auth      | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex)                                                                                                     |
+| `ora` (MCP)    | `SOURCEGRAPH_TOKEN` | Generate a PAT at [sourcegraph.com/user/settings/tokens/new](https://sourcegraph.com/user/settings/tokens/new) (scope `mcp`, no expiration), then `export SOURCEGRAPH_TOKEN=sgp_…`. |
+
+> OAuth via `/mcp` also works but expires quickly. The `.mcp.json` reads `${SOURCEGRAPH_TOKEN}` from your shell — if unset, Claude Code fails to parse the config, so either export the token or remove the `headers` block to fall back to OAuth.
 
 <details>
 <summary>Codex CLI setup for oracle / council-review</summary>

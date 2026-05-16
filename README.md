@@ -94,6 +94,16 @@ ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`
 - Do not use built-in Explore or generic Agent when `ora:Ariadne` (codebase) or `ora:Clio` (external research) can do the job.
 - Delegate to `ora:Ariadne` / `ora:Clio` when the exploration is isolated from current work and you just need the answer back. Keep search in main agent when iteration / reasoning needs the trail (debug, trace, ongoing implementation).
 
+## Subagent model selection
+
+Pass `model` to Agent tool by task complexity (not by agent identity):
+
+- **opus** — deep analysis, architecture mapping, elusive debug, security review, cross-module trace
+- **sonnet** — search / lookup, doc fetch, code review, codegen, format
+- **haiku** — rename, list, trivial transform
+
+Omit `model` → inherits parent. Why: same agent (e.g. Ariadne) serves both "find file X" (sonnet) and "map request lifecycle" (opus); routing belongs at call site, not in agent definition.
+
 ## Before acting
 
 - **Investigate local code first** — read code before claiming. User mentions a specific file → read it, do not speculate from memory. Why: training data does not reflect this codebase; speculation produces confidently wrong answers.

@@ -100,7 +100,6 @@ Pass `model` to Agent tool by task complexity (not by agent identity):
 
 - **opus** — deep analysis, architecture mapping, elusive debug, security review, cross-module trace
 - **sonnet** — search / lookup, doc fetch, code review, codegen, format
-- **haiku** — rename, list, trivial transform
 
 Omit `model` → inherits parent. Why: same agent (e.g. Ariadne) serves both "find file X" (sonnet) and "map request lifecycle" (opus); routing belongs at call site, not in agent definition.
 

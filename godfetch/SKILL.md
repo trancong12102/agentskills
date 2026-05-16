@@ -9,23 +9,24 @@ Unified external research — look up library documentation, search source code 
 
 ## Routing
 
-| Intent                                    | Primary tool                                                      | Fallback                                         |
-| ----------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ |
-| Library docs, API reference               | `llms-probe` → `WebFetch` llms.txt                                | `context7` if no llms.txt published              |
-| Changelogs, breaking changes              | `llms-probe` → `WebFetch` llms.txt                                | `gh api contents` for CHANGELOG.md               |
-| Cross-repo code search (exact identifier) | Sourcegraph MCP `keyword_search`                                  | `gh search code`, then `git-clone` for follow-up |
-| Cross-repo code search (concept, no name) | Sourcegraph MCP `nls_search` with 2-5 extracted keywords          | `keyword_search` after picking a literal term    |
-| Deep dive in known repo (3+ files)        | `git-clone` + shell tools                                         | Sourcegraph `read_file` for one-off reads        |
-| GitHub issues                             | `gh issue view <N>`                                               | `gh search issues` for discovery                 |
-| GitHub PRs                                | `gh pr view <N>`                                                  | `gh search prs` for discovery                    |
-| GitHub releases (versions, dates, notes)  | `gh release view <tag> --repo owner/repo`                         | `gh release list --repo owner/repo` for browsing |
-| Single file (known repo + path)           | Sourcegraph MCP `read_file`                                       | `gh api repos/.../contents/<path>` (GitHub only) |
-| Symbol navigation (def, references)       | Sourcegraph `go_to_definition` / `find_references`                | `git-clone` + ast-grep                           |
-| Git history / diff search across repos    | Sourcegraph `commit_search` / `diff_search` / `compare_revisions` | `gh api /repos/.../commits`                      |
-| Package version, deprecation              | `deps-dev`                                                        | `npm view` for npm-only metadata                 |
-| npm package info (non-version)            | `npm view <pkg>` (Bash)                                           | WebSearch for community sentiment                |
-| General web lookup                        | WebSearch → WebFetch                                              | —                                                |
-| Comparison / decision                     | `llms-probe` per lib + WebSearch                                  | `context7` for additional snippets               |
+| Intent                                                                       | Primary tool                                                      | Fallback                                                 |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| Library docs, API reference                                                  | `llms-probe` → `WebFetch` llms.txt                                | `context7` if no llms.txt published                      |
+| Changelogs, breaking changes                                                 | `llms-probe` → `WebFetch` llms.txt                                | `gh api contents` for CHANGELOG.md                       |
+| Cross-repo code search (exact identifier)                                    | Sourcegraph MCP `keyword_search`                                  | `gh search code`, then `git-clone` for follow-up         |
+| Semantic / concept query in a GitHub-hosted dep ("how does X work in lib Y") | `mcp__plugin_ora_morph__github_codebase_search`                   | `git-clone` if the question keeps branching across files |
+| Concept query across multi-host or GitLab/Bitbucket repos                    | Sourcegraph MCP `nls_search` with 2-5 extracted keywords          | `keyword_search` after picking a literal term            |
+| Deep dive in known repo (3+ files)                                           | `git-clone` + shell tools                                         | Sourcegraph `read_file` for one-off reads                |
+| GitHub issues                                                                | `gh issue view <N>`                                               | `gh search issues` for discovery                         |
+| GitHub PRs                                                                   | `gh pr view <N>`                                                  | `gh search prs` for discovery                            |
+| GitHub releases (versions, dates, notes)                                     | `gh release view <tag> --repo owner/repo`                         | `gh release list --repo owner/repo` for browsing         |
+| Single file (known repo + path)                                              | Sourcegraph MCP `read_file`                                       | `gh api repos/.../contents/<path>` (GitHub only)         |
+| Symbol navigation (def, references)                                          | Sourcegraph `go_to_definition` / `find_references`                | `git-clone` + ast-grep                                   |
+| Git history / diff search across repos                                       | Sourcegraph `commit_search` / `diff_search` / `compare_revisions` | `gh api /repos/.../commits`                              |
+| Package version, deprecation                                                 | `deps-dev`                                                        | `npm view` for npm-only metadata                         |
+| npm package info (non-version)                                               | `npm view <pkg>` (Bash)                                           | WebSearch for community sentiment                        |
+| General web lookup                                                           | WebSearch → WebFetch                                              | —                                                        |
+| Comparison / decision                                                        | `llms-probe` per lib + WebSearch                                  | `context7` for additional snippets                       |
 
 For mixed requests, launch all relevant tools in parallel. Probe and clone are I/O-bound — start them in the background and run `WebFetch`/`context7`/WebSearch concurrently to mask latency.
 
@@ -151,10 +152,19 @@ Indexes 2M+ OSS repos across GitHub + GitLab + Bitbucket. Sub-second cross-repo 
 - **Discovery vs forensics** — `keyword_search` / `nls_search` for "find repos that…"; `git-clone` for tracing flow through 5+ files in one repo.
 - **Index lag** — Code published within the last ~24 hours may not be indexed. Fall back to `git-clone --refresh` for just-released versions.
 - **Repo not indexed = fallback** — If `read_file` returns null repository, drop to `git-clone` or `gh api contents`.
-- **`deepsearch` is heavy** — Spawns AI subagents. Use only when `keyword_search` + `read_file` can't synthesize the answer.
+- **`deepsearch` is heavy** — Spawns AI subagents. Use only when `keyword_search` + `read_file` can't synthesize the answer **and** the target spans multiple repos or non-GitHub hosts. For GitHub-only synthesis use `mcp__plugin_ora_morph__github_codebase_search` instead — lighter and shaped for the same job.
 - **Plan tier caveat** — Sourcegraph docs note MCP access is part of Enterprise plans; public `sourcegraph.com` MCP endpoint's free-tier behavior is unverified. If first tool call returns 401/403, drop to `git-clone`.
 
 Reference: [Sourcegraph MCP docs](https://sourcegraph.com/docs/api/mcp)
+
+## Morph `github_codebase_search` — default for GitHub-hosted semantic queries
+
+`mcp__plugin_ora_morph__github_codebase_search` runs Morph's WarpGrep subagent against a target public GitHub repo and returns a synthesized answer with file:line citations. **Reach for it first** when the question is shaped like "how does library X do Y", "where does package Z handle case W", "what's the data flow for feature V in repo R" — one morph call replaces a clone-then-grep-then-read loop.
+
+- **Use when** the target repo is on GitHub and the question is conceptual / semantic ("how", "where", "what wires X to Y"). Why: morph parallelizes the per-file grep + read + synthesize the caller would otherwise do serially.
+- **Prefer Sourcegraph** for: GitLab/Bitbucket targets, multi-repo cross-cutting searches, exact-identifier-with-filter queries (`repo:`, `lang:`, `rev:`), git history / diffs.
+- **Prefer `git-clone`** for: 3+ files of follow-up exploration in one repo, ast-grep structural queries, or when the question keeps branching ("now show me where this is called, now show me the test for it").
+- **Trust citations, verify conclusions** — morph's `file:line` references point to real locations in the target repo, but its synthesis (what that code _does_, how it answers the question) can be wrong. When the answer is load-bearing, spot-check via `gh api repos/.../contents/<path>` or `git-clone` + Read.
 
 ## git-clone — Source Code Exploration
 

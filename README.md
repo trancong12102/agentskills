@@ -34,6 +34,8 @@ Statically linked (musl on Linux) — no Node, Rust toolchain, or runtime depend
 
 **[`sourcegraph`](https://sourcegraph.com/docs/api/mcp)** — HTTP MCP, cross-repo code search across 2M+ OSS repos. See [Credentials](#credentials) for token setup.
 
+**[`morph`](https://docs.morphllm.com/mcpquickstart)** — stdio MCP via `bunx @morphllm/morphmcp@latest`, semantic codebase search (`codebase_search` for local, `github_codebase_search` for GitHub deps). `edit_file` is disabled by default. See [Credentials](#credentials) for API key setup.
+
 ### Install
 
 ```shell
@@ -55,8 +57,9 @@ bunx skills add trancong12102/agentskills -g -y -a claude-code
 | `godfetch`     | `ctx7 login`        | One-time login via `bunx ctx7@latest login` (library docs from [context7.com](https://context7.com))                                                                                |
 | `oracle`       | Codex CLI auth      | Run `codex login` after installing [Codex CLI](https://github.com/openai/codex)                                                                                                     |
 | `ora` (MCP)    | `SOURCEGRAPH_TOKEN` | Generate a PAT at [sourcegraph.com/user/settings/tokens/new](https://sourcegraph.com/user/settings/tokens/new) (scope `mcp`, no expiration), then `export SOURCEGRAPH_TOKEN=sgp_…`. |
+| `ora` (MCP)    | `MORPH_API_KEY`     | Sign up at [morphllm.com](https://morphllm.com), generate an API key, then `export MORPH_API_KEY=…`.                                                                                |
 
-> OAuth via `/mcp` also works but expires quickly. The `.mcp.json` reads `${SOURCEGRAPH_TOKEN}` from your shell — if unset, Claude Code fails to parse the config, so either export the token or remove the `headers` block to fall back to OAuth.
+> Both tokens are read from your shell at startup — if either is unset, Claude Code fails to parse `.mcp.json`. Export both, or remove the corresponding server block. (OAuth via `/mcp` is an alternative for Sourcegraph but expires quickly.)
 
 <details>
 <summary>Codex CLI setup for oracle / council-review</summary>
@@ -85,23 +88,11 @@ sandbox_mode = "read-only"
 ora is just two agents — workflow behavior lives in your `~/.claude/CLAUDE.md`. Recommended setup:
 
 ```markdown
-## Subagent routing
+## Search and delegation
 
-- **Codebase exploration** → ora:Ariadne, not built-in Explore.
-- **External research** (docs, GitHub repos, library APIs) → ora:Clio, not main-agent curl/gh/WebFetch. Even a single independent lookup goes to Clio. Multiple independent lookups in the same turn → spawn parallel Clio agents in one message. "Independent" = query does not depend on a prior tool call's output in this turn. Why: main-agent curl|grep dumps raw HTML/grep noise into context; Clio returns synthesized answers and parallelizes trivially. Skip Clio for empirical tests against actual endpoints, iterative drilldown (step N+1 needs step N's output), and system inspection (dig/brew/ps).
-
-Fall back to built-in only if both ora agents unavailable or task falls outside codebase and external-research categories.
-
-## File search tools
-
-For code search default to `fff` (MCP-backed, frecency-ranked, dirty-file boosted). Avoid shell tools for code search. Route by what you have in hand:
-
-- **Exact identifier** (function / class / variable / constant name) → `mcp__plugin_ora_fff__grep`. Why: fast, exhaustive, returns concise output with best-match hints.
-- **Naming variants of ONE identifier** (snake_case + PascalCase, definition + alias) → `mcp__plugin_ora_fff__multi_grep`. Scope: variants of one symbol like `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']` — not for enumerating a feature's vocabulary.
-- **File by name** → `mcp__plugin_ora_fff__find_files`. Why: frecency-ranked, dirty-file boosted.
-- **Concept / unfamiliar code** (no identifier yet) → skim README/dir structure first, pick a specific term, then `fff__grep` → Read top hits → iterate. Do not write OR-patterns enumerating guesses for one feature; pick one specific term and follow the references.
-
-Shell `grep`/`find` are OK only for system inspection, log parsing, and piped filtering of command output.
+- Keyword / exact-file search → `fff` MCP tools. Semantic / concept search → `mcp__plugin_ora_morph__codebase_search` or `ora:Ariadne`.
+- Do not use built-in Explore or generic Agent when `ora:Ariadne` (codebase) or `ora:Clio` (external research) can do the job.
+- Delegate to `ora:Ariadne` / `ora:Clio` when the exploration is isolated from current work and you just need the answer back. Keep search in main agent when iteration / reasoning needs the trail (debug, trace, ongoing implementation).
 
 ## Before acting
 

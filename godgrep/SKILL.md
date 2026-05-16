@@ -9,20 +9,20 @@ Routes codebase search tasks to the right tool based on intent.
 
 ## Tool Routing
 
-| Intent                                               | Primary tool                                                      | Also consider                                      |
-| ---------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------- |
-| Keyword / symbol search (exact identifier known)     | `mcp__plugin_ora_fff__grep`                                       | LSP for definitions                                |
-| Multi-pattern OR — naming variants of one identifier | `mcp__plugin_ora_fff__multi_grep`                                 | sequential `mcp__plugin_ora_fff__grep` calls       |
-| File discovery (by name)                             | `mcp__plugin_ora_fff__find_files`                                 | `mcp__plugin_ora_fff__grep` for content matches    |
-| Concept / "how does X work" (no identifier yet)      | skim README + `find_files` for structure, then `fff__grep` + Read | follow references from the first hit               |
-| Trace a flow                                         | `mcp__plugin_ora_fff__grep` for a specific term, then follow refs | `mcp__plugin_ora_fff__find_files` for entry points |
-| Find all usages of X                                 | LSP find-references                                               | `mcp__plugin_ora_fff__grep`                        |
-| Find a specific symbol                               | LSP go-to-definition                                              | `mcp__plugin_ora_fff__grep`                        |
-| Structural code patterns                             | `ast-grep`                                                        | `mcp__plugin_ora_fff__grep` as fallback            |
-| Outside git index / fallback                         | shell `grep` / `find`                                             | last resort, after `fff`                           |
-| Git history / blame                                  | Bash (git log/blame)                                              | —                                                  |
+| Intent                                                                 | Primary tool                                                 | Also consider                                                       |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Keyword / symbol search (exact identifier known)                       | `mcp__plugin_ora_fff__grep`                                  | LSP for definitions                                                 |
+| Multi-pattern OR — naming variants of one identifier                   | `mcp__plugin_ora_fff__multi_grep`                            | sequential `mcp__plugin_ora_fff__grep` calls                        |
+| File discovery (by name)                                               | `mcp__plugin_ora_fff__find_files`                            | `mcp__plugin_ora_fff__grep` for content matches                     |
+| Concept / "how does X work" / "where is Y handled" (no identifier yet) | `mcp__plugin_ora_morph__codebase_search`                     | fall back to `find_files` + `fff__grep` + Read only if morph misses |
+| Trace a feature end-to-end                                             | `mcp__plugin_ora_morph__codebase_search` for the initial map | `mcp__plugin_ora_fff__grep` to verify specific call sites           |
+| Find all usages of X                                                   | LSP find-references                                          | `mcp__plugin_ora_fff__grep`                                         |
+| Find a specific symbol                                                 | LSP go-to-definition                                         | `mcp__plugin_ora_fff__grep`                                         |
+| Structural code patterns                                               | `ast-grep`                                                   | `mcp__plugin_ora_fff__grep` as fallback                             |
+| Outside git index / fallback                                           | shell `grep` / `find`                                        | last resort, after `fff`                                            |
+| Git history / blame                                                    | Bash (git log/blame)                                         | —                                                                   |
 
-For broad questions, break into 2-3 search angles and launch in parallel.
+When the question is a single broad concept, one `mcp__plugin_ora_morph__codebase_search` call replaces multi-angle parallelization. Split into 2-3 parallel angles only when the work is multiple independent identifier-based searches (e.g. "find callers of X and definitions of Y in one pass").
 
 ## Anti-pattern: shotgun OR-grep for features
 
@@ -35,6 +35,14 @@ grep -r "appUpdate|checkAppUpdate|versionCheck|setAppUpdateHandler|needUpdate"
 ```
 
 Instead: skim README/dir structure to learn the feature's actual name, pick **one specific term**, grep for it, Read the top hit, and follow references. `multi_grep` is for naming variants of **one identifier** (e.g. `['ActorAuth', 'PopulatedActorAuth', 'actor_auth']`), not for guessing a feature's vocabulary.
+
+## Morph `codebase_search` — default for semantic/concept queries
+
+`mcp__plugin_ora_morph__codebase_search` runs a Morph WarpGrep subagent that parallel-greps and reads files, returning a synthesized answer. **Reach for it first** when the question is shaped like "how does X work", "where is Y handled", "what wires Z together", "find all the places that do W". One morph call beats 4-8 `fff__grep` + Read turns on these shapes.
+
+- **Use when** the question is conceptual / semantic / "find X-related code" and you don't have a single exact identifier to grep. Why: morph parallelizes the grep + read + summarize loop the calling agent would otherwise do serially; cuts latency and turn count substantially.
+- **Do not use when** you have a concrete identifier — `fff__grep` is faster, exhaustive, and returns exact `file:line` hits in one call.
+- **Trust citations, verify conclusions** — morph's `file:line` references point to real code locations, but its synthesis (what that code _does_, how it fits the question) can be wrong. When the answer is load-bearing, `Read` the cited locations and confirm morph's interpretation before relaying.
 
 ## ast-grep
 

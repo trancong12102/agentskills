@@ -5,7 +5,7 @@ description: "Multi-perspective code review that synthesizes findings from multi
 
 # Council Review
 
-Run Codex, Claude's own `/review`, and `/simplify` in parallel, then cross-validate and synthesize into one unified report — like a review board where three reviewers examine the code from different angles, and Claude as lead reviewer delivers the final opinion.
+Run Codex, Claude's own `/review`, and `/code-review max` in parallel, then cross-validate and synthesize into one unified report — like a review board where three reviewers examine the code from different angles, and Claude as lead reviewer delivers the final opinion.
 
 ## Prerequisites
 
@@ -45,9 +45,9 @@ python3 scripts/codex-review.py commit <SHA>
 
 Launch a background Agent (`run_in_background: true`) to run `/review` on the same scope. Prompt the agent to invoke the `/review` skill (via the Skill tool) and return its complete findings. The agent's output arrives directly in its completion notification.
 
-#### Simplify — `/simplify` skill (background Agent)
+#### Quality — `/code-review max` skill (background Agent)
 
-Launch a background Agent (`run_in_background: true`) to run `/simplify` on the same scope. Prompt the agent to invoke the `/simplify` skill (via the Skill tool), then **return only its analysis and findings as text** — do not apply any code fixes. The agent's output arrives directly in its completion notification.
+Launch a background Agent (`run_in_background: true`) to run `/code-review max` on the same scope. Prompt the agent to invoke the `code-review` skill with `max` effort (via the Skill tool), then **return only its analysis and findings as text** — do not apply any code fixes. The agent's output arrives directly in its completion notification. (`/code-review` fixes issues by default, so the report-only instruction is required, not optional.)
 
 After launching all three background tasks, **end your turn immediately**. Do not output anything else, do not proceed to Step 3, and do not check on task progress. You will be notified automatically when each task completes.
 
@@ -55,7 +55,7 @@ After launching all three background tasks, **end your turn immediately**. Do no
 
 Once you have received completion notifications for **all three** tasks, cross-validate:
 
-1. **Validate external findings** — For each finding from Codex and `/simplify`:
+1. **Validate external findings** — For each finding from Codex and `/code-review max`:
    - **Confirm** — Claude independently agrees the issue exists and is correctly described.
    - **Dispute** — Claude believes the finding is a false positive or incorrectly categorized. Note the reasoning.
    - **Enhance** — The issue exists but the explanation or suggested fix can be improved. Provide the improved version.
@@ -71,8 +71,8 @@ Load `references/output-format.md` for the report template. Load `references/mer
 ## Rules
 
 - **Use the same review scope for all reviewers.** Comparing different scopes would make deduplication meaningless.
-- **Run `/simplify` agent as report-only.** Instruct the agent explicitly to return findings as text and skip code fixes.
-- **Write one unified opinion.** The report reads as a single reviewer's assessment. Do not structure findings by reviewer (no "Codex found..." or "Simplify found..." sections).
+- **Run `/code-review max` agent as report-only.** Instruct the agent explicitly to return findings as text and skip code fixes.
+- **Write one unified opinion.** The report reads as a single reviewer's assessment. Do not structure findings by reviewer (no "Codex found..." or "Quality found..." sections).
 - **Sort findings by priority** — P0 → P1 → P2 → P3 → P4.
 - **Exclude low-confidence findings.** If Claude disputes an external finding or evidence is purely circumstantial, omit it from the report. The council's value is cross-validation; findings that fail it are noise.
 - **Always use the wrapper script** for Codex. The script sets the correct model and read-only mode; calling `codex` CLI directly bypasses these.

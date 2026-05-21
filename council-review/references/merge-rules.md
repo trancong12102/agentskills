@@ -1,6 +1,6 @@
 # Council Review — Merge Rules
 
-When synthesizing findings from all reviewers (Codex, Claude, Simplify):
+When synthesizing findings from all reviewers (Codex, Claude, Quality):
 
 1. **Same issue, same fix, Claude confirmed** → Merge into one finding, confidence: High
 2. **Same issue, different fix** → Merge into one finding, confidence: High, present the best fix (prefer Claude's improved version if available)
@@ -9,4 +9,4 @@ When synthesizing findings from all reviewers (Codex, Claude, Simplify):
 5. **Contradictory assessments between external reviewers, Claude breaks the tie** → Include with Claude's assessment as the deciding factor, confidence: Medium
 6. **Unique finding from one external reviewer, not disputed by Claude** → Include as-is, confidence: Medium
 7. **Unique finding from Claude only** → Include as Claude's own finding, confidence: Medium
-8. **Simplify-only finding (reuse, quality, efficiency)** → Include as-is if Claude does not dispute it, confidence: Medium. These often surface code duplication or structural issues that other reviewers miss.
+8. **Quality-only finding (reuse, quality, efficiency)** → Include as-is if Claude does not dispute it, confidence: Medium. These often surface code duplication or structural issues that other reviewers miss.

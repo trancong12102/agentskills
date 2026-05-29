@@ -4,7 +4,7 @@ Reusable skills and agents for AI coding agents, primarily Claude Code.
 
 ## Why ora
 
-Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.7, that complexity burns tokens without improving output. ora ships exactly two research agents:
+Most Claude Code agent frameworks (11–24 agents, 9+ hooks) add complexity to compensate for weaker models. With Opus 4.8, that complexity burns tokens without improving output. ora ships exactly two research agents:
 
 - **Ariadne** — codebase exploration (semantic search, keyword search, and file discovery across local files)
 - **Clio** — external research (docs, web, GitHub repos)
@@ -102,19 +102,7 @@ Pass `model` to Agent tool by task complexity (not by agent identity):
 - **sonnet** — search / lookup, doc fetch, code review, codegen, format
 
 Omit `model` → inherits parent. Why: same agent (e.g. Ariadne) serves both "find file X" (sonnet) and "map request lifecycle" (opus); routing belongs at call site, not in agent definition.
-
-## Before acting
-
-- **Investigate local code first** — read code before claiming. User mentions a specific file → read it, do not speculate from memory. Why: training data does not reflect this codebase; speculation produces confidently wrong answers.
-- **Look up libraries, frameworks, tools first** — these (plus package versions, framework patterns / best practices, cloud APIs, deprecation status) change frequently; training data goes stale. Do not answer without loading the matching skill or spawning ora:Clio first — trigger on the topic, not on self-judgment of "do I know this". Cost is near zero; stale knowledge breaks implementations. Skip only when task is clearly outside these categories (pure language syntax, math, project-internal code).
-- **Plan when scope is non-trivial** — do not implement without calling EnterPlanMode tool first when task involves data migration / API contract / auth changes, acceptance criteria not stated, crosses subsystems you have not mapped, or solution shape is unclear. Skip for clearly-scoped work: obvious fix site, mechanical rename across known sites, config/typo fix, single feature with known shape. Why: file count is a bad proxy — a 5-file mechanical rename is trivial; a 1-file new algorithm with unclear requirements needs planning.
-- **State ambiguity before acting** — multiple reasonable interpretations → list them and ask. Do not pick silently.
-- **Push back on scope** — simpler approach exists than asked → say so before implementing.
-- **Ask when blocked** — task unclear enough to block correct execution → ask via AskUserQuestion tool, do not guess.
-- **Mark complete only after verification** — translate vague goals into a verifiable criterion first ("add validation" → "tests for invalid inputs pass"). Do not mark done from own summary — run the actual check.
 ```
-
-The decision-discipline bullets under "Before acting" (State ambiguity, Push back on scope, Ask when blocked, Mark complete only after verification) are adapted from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills).
 
 ## License
 

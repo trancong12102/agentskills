@@ -12,6 +12,7 @@ Pick the tool by the shape of the question:
 - Concept / "how does X work" / "where is Y handled" (no identifier yet) → `mcp__plugin_ora_morph__codebase_search`. One call replaces the grep→Read→grep loop; fall back to fff + Read only when it misses.
 - Symbol definition / all references → LSP.
 - Structural patterns (match by AST, not text) → ast-grep skill.
+- Map a file's or directory's symbols/exports/imports before reading → `ast-grep outline` (ast-grep skill).
 - Git history / blame → git via Bash.
 
 Morph returns a synthesized answer with `file:line` citations. The citations are real; the synthesis can misread what the code does — Read the cited locations before relaying load-bearing conclusions.

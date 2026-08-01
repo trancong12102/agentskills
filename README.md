@@ -51,10 +51,6 @@ Statically linked (musl on Linux) — no Node, Rust toolchain, or runtime depend
 ```shell
 /plugin marketplace add trancong12102/agentskills
 /plugin install ora@agentskills
-
-# Notification plugins (optional)
-/plugin install sound-notify@agentskills
-/plugin install terminal-notify@agentskills
 ```
 
 ### Credentials

@@ -1,6 +1,6 @@
 # Agent Skills Repo
 
-Repo containing the ora Claude Code plugin (research agents + skills) and notification hook plugins. Content targets Claude 5-class models — assume the model is already smart and knows tool mechanics.
+Repo containing the ora Claude Code plugin (research agents + skills). Content targets Claude 5-class models — assume the model is already smart and knows tool mechanics.
 
 ## Editing skills and agents
 
@@ -21,7 +21,6 @@ When modifying plugin components (agents, skills, hooks, manifest), bump `versio
 ## Repo structure
 
 - `plugins/ora/` — research agents (Ariadne: codebase, Clio: external) + skills (`code-search`, `ast-grep`, `lib-docs`, `repo-research`, `pkg-versions`)
-- `plugins/sound-notify/`, `plugins/terminal-notify/` — notification hooks
 
 ## Reference
 

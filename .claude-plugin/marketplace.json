@@ -2,9 +2,5 @@
   "name": "agentskills",
   "description": "Claude Code skills and hook plugins",
   "owner": { "name": "Cong Tran" },
-  "plugins": [
-    { "name": "sound-notify", "source": "./plugins/sound-notify" },
-    { "name": "ora", "source": "./plugins/ora" },
-    { "name": "terminal-notify", "source": "./plugins/terminal-notify" }
-  ]
+  "plugins": [{ "name": "ora", "source": "./plugins/ora" }]
 }

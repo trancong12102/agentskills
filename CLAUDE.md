@@ -1,43 +1,29 @@
 # Agent Skills Repo
 
-Repo containing Claude Code skills and subagents. When editing content here, apply Opus 4.8 prompting practices.
+Repo containing the ora Claude Code plugin (research agents + skills) and notification hook plugins. Content targets Claude 5-class models — assume the model is already smart and knows tool mechanics.
 
 ## Editing skills and agents
 
 <prompting_style>
-Prescriptive framing default ("Before X, do Y" / "Route X to Y"). Prohibitive framing ("Never X") reserved for behavior gates with Anthropic-official phrasing (e.g., "Never speculate about code you have not opened") or technical correctness requirements (e.g., "Never hold MutexGuard across .await").
+Subtraction over addition: keep only what the model can't know — MCP tool names, script paths, empirical gotchas. No step-by-step workflows, no verification/self-check instructions, no anti-laziness pressure, no ALL-CAPS trigger language ("Use X when…", never "CRITICAL: you MUST use X").
 
-Explain _why_ per rule. Opus 4.8 generalizes from rationale; bare imperatives underperform on edge cases.
+One default + escape hatch per intent, not menus of undifferentiated options.
 
-ALL-CAPS (`ALWAYS`/`NEVER`/`DO NOT`) reserved for output-template enforcement or Anthropic-official gate phrasing. Not for tool-trigger pressure.
+Skill descriptions: third person, `[capability]. Use when [triggers]. Do not use for [anti-triggers].` Max 1024 chars — name + description are the only routing signal. Bodies never repeat the description's use-when.
 
-Keep instruction scope explicit — 4.8 does not auto-generalize, and follows instructions more literally than 4.7. State what the rule applies to and what it does not.
+SKILL.md stays small (target ≤ ~60 lines). Reference material goes to `references/` (load-on-demand, one level deep from SKILL.md), fragile operations to `scripts/` (execute-without-reading).
 </prompting_style>
 
-<skill_descriptions>
-Third-person, canonical pattern: `[capability]. Use when [triggers]. Do not use for [anti-triggers].`
-
-Max 1024 chars. Name + description are the only routing signal at startup.
-</skill_descriptions>
-
-<skill_bodies>
-SKILL.md body stays under 500 lines. Progressive disclosure via `references/` (load-on-demand) and `scripts/` (execute-without-loading).
-
-Do not duplicate `Use when` / `Do not use for` content in body sections when the description already covers it. 4.8 literal parsing re-triggers on redundant gates.
-</skill_bodies>
-
 <plugin_versioning>
-When modifying plugin components (agents, hooks, commands, manifest), bump `version` in that plugin's `plugin.json`. Marketplace listing at `.claude-plugin/marketplace.json` references plugins by path, does not carry versions.
+When modifying plugin components (agents, skills, hooks, manifest), bump `version` in that plugin's `plugin.json` — once per commit. Marketplace listing at `.claude-plugin/marketplace.json` references plugins by path and carries no versions.
 </plugin_versioning>
 
 ## Repo structure
 
-- `plugins/ora/` — research agents (Ariadne for codebase, Clio for external)
+- `plugins/ora/` — research agents (Ariadne: codebase, Clio: external) + skills (`code-search`, `ast-grep`, `lib-docs`, `repo-research`, `pkg-versions`)
 - `plugins/sound-notify/`, `plugins/terminal-notify/` — notification hooks
-- `oracle/`, `council-review/`, `godgrep/`, `godfetch/` — workflow skills
-- `react-advanced/`, `react-web-advanced/`, `react-native-advanced/` — React ecosystem skills
-- `rust-advanced/`, `effect-advanced/`, `typescript-advanced/` — language-specific advanced skills
 
 ## Reference
 
-Opus 4.8 prompting best practices: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+- Claude 5 prompting best practices: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices (plus per-model pages for Opus 5, Sonnet 5, Fable 5)
+- Skill authoring best practices: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices

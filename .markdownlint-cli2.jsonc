@@ -8,6 +8,10 @@
     // Allow multiple top-level headings (skills often have structured sections)
     "MD025": false,
 
+    // A changelog repeats "### Fixed" under every version by design, and the
+    // file is generated, so only a repeat within one section is a real problem
+    "MD024": { "siblings_only": true },
+
     // Allow inline HTML (common in markdown docs)
     "MD033": false,
 

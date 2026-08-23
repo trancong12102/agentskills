@@ -31,15 +31,6 @@ version = "0.13"
 default-features = false
 features = ["json", "rustls", "webpki-roots", "http2", "gzip", "charset"]
 
-[profile.release]
-lto = true
-strip = true
-
-# The profile that 'dist' will build with
-[profile.dist]
-inherits = "release"
-lto = "thin"
-
 [lints.rust]
 unsafe_code = "forbid"
 missing_debug_implementations = "warn"

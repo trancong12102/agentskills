@@ -11,10 +11,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    working-directory: plugins/ora/mcp
-
 jobs:
   rust:
     runs-on: ubuntu-latest
@@ -25,9 +21,9 @@ jobs:
         with:
           components: clippy, rustfmt
 
+      # The crate lives in plugins/ora/mcp but the workspace root is the repo
+      # root, so cargo's target/ — and the cache — belong here.
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: plugins/ora/mcp
 
       - run: cargo fmt --check
       - run: cargo clippy --all-targets --all-features -- -D warnings
@@ -43,9 +39,6 @@ jobs:
 
   markdown:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2

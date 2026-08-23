@@ -1,8 +1,8 @@
-# The Cargo crate lives under plugins/, not at the repo root, so members are
-# listed explicitly. The root package.json is deliberately not a member: it only
-# holds markdown lint tooling and has nothing to release.
+# Points at the Cargo workspace root, not the crate directory: dist enumerates
+# packages from the workspace itself. The root package.json is deliberately not a
+# member — it only holds markdown lint tooling and has nothing to release.
 [workspace]
-members = ["cargo:plugins/ora/mcp/"]
+members = ["cargo:."]
 
 # Config for 'dist'
 [dist]

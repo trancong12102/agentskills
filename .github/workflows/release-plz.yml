@@ -31,8 +31,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       # This action publishes no floating major tag; pin the exact release.
+      # Must be the workspace root manifest: in git_only mode release-plz opens a
+      # git repository at the manifest's own directory without walking up.
       - uses: release-plz/action@v0.5.131
         with:
-          manifest_path: plugins/ora/mcp/Cargo.toml
+          manifest_path: Cargo.toml
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}

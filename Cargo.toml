@@ -1,0 +1,17 @@
+# A workspace root is required even though there is a single crate: release-plz
+# in git_only mode opens the git repository at the manifest's directory without
+# walking up, so the manifest it is pointed at has to sit at the repo root.
+[workspace]
+members = ["plugins/ora/mcp"]
+resolver = "3"
+
+# Profiles are only honoured in the workspace root; Cargo silently ignores them
+# in member manifests.
+[profile.release]
+lto = true
+strip = true
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

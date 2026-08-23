@@ -30,7 +30,8 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: release-plz/action@v0
+      # This action publishes no floating major tag; pin the exact release.
+      - uses: release-plz/action@v0.5.131
         with:
           manifest_path: plugins/ora/mcp/Cargo.toml
         env:

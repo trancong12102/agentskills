@@ -1,5 +1,5 @@
 {
   "name": "ora",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Research agents (Ariadne for codebase, Clio for external sources), the ora MCP server, and search-routing skills"
 }

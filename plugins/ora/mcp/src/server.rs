@@ -107,7 +107,12 @@ impl Default for Ora {
 impl ServerHandler for Ora {
     fn get_info(&self) -> ServerInfo {
         ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
-            .with_server_info(Implementation::from_build_env())
+            // Not `from_build_env()`: its env! calls expand inside rmcp, so it
+            // reports the SDK's own name and version rather than this server's.
+            .with_server_info(Implementation::new(
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION"),
+            ))
             .with_protocol_version(ProtocolVersion::V_2025_06_18)
     }
 }

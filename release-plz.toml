@@ -1,6 +1,9 @@
 [workspace]
-# ora-mcp is distributed through Homebrew, not crates.io.
-publish = false
+# ora-mcp is distributed through Homebrew, not crates.io. `publish = false` alone
+# is not enough: release-plz would still ask crates.io for the latest version,
+# find nothing, and report "nothing to release". git_only derives the version
+# from tags matching git_tag_name instead, and skips `cargo publish` implicitly.
+git_only = true
 # release-plz stops at the tag; the dist workflow turns that tag into the
 # GitHub Release, so it must not create an empty one first.
 git_release_enable = false

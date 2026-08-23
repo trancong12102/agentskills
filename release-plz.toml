@@ -1,9 +1,14 @@
 [workspace]
-# ora-mcp is distributed through Homebrew, not crates.io. `publish = false` alone
-# is not enough: release-plz would still ask crates.io for the latest version,
-# find nothing, and report "nothing to release". git_only derives the version
-# from tags matching git_tag_name instead, and skips `cargo publish` implicitly.
+# ora-mcp is distributed through Homebrew, not crates.io. Both keys are needed
+# and neither substitutes for the other: without git_only, release-plz asks
+# crates.io for the current version, finds nothing, and reports "nothing to
+# release"; git_only reads it from git_tag_name tags instead. publish then has to
+# be disabled explicitly, since it defaults to true and cannot be true alongside
+# git_only. This is also the only place the ban can go — `publish = false` in
+# Cargo.toml drops the package from release-plz's candidate list altogether, so
+# it would never be tagged.
 git_only = true
+publish = false
 # release-plz stops at the tag; the dist workflow turns that tag into the
 # GitHub Release, so it must not create an empty one first.
 git_release_enable = false

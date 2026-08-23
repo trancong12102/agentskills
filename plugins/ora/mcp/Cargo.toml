@@ -6,10 +6,12 @@ description = "Stateless MCP server backing the ora plugin: structural search, p
 license = "MIT"
 repository = "https://github.com/trancong12102/agentskills"
 homepage = "https://github.com/trancong12102/agentskills/tree/main/plugins/ora"
-publish = false
+# Deliberately no `publish = false`, even though this crate never goes to
+# crates.io: release-plz skips such packages entirely when deciding what to tag,
+# so the ban lives in release-plz.toml instead, where it still blocks the publish
+# step but leaves the git tag intact.
 
 [package.metadata.dist]
-# `publish = false` (no crates.io) otherwise hides this binary from dist.
 dist = true
 
 # `ast-grep` and `gh` are shelled out to at runtime, so the generated Homebrew

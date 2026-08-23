@@ -132,6 +132,32 @@ async fn ast_grep(args: &[String]) -> Result<std::process::Output, McpError> {
         })
 }
 
+/// What ast-grep wrote to stderr, split into the part that means the run failed
+/// and the part that is merely advice.
+///
+/// The exit code cannot carry this: `run` exits 1 on zero matches (grep
+/// convention) while `scan` exits 0, and `outline` exits 0 even for a path that
+/// does not exist. Reading the status would turn every empty result into an
+/// error and every mistyped path into a silent "nothing found". stderr holds the
+/// truth, but it also holds warnings — a pattern that parses into an ERROR node
+/// still runs and still matches — so only the error blocks are fatal.
+fn diagnostics(output: &std::process::Output) -> (Option<String>, Option<String>) {
+    let text = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    if text.is_empty() {
+        return (None, None);
+    }
+    // A fatal block carries its own `Help:` and `Caused by:` continuation lines,
+    // so one error line makes the whole of stderr worth surfacing.
+    let fatal = text
+        .lines()
+        .any(|l| l.trim_start().to_ascii_lowercase().starts_with("error"));
+    if fatal {
+        (Some(text), None)
+    } else {
+        (None, Some(text))
+    }
+}
+
 /// Relational rules stop at the first non-matching node unless `stopBy: end` is
 /// set, which is the single most common reason a hand-written rule returns nothing.
 fn missing_stop_by(rule: &str) -> bool {
@@ -232,9 +258,9 @@ pub(crate) async fn search(args: AstSearchArgs) -> Result<CallToolResult, McpErr
     };
 
     let output = ast_grep(&cmd).await?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let mut msg = format!("ast-grep failed: {}", stderr.trim());
+    let (fatal, warning) = diagnostics(&output);
+    if let Some(stderr) = fatal {
+        let mut msg = format!("ast-grep failed: {stderr}");
         if args.rule.is_some() {
             let _ = write!(msg, "\n\n---\n{RULE_REFERENCE}");
         }
@@ -245,6 +271,11 @@ pub(crate) async fn search(args: AstSearchArgs) -> Result<CallToolResult, McpErr
 
     if total == 0 {
         let mut msg = String::from("No matches.\n");
+        // Usually the reason: the pattern did not parse into the node the model
+        // meant, which the warning says outright.
+        if let Some(w) = &warning {
+            let _ = writeln!(msg, "{w}");
+        }
         if let Some(rule) = &args.rule
             && missing_stop_by(rule)
         {
@@ -257,7 +288,12 @@ pub(crate) async fn search(args: AstSearchArgs) -> Result<CallToolResult, McpErr
             msg.push_str(
                 "Check how the pattern parsed before rewriting it: \
                  `ast-grep run --pattern '<code>' --lang <lang> --debug-query=pattern`. \
-                 Use `--debug-query=cst` on a known-matching file to find the right node kind.\n",
+                 Use `--debug-query=cst` on a known-matching file to find the right node kind.\n\
+                 A fragment that is ambiguous on its own parses as the wrong kind — Go's \
+                 `fmt.Println($A)` becomes a type conversion, not a call — and no rewriting of \
+                 the pattern fixes that. Give it context through a rule instead:\n  \
+                 rule:\n    pattern:\n      context: \"func f() { fmt.Println($A) }\"\n      \
+                 selector: call_expression\n",
             );
         }
         return Ok(text(msg));
@@ -269,6 +305,11 @@ pub(crate) async fn search(args: AstSearchArgs) -> Result<CallToolResult, McpErr
             body,
             "\nShowing {max} of {total} matches; narrow the pattern or raise `max_results`."
         );
+    }
+    // Matches found despite a warning still deserve the caveat: an ERROR node in
+    // the pattern means some of them may be wrong.
+    if let Some(w) = warning {
+        let _ = write!(body, "\n{w}");
     }
     Ok(text(body))
 }
@@ -296,27 +337,87 @@ pub(crate) async fn outline(args: OutlineArgs) -> Result<CallToolResult, McpErro
     }
 
     let output = ast_grep(&cmd).await?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(failed(format!(
-            "ast-grep outline failed: {}",
-            stderr.trim()
-        )));
+    if let (Some(stderr), _) = diagnostics(&output) {
+        return Err(failed(format!("ast-grep outline failed: {stderr}")));
     }
 
     let body = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if body.is_empty() {
+    if !has_items(&body) {
         return Ok(text(
-            "No items found. ast-grep outline is syntax-only — check the path and that the language is supported.",
+            "No items found. Outlining is syntax-only and covers a fixed set of languages, \
+             so a file in an unsupported language yields nothing even when it parses elsewhere. \
+             Any `match`/`kind` filter applies to top-level names only.",
         ));
     }
     Ok(text(body))
 }
 
+/// A file that yields nothing still prints its path plus a literal "nothing
+/// found", so an empty outline is not an empty string. Every item line is
+/// labelled — by line number in most views, by symbol type in `names` — and that
+/// label is what separates one from the bare path headers around it.
+fn has_items(stdout: &str) -> bool {
+    stdout
+        .lines()
+        .any(|line| line.contains(": ") && line.trim() != "nothing found")
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
-    use super::{Items, Lang, View, missing_stop_by, render_matches};
+    use super::{Items, Lang, View, diagnostics, has_items, missing_stop_by, render_matches};
+
+    fn stderr(text: &str) -> std::process::Output {
+        std::process::Output {
+            status: std::process::ExitStatus::default(),
+            stdout: Vec::new(),
+            stderr: text.as_bytes().to_vec(),
+        }
+    }
+
+    #[test]
+    fn warnings_are_advice_and_errors_are_fatal() {
+        // Every wording ast-grep 0.45 uses for a real failure: clap's, the
+        // walker's, and the rule parser's.
+        for fatal in [
+            "error: invalid value 'notalang' for '--lang <LANG>'",
+            "ERROR: /tmp/x: No such file or directory (os error 2)",
+            "Error: Cannot parse rule INLINE_RULES\nHelp: refer to doc",
+        ] {
+            let (err, warn) = diagnostics(&stderr(fatal));
+            assert_eq!(err.as_deref(), Some(fatal.trim()), "should be fatal");
+            assert!(warn.is_none());
+        }
+
+        // A pattern that parses into an ERROR node still runs, so this must not
+        // sink the call — but it is the explanation for an empty result.
+        let (err, warn) = diagnostics(&stderr(
+            "Warning: Pattern contains an ERROR node and may cause unexpected results.\n\
+             Help: ast-grep parsed the pattern but it matched nothing in this run.",
+        ));
+        assert!(err.is_none(), "a warning must not be fatal");
+        assert!(warn.is_some_and(|w| w.contains("ERROR node")));
+
+        let (err, warn) = diagnostics(&stderr("   \n "));
+        assert!(err.is_none() && warn.is_none(), "blank stderr says nothing");
+    }
+
+    #[test]
+    fn outline_items_are_told_apart_from_path_headers() {
+        assert!(has_items("/tmp/a.rs\n1: fn main()\n"));
+        assert!(has_items("  12: class Foo"));
+        // The `names` view labels by symbol type instead of line number.
+        assert!(has_items("/tmp/app.ts\nfunction: greet\nconstant: VERSION"));
+        // A path header plus ast-grep's literal miss marker is an empty outline,
+        // even though the body is not an empty string.
+        assert!(!has_items("/tmp/a.rs\nnothing found"));
+        assert!(!has_items("nothing found"));
+        assert!(!has_items(""));
+        // One file yielding nothing does not empty a whole directory outline.
+        assert!(has_items(
+            "/tmp/a.rs\nnothing found\n/tmp/b.rs\nfunction: run"
+        ));
+    }
 
     /// The wire literal is what reaches the ast-grep CLI *and* what the schema
     /// advertises, so a typo in one would silently offer the model a value the

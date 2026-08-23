@@ -68,8 +68,15 @@ fn cache_key(url: &str, git_ref: Option<&str>) -> String {
         .trim_start_matches("https://")
         .trim_start_matches("http://")
         .trim_start_matches("ssh://")
-        .trim_start_matches("git@")
         .to_string();
+    // A clone URL may carry credentials (`https://oauth2:TOKEN@host/…`, or just
+    // `git@host`). Dropping the userinfo keeps a token from being written into a
+    // directory name that then persists on disk, and lands an authenticated
+    // clone in the same cache slot as an anonymous one.
+    let authority_end = key.find('/').unwrap_or(key.len());
+    if let Some(at) = key.get(..authority_end).and_then(|a| a.rfind('@')) {
+        key.drain(..=at);
+    }
     if let Some(pos) = key.find(':') {
         key.replace_range(pos..=pos, "/");
     }
@@ -80,6 +87,41 @@ fn cache_key(url: &str, git_ref: Option<&str>) -> String {
         out.push_str(&r.replace('/', "_"));
     }
     out
+}
+
+/// git echoes the remote URL in most of its failures, and that URL may carry a
+/// token. Every git error therefore passes through here before it can reach the
+/// model, the transcript, or a log.
+fn redact(msg: &str) -> String {
+    let mut out = String::with_capacity(msg.len());
+    let mut rest = msg;
+    while let Some(pos) = rest.find("://") {
+        let (before, after) = rest.split_at(pos + 3);
+        out.push_str(before);
+        // The authority ends at the path separator, or wherever the surrounding
+        // prose resumes if git wrapped the URL in quotes.
+        let end = after
+            .find(['/', ' ', '\t', '\n', '\'', '"'])
+            .unwrap_or(after.len());
+        let (authority, tail) = after.split_at(end);
+        match authority.rfind('@') {
+            Some(at) => {
+                out.push_str("***@");
+                out.push_str(authority.get(at + 1..).unwrap_or_default());
+            }
+            None => out.push_str(authority),
+        }
+        rest = tail;
+    }
+    out.push_str(rest);
+    out
+}
+
+fn git_failed(action: &str, output: &std::process::Output) -> McpError {
+    failed(format!(
+        "git {action} failed: {}",
+        redact(String::from_utf8_lossy(&output.stderr).trim())
+    ))
 }
 
 async fn run_cmd(bin: &str, args: &[String]) -> Result<std::process::Output, McpError> {
@@ -99,8 +141,7 @@ async fn run_cmd(bin: &str, args: &[String]) -> Result<std::process::Output, Mcp
         })
 }
 
-async fn do_clone(args: &RepoFetchArgs) -> Result<CallToolResult, McpError> {
-    let url = clone_url(&args.repo)?;
+async fn do_clone(args: &RepoFetchArgs, url: String) -> Result<CallToolResult, McpError> {
     let base = std::env::var_os("HOME")
         .map(PathBuf::from)
         .ok_or_else(|| failed("HOME is not set; cannot locate the repo cache"))?
@@ -125,10 +166,7 @@ async fn do_clone(args: &RepoFetchArgs) -> Result<CallToolResult, McpError> {
             )
             .await?;
             if !fetch.status.success() {
-                return Err(failed(format!(
-                    "git fetch failed: {}",
-                    String::from_utf8_lossy(&fetch.stderr).trim()
-                )));
+                return Err(git_failed("fetch", &fetch));
             }
             let reset = run_cmd(
                 "git",
@@ -143,10 +181,7 @@ async fn do_clone(args: &RepoFetchArgs) -> Result<CallToolResult, McpError> {
             )
             .await?;
             if !reset.status.success() {
-                return Err(failed(format!(
-                    "git reset failed: {}",
-                    String::from_utf8_lossy(&reset.stderr).trim()
-                )));
+                return Err(git_failed("reset", &reset));
             }
         }
         return Ok(text(dest_str));
@@ -166,10 +201,7 @@ async fn do_clone(args: &RepoFetchArgs) -> Result<CallToolResult, McpError> {
 
     let out = run_cmd("git", &cmd).await?;
     if !out.status.success() {
-        return Err(failed(format!(
-            "git clone failed: {}",
-            String::from_utf8_lossy(&out.stderr).trim()
-        )));
+        return Err(git_failed("clone", &out));
     }
     Ok(text(dest_str))
 }
@@ -210,8 +242,13 @@ async fn read_file(args: &RepoFetchArgs, path: &str) -> Result<CallToolResult, M
 }
 
 pub(crate) async fn run(args: RepoFetchArgs) -> Result<CallToolResult, McpError> {
+    // Parsed up front, before any mode is chosen: a repo string no mode could
+    // use must fail as one, rather than reaching the GitHub-only branch below
+    // and being told to retry with a clone that would fail too.
+    let url = clone_url(&args.repo)?;
+
     if args.clone.unwrap_or(false) {
-        return do_clone(&args).await;
+        return do_clone(&args, url).await;
     }
     if let Some(path) = args.path.clone() {
         return read_file(&args, &path).await;
@@ -225,7 +262,43 @@ pub(crate) async fn run(args: RepoFetchArgs) -> Result<CallToolResult, McpError>
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{cache_key, clone_url, github_slug};
+    use super::{cache_key, clone_url, github_slug, redact};
+
+    #[test]
+    fn credentials_never_reach_the_cache_path() {
+        // The token would otherwise become a directory name under ~/.cache.
+        assert_eq!(
+            cache_key(
+                "https://oauth2:glpat-SECRET@gitlab.example.com/g/p.git",
+                None
+            ),
+            "gitlab.example.com--g--p"
+        );
+        // An authenticated clone and an anonymous one share a cache slot.
+        assert_eq!(
+            cache_key("https://x-token:SECRET@github.com/a/b.git", None),
+            cache_key("https://github.com/a/b.git", None)
+        );
+    }
+
+    #[test]
+    fn credentials_never_reach_an_error_message() {
+        assert_eq!(
+            redact(
+                "fatal: could not read from 'https://oauth2:glpat-SECRET@gitlab.example.com/g/p.git'"
+            ),
+            "fatal: could not read from 'https://***@gitlab.example.com/g/p.git'"
+        );
+        // A URL without userinfo, and prose without any URL, pass through intact.
+        assert_eq!(
+            redact("remote: https://github.com/a/b not found"),
+            "remote: https://github.com/a/b not found"
+        );
+        assert_eq!(
+            redact("fatal: repository not found"),
+            "fatal: repository not found"
+        );
+    }
 
     #[test]
     fn repo_shorthand_and_urls_normalise_to_clone_urls() {

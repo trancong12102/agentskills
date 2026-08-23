@@ -29,6 +29,16 @@ jobs:
       - run: cargo clippy --all-targets --all-features -- -D warnings
       - run: cargo test --all-features
 
+      # ast-grep is a runtime dependency, and the half of the end-to-end suite
+      # that drives it needs no network, so it can gate merges. The `net_` half
+      # stays out: a docs site going down is not a reason to redden this repo.
+      #
+      # Deliberately unpinned. The Homebrew formula depends on whatever ast-grep
+      # is current, so the language sweep is only meaningful against that same
+      # moving target — a pin here would hide the drift it exists to catch.
+      - run: npm install -g @ast-grep/cli
+      - run: cargo test --test e2e -- --ignored local_
+
   audit:
     runs-on: ubuntu-latest
     steps:

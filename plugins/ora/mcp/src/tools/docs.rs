@@ -96,12 +96,21 @@ async fn probe_one(client: &reqwest::Client, url: String) -> Option<Hit> {
     })
 }
 
-async fn fetch_body(
+struct Fetched {
+    body: String,
+    /// The stream was abandoned at the cap, so the total size stayed unknown.
+    overflowed: bool,
+}
+
+/// Reads the body chunk by chunk and drops the connection once the cap is
+/// reached. Buffering the whole response first would pull Cloudflare's 46 MB
+/// corpus into memory just to throw it away, and would still cost the download.
+async fn fetch_capped(
     client: &reqwest::Client,
     url: &str,
     max_bytes: usize,
-) -> Result<String, McpError> {
-    let resp = client
+) -> Result<Fetched, McpError> {
+    let mut resp = client
         .get(url)
         .send()
         .await
@@ -109,24 +118,38 @@ async fn fetch_body(
     if !resp.status().is_success() {
         return Err(failed(format!("GET {url} returned {}", resp.status())));
     }
-    let body = resp
-        .text()
-        .await
-        .map_err(|e| failed(format!("reading {url} failed: {e}")))?;
 
-    if body.len() <= max_bytes {
-        return Ok(body);
+    let mut buf: Vec<u8> = Vec::new();
+    let mut overflowed = false;
+    while let Some(chunk) = resp
+        .chunk()
+        .await
+        .map_err(|e| failed(format!("reading {url} failed: {e}")))?
+    {
+        buf.extend_from_slice(&chunk);
+        if buf.len() > max_bytes {
+            buf.truncate(max_bytes);
+            overflowed = true;
+            break;
+        }
     }
-    // Cut on a char boundary so the truncated body stays valid UTF-8.
-    let mut cut = max_bytes;
-    while cut > 0 && !body.is_char_boundary(cut) {
-        cut -= 1;
+
+    Ok(Fetched {
+        // Cutting mid-stream can split a multi-byte character; lossy decoding
+        // turns that trailing fragment into one replacement char.
+        body: String::from_utf8_lossy(&buf).into_owned(),
+        overflowed,
+    })
+}
+
+fn render(got: Fetched, max_bytes: usize) -> String {
+    if !got.overflowed {
+        return got.body;
     }
-    let head = body.get(..cut).unwrap_or_default();
-    Ok(format!(
-        "{head}\n\n[truncated at {max_bytes} of {} bytes; fetch a narrower page URL instead of raising max_bytes]",
-        body.len()
-    ))
+    format!(
+        "{}\n\n[cut at {max_bytes} bytes; request a narrower page URL rather than raising max_bytes]",
+        got.body
+    )
 }
 
 pub(crate) async fn run(
@@ -136,7 +159,10 @@ pub(crate) async fn run(
     let max_bytes = args.max_bytes.unwrap_or(DEFAULT_MAX_BYTES);
 
     if let Some(url) = args.url {
-        return Ok(text(fetch_body(client, &url, max_bytes).await?));
+        return Ok(text(render(
+            fetch_capped(client, &url, max_bytes).await?,
+            max_bytes,
+        )));
     }
 
     let host = host_of(&args.domain).to_string();
@@ -167,36 +193,51 @@ pub(crate) async fn run(
     let full = hits.iter().find(|h| h.kind == Kind::Full);
     let index = hits.iter().find(|h| h.kind == Kind::Index);
 
-    // Whole corpus, small enough to read in one go — the ideal case.
-    if let Some(f) = full
-        && f.bytes
-            .is_some_and(|n| usize::try_from(n).is_ok_and(|n| n <= max_bytes))
-    {
-        return Ok(text(fetch_body(client, &f.url, max_bytes).await?));
+    // Plenty of docs hosts answer a HEAD without content-length, so an unknown
+    // size is no evidence of a large corpus — only a measured overrun is. The
+    // capped fetch is what makes trying safe: it walks away at the ceiling
+    // instead of downloading a corpus it would discard.
+    let known_oversized = |h: &Hit| {
+        h.bytes
+            .is_some_and(|n| usize::try_from(n).is_ok_and(|n| n > max_bytes))
+    };
+
+    if let Some(f) = full.filter(|f| !known_oversized(f)) {
+        let got = fetch_capped(client, &f.url, max_bytes).await?;
+        // Whole corpus in one go — the ideal case.
+        if !got.overflowed {
+            return Ok(text(got.body));
+        }
+        if index.is_none() {
+            return Ok(text(render(got, max_bytes)));
+        }
     }
 
-    // Corpus too big (or unmeasurable): hand back the page index so the next
-    // call can request one page by URL.
+    // Corpus too big: hand back the page index so the next call can request one
+    // page by URL.
     if let Some(i) = index {
         let mut out = String::new();
         if let Some(f) = full {
+            let size = match f.bytes {
+                Some(_) => format!("is {}", human(f.bytes)),
+                None => "went".into(),
+            };
             let _ = writeln!(
                 out,
-                "llms-full.txt is {} at {} — too large to fetch whole. Page index below; \
-                 call this tool again with `url` set to the page you need.\n",
-                human(f.bytes),
+                "llms-full.txt at {} {size} past the {max_bytes}-byte budget, so it is not \
+                 returned whole. Page index below; call this tool again with `url` set to the \
+                 page you need.\n",
                 f.url
             );
         }
-        out.push_str(&fetch_body(client, &i.url, max_bytes).await?);
+        out.push_str(&render(
+            fetch_capped(client, &i.url, max_bytes).await?,
+            max_bytes,
+        ));
         return Ok(text(out));
     }
 
-    // Only an unmeasurable llms-full.txt exists; fetch_body caps it.
-    let Some(f) = full else {
-        return Err(failed("probe found a hit but classified neither kind"));
-    };
-    Ok(text(fetch_body(client, &f.url, max_bytes).await?))
+    Err(failed("probe found a hit but classified neither kind"))
 }
 
 #[cfg(test)]

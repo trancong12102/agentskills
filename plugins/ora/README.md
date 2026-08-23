@@ -50,6 +50,21 @@ brew install trancong12102/tap/ora-mcp
 `ast-grep` and `gh` as dependencies; a `cargo install --path plugins/ora/mcp`
 build expects them on `PATH` already.
 
+## Testing
+
+`cargo test` covers the pure logic and stays offline. The end-to-end suite drives
+the built binary over stdio JSON-RPC against real ast-grep, real registries and
+real docs hosts, so it is `#[ignore]`d by default:
+
+```bash
+cargo test --test e2e -- --ignored           # everything
+cargo test --test e2e -- --ignored local_    # no network; this half gates CI
+```
+
+One case clones from a private GitLab host to prove a token in a clone URL never
+reaches a cache path or an error message. It needs `JMANGO_GITLAB_API_PAT` and
+skips itself without it.
+
 ## Releasing
 
 Versioning is automatic. [release-plz](https://release-plz.dev) reads the

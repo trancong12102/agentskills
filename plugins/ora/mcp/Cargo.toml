@@ -1,0 +1,64 @@
+[package]
+name = "ora-mcp"
+version = "0.1.0"
+edition = "2024"
+description = "Stateless MCP server backing the ora plugin: structural search, package versions, library docs, repo fetch"
+license = "MIT"
+repository = "https://github.com/trancong12102/agentskills"
+homepage = "https://github.com/trancong12102/agentskills/tree/main/plugins/ora"
+publish = false
+
+[package.metadata.dist]
+# `publish = false` (no crates.io) otherwise hides this binary from dist.
+dist = true
+
+# `ast-grep` and `gh` are shelled out to at runtime, so the generated Homebrew
+# formula must declare them; `stage = ["run"]` is what turns them into
+# `depends_on` rather than build-time installs.
+[package.metadata.dist.dependencies.homebrew]
+ast-grep = { stage = ["run"] }
+gh = { stage = ["run"] }
+
+[dependencies]
+rmcp = { version = "3.1", features = ["server", "macros", "transport-io"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "process"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+[dependencies.reqwest]
+version = "0.13"
+default-features = false
+features = ["json", "rustls", "webpki-roots", "http2", "gzip", "charset"]
+
+[profile.release]
+lto = true
+strip = true
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+# `unwrap`/`expect`/`panic` abort the server and take the MCP session with it.
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+indexing_slicing = "warn"
+todo = "warn"
+dbg_macro = "warn"
+# Noise for a binary crate with a single module tree.
+module_name_repetitions = "allow"
+multiple_crate_versions = "allow"
+# Directly contradicts rustc's `unreachable_pub`, which is the meaningful one
+# here: nothing in a binary crate is reachable from outside.
+redundant_pub_crate = "allow"

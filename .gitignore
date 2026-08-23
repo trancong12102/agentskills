@@ -24,6 +24,10 @@ Icon[
 node_modules/
 bun.lock
 
+# Rust — plugins are shipped by shallow-cloning this repo, so build output
+# must never land in it. Cargo.lock is committed (binary crate).
+target/
+
 # Skill eval artifacts
 *-workspace/
 */evals/

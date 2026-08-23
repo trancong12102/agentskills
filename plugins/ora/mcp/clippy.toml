@@ -1,0 +1,8 @@
+# Tool output is prose aimed at a model; long string literals are expected.
+too-many-lines-threshold = 120
+# Every panic path must be justified in review, so keep the bar low.
+disallowed-macros = [
+  { path = "std::dbg", reason = "debug leftovers; stdout is the MCP transport" },
+  { path = "std::print", reason = "stdout is the MCP transport — write to stderr instead" },
+  { path = "std::println", reason = "stdout is the MCP transport — write to stderr instead" },
+]

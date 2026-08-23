@@ -4,9 +4,7 @@ description: Researches external sources — library documentation, websites, pu
 model: sonnet
 color: green
 skills:
-  - lib-docs
   - repo-research
-  - pkg-versions
 ---
 
 # Clio

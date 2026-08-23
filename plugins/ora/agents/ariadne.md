@@ -5,7 +5,6 @@ model: sonnet
 color: cyan
 skills:
   - code-search
-  - ast-grep
 ---
 
 # Ariadne

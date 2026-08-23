@@ -1,5 +1,11 @@
 {
   "mcpServers": {
+    "ora": {
+      "type": "stdio",
+      "command": "ora-mcp",
+      "args": [],
+      "env": {}
+    },
     "fff": {
       "type": "stdio",
       "command": "fff-mcp",

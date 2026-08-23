@@ -1,4 +1,5 @@
 pre-commit:
+  parallel: true
   commands:
     oxfmt:
       glob: "*.{md,json,jsonc}"
@@ -9,3 +10,36 @@ pre-commit:
       glob: "*.md"
       run: bunx markdownlint-cli2 --fix {staged_files}
       stage_fixed: true
+
+    rust-fmt:
+      root: "plugins/ora/mcp/"
+      glob: "*.rs"
+      run: cargo fmt
+      stage_fixed: true
+
+    rust-clippy:
+      root: "plugins/ora/mcp/"
+      glob: "*.{rs,toml}"
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    rust-test:
+      root: "plugins/ora/mcp/"
+      glob: "*.rs"
+      run: cargo test --quiet
+
+    actionlint:
+      glob: ".github/workflows/*.yml"
+      run: actionlint {staged_files}
+
+pre-push:
+  parallel: true
+  commands:
+    # Advisories and licences move independently of our code, so they are
+    # checked on push rather than on every commit.
+    rust-deny:
+      root: "plugins/ora/mcp/"
+      run: cargo deny check
+
+    rust-unused-deps:
+      root: "plugins/ora/mcp/"
+      run: cargo machete

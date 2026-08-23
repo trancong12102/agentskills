@@ -1,0 +1,18 @@
+[workspace]
+# ora-mcp is distributed through Homebrew, not crates.io.
+publish = false
+# release-plz stops at the tag; the dist workflow turns that tag into the
+# GitHub Release, so it must not create an empty one first.
+git_release_enable = false
+# cargo-semver-checks compares public API surface. A binary crate exposes none.
+semver_check = false
+# Keep the release PR to a version bump and changelog — dependency bumps belong
+# in their own commits so they show up in the changelog properly.
+dependencies_update = false
+
+[[package]]
+name = "ora-mcp"
+# Namespaced so the tag never collides with a future crate in this monorepo,
+# and so dist can tell which package a tag refers to.
+git_tag_name = "ora-mcp-v{{ version }}"
+changelog_path = "plugins/ora/mcp/CHANGELOG.md"

@@ -1,0 +1,37 @@
+name: release-plz
+
+# Derives the next semver from conventional commits, opens a release PR, and on
+# merge pushes the `ora-mcp-v*` tag that release.yml (dist) reacts to.
+#
+# RELEASE_PLZ_TOKEN must be a PAT, not GITHUB_TOKEN: a tag pushed with
+# GITHUB_TOKEN does not trigger other workflows, so dist would never run.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-plz-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-plz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Conventional commits since the last tag are what determine the bump,
+          # so the full history has to be present.
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: release-plz/action@v0
+        with:
+          manifest_path: plugins/ora/mcp/Cargo.toml
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}

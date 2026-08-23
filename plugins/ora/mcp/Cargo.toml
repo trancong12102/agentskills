@@ -1,6 +1,6 @@
 [package]
 name = "ora-mcp"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "Stateless MCP server backing the ora plugin: structural search, package versions, library docs, repo fetch"
 license = "MIT"

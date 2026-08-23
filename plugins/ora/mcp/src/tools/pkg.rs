@@ -8,12 +8,23 @@ use serde_json::Value;
 
 use super::{failed, invalid, text};
 
-const SYSTEMS: [&str; 7] = ["npm", "pypi", "go", "cargo", "maven", "nuget", "rubygems"];
+str_enum! {
+    /// The registries deps.dev indexes.
+    System {
+        Npm => "npm",
+        Pypi => "pypi",
+        Go => "go",
+        Cargo => "cargo",
+        Maven => "maven",
+        Nuget => "nuget",
+        RubyGems => "rubygems",
+    }
+}
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub(crate) struct PkgVersionsArgs {
-    /// Package registry: npm, pypi, go, cargo, maven, nuget, or rubygems.
-    pub(crate) system: String,
+    /// Registry the packages come from. One call covers one registry.
+    pub(crate) system: System,
     /// Package names. Maven uses `group:artifact`, Go uses the full module path.
     /// Batch every package you care about into one call.
     pub(crate) packages: Vec<String>,
@@ -112,19 +123,14 @@ pub(crate) async fn run(
     client: &reqwest::Client,
     args: PkgVersionsArgs,
 ) -> Result<CallToolResult, McpError> {
-    let system = args.system.to_lowercase();
-    if !SYSTEMS.contains(&system.as_str()) {
-        return Err(invalid(format!(
-            "unknown system `{}`; use one of: {}",
-            args.system,
-            SYSTEMS.join(", ")
-        )));
-    }
     if args.packages.is_empty() {
-        return Err(invalid("packages must not be empty"));
+        return Err(invalid(
+            "`packages` must not be empty, e.g. {\"system\": \"npm\", \"packages\": [\"react\", \"zod\"]}",
+        ));
     }
 
-    let upper = system.to_uppercase();
+    // deps.dev matches the system segment case-sensitively, in upper case.
+    let upper = args.system.as_str().to_uppercase();
     let mut set = tokio::task::JoinSet::new();
     for (idx, pkg) in args.packages.iter().enumerate() {
         let (client, system, pkg) = (client.clone(), upper.clone(), pkg.clone());
@@ -167,7 +173,17 @@ pub(crate) async fn run(
 mod tests {
     use serde_json::json;
 
-    use super::{parse, urlencode};
+    use super::{System, parse, urlencode};
+
+    #[test]
+    fn every_system_round_trips_through_its_wire_name() {
+        for v in System::ALL {
+            assert_eq!(
+                serde_json::from_value::<System>(json!(v.as_str())).unwrap(),
+                *v
+            );
+        }
+    }
 
     #[test]
     fn scoped_and_pathed_names_are_fully_encoded() {

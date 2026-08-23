@@ -14,7 +14,7 @@ pub(crate) struct RepoFetchArgs {
     /// `owner/repo`, an HTTPS URL, or an SSH URL. Any git host works for cloning;
     /// reading a single file without cloning is GitHub-only.
     pub(crate) repo: String,
-    /// Path of one file to read. Omit together with `clone` to get repo metadata.
+    /// Path of one file to read. Supply this or `clone`; one of the two is required.
     #[serde(default)]
     pub(crate) path: Option<String>,
     /// Branch, tag, or commit. Defaults to the repo's default branch.
@@ -90,7 +90,9 @@ async fn run_cmd(bin: &str, args: &[String]) -> Result<std::process::Output, Mcp
         .await
         .map_err(|e| {
             if e.kind() == std::io::ErrorKind::NotFound {
-                failed(format!("`{bin}` not found on PATH"))
+                failed(format!(
+                    "`{bin}` not found on PATH; install it (`brew install {bin}`)"
+                ))
             } else {
                 failed(format!("failed to run {bin}: {e}"))
             }
@@ -215,7 +217,8 @@ pub(crate) async fn run(args: RepoFetchArgs) -> Result<CallToolResult, McpError>
         return read_file(&args, &path).await;
     }
     Err(invalid(
-        "supply `path` to read one file, or `clone: true` to get a local checkout",
+        "supply `path` to read one file, e.g. {\"repo\": \"tokio-rs/tokio\", \"path\": \"README.md\"}, \
+         or `clone: true` to get a local checkout to explore",
     ))
 }
 

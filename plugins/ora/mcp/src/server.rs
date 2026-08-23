@@ -33,7 +33,13 @@ impl Ora {
         description = "Search code by AST structure via ast-grep. Use when the target is defined by \
                        code shape rather than text — async functions containing await, calls with a \
                        specific argument shape, a node nested inside another. Returns file:line:col \
-                       plus metavariable bindings. Prefer plain grep for literal text."
+                       plus metavariable bindings. Prefer plain grep for literal text.",
+        annotations(
+            title = "AST search",
+            read_only_hint = true,
+            idempotent_hint = true,
+            open_world_hint = false
+        )
     )]
     async fn ast_search(
         &self,
@@ -45,7 +51,14 @@ impl Ora {
     #[tool(
         description = "Outline a file's or directory's symbols, exports and imports without reading \
                        it. Use to map structure before opening large files, or to see a module's \
-                       public surface. Syntax-only, no indexing step."
+                       public surface. Syntax-only, no indexing step. Once you know which symbol you \
+                       need, Read that range instead — an outline never shows function bodies.",
+        annotations(
+            title = "Code outline",
+            read_only_hint = true,
+            idempotent_hint = true,
+            open_world_hint = false
+        )
     )]
     async fn outline(
         &self,
@@ -58,7 +71,13 @@ impl Ora {
         description = "Look up the latest stable version, publish date and deprecation status of \
                        public packages via deps.dev. Use before adding or bumping a dependency, and \
                        to check whether something is deprecated. Batch all packages into one call. \
-                       Public registries only."
+                       Public registries only.",
+        annotations(
+            title = "Package versions",
+            read_only_hint = true,
+            idempotent_hint = true,
+            open_world_hint = true
+        )
     )]
     async fn pkg_versions(
         &self,
@@ -72,7 +91,13 @@ impl Ora {
                        site, falling back to a page index when the corpus is too large to read \
                        whole. Prefer this over search engines for API references, changelogs and \
                        breaking changes: it is written by the library authors, so there is no \
-                       curation lag. Not for local code."
+                       curation lag. Not for local code.",
+        annotations(
+            title = "Library documentation",
+            read_only_hint = true,
+            idempotent_hint = true,
+            open_world_hint = true
+        )
     )]
     async fn lib_docs(
         &self,
@@ -85,7 +110,16 @@ impl Ora {
         description = "Read a file from a public repository, or shallow-clone one into a local \
                        cache for a deeper dive. Use instead of fetching github.com or \
                        raw.githubusercontent.com URLs. Reading a single file is GitHub-only; \
-                       cloning works with any git host."
+                       cloning works with any git host.",
+        // Not read-only: `clone: true` writes a shallow checkout under the local
+        // cache. Nothing outside that cache is touched, hence destructive = false.
+        annotations(
+            title = "Fetch repository file or clone",
+            read_only_hint = false,
+            destructive_hint = false,
+            idempotent_hint = true,
+            open_world_hint = true
+        )
     )]
     async fn repo_fetch(
         &self,

@@ -1,3 +1,6 @@
+#[macro_use]
+mod str_enum;
+
 pub(crate) mod ast;
 pub(crate) mod docs;
 pub(crate) mod pkg;

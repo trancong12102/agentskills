@@ -59,8 +59,10 @@ PR with the bumped `Cargo.toml` and a `CHANGELOG.md`, and on merge pushes
 which builds the four target archives, cuts the GitHub Release, and pushes the
 updated formula to `trancong12102/homebrew-tap`.
 
-`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE:` → major. Commits that
-touch no file under `plugins/ora/mcp/` produce no release.
+`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE:` → major — but while
+the version is still `0.x`, Cargo's compatibility rules shift each of those down
+one level, so `feat:` bumps the patch and a breaking change bumps the minor.
+Commits that touch no file under `plugins/ora/mcp/` produce no release.
 
 Regenerate `.github/workflows/release.yml` with `dist init --yes` after changing
 `dist-workspace.toml`; it is generated, so do not hand-edit it.

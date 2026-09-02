@@ -17,4 +17,4 @@ Pick the tool by the shape of the question:
 
 Morph returns a synthesized answer with `file:line` citations. The citations are real; the synthesis can misread what the code does — Read the cited locations before relaying load-bearing conclusions.
 
-Don't shotgun-grep a feature by OR-ing guessed names (`grep "FreeGift|GiftModal|BuyXGetY|percentOff"`) — synonyms get missed and output drowns in noise. Learn the feature's actual name from README or directory structure, grep one specific term, and follow references.
+Don't grep a feature by OR-ing guessed synonyms; the real name gets missed and output drowns in noise. Learn the feature's actual name from README or directory structure, grep that one term, and follow references.

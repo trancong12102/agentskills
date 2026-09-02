@@ -160,7 +160,7 @@ pub(crate) async fn run(
     if !deprecated.is_empty() {
         let _ = write!(
             out,
-            "\nDeprecated: {}. Surface this to the user and name a maintained alternative.",
+            "\nDeprecated: {}. Surface this to the user.",
             deprecated.join(", ")
         );
     }

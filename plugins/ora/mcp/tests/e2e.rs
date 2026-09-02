@@ -524,7 +524,7 @@ fn net_pkg_versions_flags_deprecation_and_misses() {
         &[
             "deprecated",
             "Deprecated: request",
-            "maintained alternative",
+            "Surface this to the user",
         ],
     );
 

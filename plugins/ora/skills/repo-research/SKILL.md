@@ -8,7 +8,7 @@ description: "Routes research in external repositories — source code, issues, 
 Defaults by intent:
 
 - Concept question in one GitHub repo ("how does lib X do Y") → `mcp__plugin_ora_morph__github_codebase_search`. Citations are real; the synthesis can misread the code — verify by reading cited files before relaying load-bearing conclusions.
-- Exact-identifier search across repos, GitLab/Bitbucket targets, symbol navigation, git history → Sourcegraph MCP (`keyword_search`, `nls_search`, `read_file`, `go_to_definition`, `find_references`, `commit_search`, `diff_search`).
+- Exact-identifier search across repos, GitLab/Bitbucket targets, git history → Sourcegraph MCP (`keyword_search`, `nls_search`, `read_file`, `list_files`, `commit_search`, `diff_search`). For symbol navigation, `keyword_search` the identifier, then `read_file` the hits.
 - Reading a known file, or a deep dive across 3+ files → `mcp__plugin_ora_ora__repo_fetch` (`clone: true` for the deep dive).
 - Issues / PRs / releases → `gh` CLI: `gh issue view`, `gh pr view`, `gh release view|list`.
 

@@ -20,7 +20,7 @@ When modifying plugin components (agents, skills, hooks, manifest), bump `versio
 
 ## Repo structure
 
-- `plugins/ora/` — research agents (Ariadne: codebase, Clio: external), the `ora-mcp` server (`plugins/ora/mcp/`, Rust), and the two routing skills left after the MCP migration (`code-search`, `repo-research`). Operations live in MCP tools; skills only choose between tools, and guidance the model needs per call belongs in the tool's response, not in a skill body.
+- `plugins/ora/` — research agents (Ariadne: codebase, Clio: external), the `ora-mcp` server (`plugins/ora/mcp/`, Rust), and two routing skills (`code-search`, `repo-research`). Operations live in MCP tools; skills only choose between tools, and guidance the model needs per call belongs in the tool's response, not in a skill body.
 
 ## Reference
 

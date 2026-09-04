@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/trancong12102/agentskills/compare/ora-mcp-v0.1.3...ora-mcp-v0.1.4) - 2026-09-04
+
+### Fixed
+
+- *(ora)* drop dangling tool names and dated wording from prompt surface
+
 ## [0.1.3](https://github.com/trancong12102/agentskills/compare/ora-mcp-v0.1.2...ora-mcp-v0.1.3) - 2026-08-23
 
 ### Fixed

@@ -12,7 +12,7 @@ Defaults by intent:
 - Reading a known file, or a deep dive across 3+ files → `mcp__plugin_ora_ora__repo_fetch` (`clone: true` for the deep dive).
 - Issues / PRs / releases → `gh` CLI: `gh issue view`, `gh pr view`, `gh release view|list`.
 
-The releases page is the sharpest trap for WebFetch: its relative timestamps ("2 weeks ago") get hallucinated into training-era dates. Use `gh release` instead.
+The releases page is the sharpest trap for a web fetch tool: its relative timestamps ("2 weeks ago") get hallucinated into training-era dates. Use `gh release` instead.
 
 Sourcegraph specifics:
 

@@ -30,6 +30,10 @@ LONG_DATE = re.compile(
     r"(?:January|February|March|April|May|June|July|August|September|October"
     r"|November|December)\s+\d{1,2},?\s+\d{4}"
 )
+MONTH_NAMES = (
+    "January February March April May June July August September "
+    "October November December".split()
+)
 MONTHS = {
     m: i
     for i, m in enumerate(
@@ -63,6 +67,15 @@ def iso_of(long_date):
     return f"{int(year):04d}-{MONTHS[month]:02d}-{int(day):02d}"
 
 
+def long_of(iso_date):
+    """`2026-09-09` -> the ways prose spells it. The conversion has to run both ways:
+    normalising only long->ISO flagged a conclusion dated `2026-09-09` as uncited against
+    evidence that said `September 9, 2026`."""
+    year, month, day = (int(part) for part in iso_date.split("-"))
+    name = MONTH_NAMES[month - 1]
+    return {f"{name} {day}, {year}", f"{name} {day} {year}"}
+
+
 def claims_of(text):
     """Version and date tokens, each with the spellings that mean the same thing.
 
@@ -73,7 +86,12 @@ def claims_of(text):
     for token in VERSION.findall(text):
         found.setdefault(token, {token.lstrip("vV"), "v" + token.lstrip("vV")})
     for token in ISO_DATE.findall(text):
-        found.setdefault(token, {token})
+        spellings = {token}
+        try:
+            spellings |= long_of(token)
+        except (ValueError, IndexError):
+            pass
+        found.setdefault(token, spellings)
     for token in LONG_DATE.findall(text):
         spellings = {token, token.replace(",", "")}
         try:

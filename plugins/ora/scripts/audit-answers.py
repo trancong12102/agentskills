@@ -9,9 +9,13 @@ token the question itself named is the asker's premise, not a finding, so it is
 not counted against the answer -- an auditor that cannot see the question
 measures the caller instead of the answer.
 
-`--jev` adds a second opinion from TypeSafe's decision model over the same rows.
-It is a discovery pass, never enforcement: it reports and changes no verdict.
-Needs JEV_API_KEY. Roughly $0.00002 and under a second per row.
+When JEV_API_KEY is set, TypeSafe's decision model is asked two further questions
+about the same rows, in one request each: whether the evidence carries the versions
+and dates, and whether the conclusion contradicts its own evidence. The second is
+the one the regex cannot do -- a false claim carrying no version or date is
+invisible to it. Both are discovery, never enforcement: they report and change no
+verdict. Roughly $0.00002 and under a second per row. `--no-jev` forces the
+offline pass alone, which is free and needs no network.
 """
 
 import argparse
@@ -133,7 +137,25 @@ def audit(row):
     return conclusion, uncited, premises, False
 
 
-JEV_QUESTION = {
+ACT_FLOOR = 0.5  # below this Jev is declining, not answering; treat it as no finding
+
+JEV_QUESTIONS = {
+    # Two independent questions over one state travel in a single request and are answered
+    # in parallel. They cover different failures: `carried` catches a version or date the
+    # evidence never mentions, `contradicts` catches a claim the evidence actively refutes --
+    # which carries no version or date at all and so is invisible to the deterministic pass.
+    "contradicts": {
+        "type": "choice",
+        "instructions": (
+            "Compare the conclusion against the cited evidence. Does the conclusion state "
+            "something the evidence contradicts, or attach the evidence's value to a "
+            "different subject than the evidence does?"
+        ),
+        "criteria": {
+            "consistent": "Everything the conclusion states is consistent with the cited evidence.",
+            "contradicted": "The conclusion states something the evidence contradicts or misattributes.",
+        },
+    },
     "carried": {
         "type": "choice",
         "instructions": (
@@ -164,7 +186,7 @@ def ask_jev(question, conclusion, evidence):
                 "conclusion": conclusion,
                 "evidence": evidence[:8000],
             },
-            "questions": JEV_QUESTION,
+            "questions": JEV_QUESTIONS,
         }
     ).encode()
     request = urllib.request.Request(
@@ -177,9 +199,11 @@ def ask_jev(question, conclusion, evidence):
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         payload = json.load(response)
-    answer = payload["answers"]["carried"]
-    cost = payload["usage"]["input_tokens"] * USD_PER_INPUT_TOKEN
-    return answer["choice"], answer["confidence"], cost
+    findings = {
+        key: (answer["choice"], answer["confidence"])
+        for key, answer in payload["answers"].items()
+    }
+    return findings, payload["usage"]["input_tokens"] * USD_PER_INPUT_TOKEN
 
 
 def rows_of(path):
@@ -198,9 +222,12 @@ def rows_of(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("log", nargs="?", type=pathlib.Path, default=DEFAULT_LOG)
-    parser.add_argument("--jev", action="store_true", help="add a Jev second opinion")
+    # On by default when the key is there, off silently when it is not: the deterministic
+    # pass must keep working offline and free, which is the reason it is the enforcer.
+    parser.add_argument("--no-jev", action="store_true", help="skip the Jev second opinion")
     parser.add_argument("--agent", help="only rows from this agent, e.g. ora:research")
     args = parser.parse_args()
+    use_jev = not args.no_jev and bool(os.environ.get("JEV_API_KEY"))
 
     if not args.log.exists():
         sys.exit(f"no answer log at {args.log}")
@@ -212,6 +239,7 @@ def main():
         sys.exit("no rows to audit")
 
     flagged = bare = spend = 0
+    disagreed = contradicted = examined = 0
     for row in rows:
         conclusion, uncited, premises, no_evidence = audit(row)
         verdict = "UNCITED" if uncited else "bare" if no_evidence else "ok"
@@ -224,21 +252,40 @@ def main():
         if premises:
             line += f"  (premise: {', '.join(premises)})"
 
-        if args.jev and not no_evidence:
+        if use_jev and not no_evidence:
             try:
                 answer = row.get("answer") or ""
-                choice, confidence, cost = ask_jev(
+                findings, cost = ask_jev(
                     row.get("question") or "", conclusion, evidence_of(answer, conclusion)
                 )
                 spend += cost
-                line += f"  | jev {choice} {confidence:.2f}"
+                examined += 1
+                for key, (choice, confidence) in sorted(findings.items()):
+                    acted = confidence >= ACT_FLOOR
+                    mark = choice if acted else f"{choice}?"
+                    line += f"  | {key} {mark} {confidence:.2f}"
+                # The two signals worth a human's attention: Jev doubts a claim the regex
+                # passed, or it found a contradiction the regex can never see.
+                says_uncited = findings.get("carried", ("", 0))
+                if says_uncited[0] == "not_carried" and says_uncited[1] >= ACT_FLOOR and not uncited:
+                    disagreed += 1
+                says_contra = findings.get("contradicts", ("", 0))
+                if says_contra[0] == "contradicted" and says_contra[1] >= ACT_FLOOR:
+                    contradicted += 1
             except Exception as error:  # a second opinion must not break the report
                 line += f"  | jev unavailable ({type(error).__name__})"
         print(line)
 
     print(f"\n{flagged} of {len(rows)} answers assert a version or date no source carries.")
     print(f"{bare} of {len(rows)} came back with no evidence beside the conclusion.")
-    if args.jev:
+    if use_jev:
+        # Against rows Jev actually saw, not rows in the log: a bare answer is never sent,
+        # and "0 of 5" would read as five clean rows when it means five unchecked ones.
+        print(f"{contradicted} of {examined} checked conclusions contradict their own evidence "
+              f"(Jev only -- the deterministic pass cannot see this).")
+        if disagreed:
+            print(f"{disagreed} answers the deterministic pass passed, Jev doubts. "
+                  f"Neither is the verdict; read those rows.")
         print(f"jev: ${spend:.6f}")
 
 

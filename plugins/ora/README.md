@@ -36,13 +36,17 @@ itself named is the asker's premise, not a claim, and is excluded — an auditor
 blind to the question measures the caller instead of the answer.
 
 ```bash
-python3 plugins/ora/scripts/audit-answers.py            # deterministic, offline, free
-python3 plugins/ora/scripts/audit-answers.py --jev      # + a Jev second opinion
+python3 plugins/ora/scripts/audit-answers.py            # + Jev when JEV_API_KEY is set
+python3 plugins/ora/scripts/audit-answers.py --no-jev   # deterministic, offline, free
 ```
 
-`--jev` asks TypeSafe's decision model the same question over the same rows
-(`JEV_API_KEY`, ~$0.00002 and under a second per row). It reports and overrules
-nothing: the regex is the enforcer, the model is a second pair of eyes.
+With `JEV_API_KEY` set, TypeSafe's decision model answers two questions per row in
+a single request (~$0.00002, under a second): does the evidence carry every version
+and date, and does the conclusion contradict its own evidence. On a labelled
+fixture the first question ties the regex 8/10; the second catches what the regex
+structurally cannot -- a wrong claim carrying no version or date at all, which no
+pattern over version tokens can see. Both report and overrule nothing: the regex is
+the enforcer, the model is a second pair of eyes.
 
 ## Skills
 

@@ -63,13 +63,16 @@ cargo install --path plugins/ora/mcp
 
 ### Credentials
 
-| Component   | Credential          | How to get                                                                                                                                                                          |
-| ----------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lib_docs`  | `ctx7 login`        | One-time login via `bunx ctx7@latest login` — only needed as a fallback when a docs site publishes no llms.txt ([context7.com](https://context7.com))                               |
-| `ora` (MCP) | `SOURCEGRAPH_TOKEN` | Generate a PAT at [sourcegraph.com/user/settings/tokens/new](https://sourcegraph.com/user/settings/tokens/new) (scope `mcp`, no expiration), then `export SOURCEGRAPH_TOKEN=sgp_…`. |
-| `ora` (MCP) | `MORPH_API_KEY`     | Sign up at [morphllm.com](https://morphllm.com), generate an API key, then `export MORPH_API_KEY=…`.                                                                                |
+| Component               | Credential          | How to get                                                                                                                                                                                                |
+| ----------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib_docs`              | `ctx7 login`        | One-time login via `bunx ctx7@latest login` — only needed as a fallback when a docs site publishes no llms.txt ([context7.com](https://context7.com))                                                     |
+| `ora` (MCP)             | `SOURCEGRAPH_TOKEN` | Generate a PAT at [sourcegraph.com/user/settings/tokens/new](https://sourcegraph.com/user/settings/tokens/new) (scope `mcp`, no expiration), then `export SOURCEGRAPH_TOKEN=sgp_…`.                       |
+| `ora` (MCP)             | `MORPH_API_KEY`     | Sign up at [morphllm.com](https://morphllm.com), generate an API key, then `export MORPH_API_KEY=…`.                                                                                                      |
+| answer audit (optional) | `JEV_API_KEY`       | Create a key at [console.typesafe.ai/keys](https://console.typesafe.ai/keys), then `export JEV_API_KEY=…` (`TYPESAFE_API_KEY` also works). Turns on Jev's two extra checks in `scripts/audit-answers.py`. |
 
-> Both tokens are read from your shell at startup — if either is unset, Claude Code fails to parse `.mcp.json`. Export both, or remove the corresponding server block. (OAuth via `/mcp` is an alternative for Sourcegraph but expires quickly.)
+> The two MCP tokens are read from your shell at startup — if either is unset, Claude Code fails to parse `.mcp.json`. Export both, or remove the corresponding server block. (OAuth via `/mcp` is an alternative for Sourcegraph but expires quickly.)
+>
+> `JEV_API_KEY` is different: nothing reads it at startup, and leaving it unset breaks nothing — the audit just runs its offline check alone.
 
 ## Releasing (maintainers)
 

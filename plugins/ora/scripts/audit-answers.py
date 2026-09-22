@@ -9,7 +9,7 @@ token the question itself named is the asker's premise, not a finding, so it is
 not counted against the answer -- an auditor that cannot see the question
 measures the caller instead of the answer.
 
-When JEV_API_KEY is set, TypeSafe's decision model is asked two further questions
+When JEV_API_KEY (or TYPESAFE_API_KEY) is set, TypeSafe's decision model is asked two further questions
 about the same rows, in one request each: whether the evidence carries the versions
 and dates, and whether the conclusion contradicts its own evidence. The second is
 the one the regex cannot do -- a false claim carrying no version or date is
@@ -177,6 +177,11 @@ JEV_QUESTIONS = {
 USD_PER_INPUT_TOKEN = 0.042 / 1_000_000
 
 
+def jev_key():
+    # TYPESAFE_API_KEY is the name TypeSafe's own docs and SDKs use.
+    return os.environ.get("JEV_API_KEY") or os.environ.get("TYPESAFE_API_KEY")
+
+
 def ask_jev(question, conclusion, evidence):
     body = json.dumps(
         {
@@ -193,7 +198,7 @@ def ask_jev(question, conclusion, evidence):
         "https://api.typesafe.ai/v1/systemone",
         data=body,
         headers={
-            "Authorization": "Bearer " + os.environ["JEV_API_KEY"],
+            "Authorization": "Bearer " + jev_key(),
             "Content-Type": "application/json",
         },
     )
@@ -227,7 +232,7 @@ def main():
     parser.add_argument("--no-jev", action="store_true", help="skip the Jev second opinion")
     parser.add_argument("--agent", help="only rows from this agent, e.g. ora:research")
     args = parser.parse_args()
-    use_jev = not args.no_jev and bool(os.environ.get("JEV_API_KEY"))
+    use_jev = not args.no_jev and bool(jev_key())
 
     if not args.log.exists():
         sys.exit(f"no answer log at {args.log}")

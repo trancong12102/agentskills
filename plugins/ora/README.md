@@ -40,7 +40,8 @@ python3 plugins/ora/scripts/audit-answers.py            # + Jev when JEV_API_KEY
 python3 plugins/ora/scripts/audit-answers.py --no-jev   # deterministic, offline, free
 ```
 
-With `JEV_API_KEY` set, TypeSafe's decision model answers two questions per row in
+With `JEV_API_KEY` set (key from [console.typesafe.ai/keys](https://console.typesafe.ai/keys);
+`TYPESAFE_API_KEY` also works), TypeSafe's decision model answers two questions per row in
 a single request (~$0.00002, under a second): does the evidence carry every version
 and date, and does the conclusion contradict its own evidence. On a labelled
 fixture the first question ties the regex 8/10; the second catches what the regex

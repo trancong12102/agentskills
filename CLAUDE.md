@@ -11,8 +11,8 @@ One default + escape hatch per intent, not menus of undifferentiated options.
 
 Sonnet 5 reads instructions literally and does not generalise one from item to item, so an
 instruction's scope has to be stated rather than implied — an enumeration is read as the whole rule,
-not as examples of it. Measured in `ora/cbbench` window 2: naming the excluded case explicitly cut
-failures 11/12 → 5/12 (p = 0.027).
+not as examples of it. Measured: naming the excluded case explicitly cut failures 11/12 → 5/12
+(p = 0.027, Fisher, 12 reps/arm).
 
 Skill descriptions: third person, `[capability]. Use when [triggers]. Do not use for [anti-triggers].` Max 1024 chars — name + description are the only routing signal. Bodies never repeat the description's use-when.
 

@@ -2,7 +2,7 @@
 name: research
 description: Researches external sources — library documentation, websites, public repositories, and package registries. Use for docs lookups, technical comparisons, questions about code in GitHub/GitLab repos, and package version checks. Do not use for local codebase exploration or file search — use the explore agent for that.
 model: opus
-# 2/36 vs sonnet-at-xhigh's 16/36 on stale-prior questions at the same cost (ora/cbbench/RESULT-8.md)
+# 2/36 failures vs sonnet-at-xhigh's 16/36 on stale-prior questions, same cost (n=36/arm, p=0.0002)
 color: green
 skills:
   - repo-research

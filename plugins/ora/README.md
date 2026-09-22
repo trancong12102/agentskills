@@ -41,7 +41,7 @@ python3 plugins/ora/scripts/audit-answers.py --jev      # + a Jev second opinion
 ```
 
 `--jev` asks TypeSafe's decision model the same question over the same rows
-(`OPEN_ROUTER_API_KEY`, ~$0.00002 and ~0.5 s per row). It reports and overrules
+(`JEV_API_KEY`, ~$0.00002 and under a second per row). It reports and overrules
 nothing: the regex is the enforcer, the model is a second pair of eyes.
 
 ## Skills

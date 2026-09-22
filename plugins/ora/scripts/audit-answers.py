@@ -11,7 +11,7 @@ measures the caller instead of the answer.
 
 `--jev` adds a second opinion from TypeSafe's decision model over the same rows.
 It is a discovery pass, never enforcement: it reports and changes no verdict.
-Needs OPEN_ROUTER_API_KEY. Roughly $0.00002 and half a second per row.
+Needs JEV_API_KEY. Roughly $0.00002 and under a second per row.
 """
 
 import argparse
@@ -132,10 +132,15 @@ JEV_QUESTION = {
 }
 
 
+# The API returns token counts, not a cost. Rate from docs.typesafe.ai/models: input only,
+# $0.042 per million, output free.
+USD_PER_INPUT_TOKEN = 0.042 / 1_000_000
+
+
 def ask_jev(question, conclusion, evidence):
     body = json.dumps(
         {
-            "model": "typesafe/jev-1.13",
+            "model": "jev-latest",
             "state": {
                 "question": question,
                 "conclusion": conclusion,
@@ -145,17 +150,18 @@ def ask_jev(question, conclusion, evidence):
         }
     ).encode()
     request = urllib.request.Request(
-        "https://openrouter.ai/api/alpha/decisions",
+        "https://api.typesafe.ai/v1/systemone",
         data=body,
         headers={
-            "Authorization": "Bearer " + os.environ["OPEN_ROUTER_API_KEY"],
+            "Authorization": "Bearer " + os.environ["JEV_API_KEY"],
             "Content-Type": "application/json",
         },
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         payload = json.load(response)
     answer = payload["answers"]["carried"]
-    return answer["choice"], answer["confidence"], payload["usage"]["cost"]
+    cost = payload["usage"]["input_tokens"] * USD_PER_INPUT_TOKEN
+    return answer["choice"], answer["confidence"], cost
 
 
 def rows_of(path):

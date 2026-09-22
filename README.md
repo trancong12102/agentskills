@@ -10,8 +10,8 @@ Operations are MCP tools rather than skills, because a tool gets called where a 
 
 Two research agents isolate search from the main conversation:
 
-- **Ariadne** — codebase exploration (semantic, keyword, and structural search across local files)
-- **Clio** — external research (docs, repos, package registries)
+- **`explore`** — codebase exploration (semantic, keyword, and structural search across local files)
+- **`research`** — external research (docs, repos, package registries)
 
 Both isolate search context from the main conversation — broad queries never pollute your main window.
 

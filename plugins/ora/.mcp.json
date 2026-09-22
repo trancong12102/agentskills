@@ -25,7 +25,7 @@
       "args": ["@morphllm/morphmcp@latest"],
       "env": {
         "MORPH_API_KEY": "${MORPH_API_KEY}",
-        "DISABLED_TOOLS": "edit_file,list_reflexes,reflex_summary,get_reflex_traces"
+        "DISABLED_TOOLS": "edit_file,reflex_list,reflex_predict,reflex_summary,reflex_traces"
       }
     }
   }

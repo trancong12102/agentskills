@@ -4,10 +4,10 @@ Research agents and focused skills for codebase exploration and external researc
 
 ## Agents
 
-| Agent       | Model  | Role                                            |
-| ----------- | ------ | ----------------------------------------------- |
-| **Ariadne** | Sonnet | Codebase exploration — enhanced contextual grep |
-| **Clio**    | Sonnet | External research — docs, repos, registries     |
+| Agent          | Model  | Role                                            |
+| -------------- | ------ | ----------------------------------------------- |
+| **`explore`**  | Sonnet | Codebase exploration — enhanced contextual grep |
+| **`research`** | Sonnet | External research — docs, repos, registries     |
 
 ## MCP tools
 
@@ -21,6 +21,28 @@ called rather than recalled.
 | `lib_docs`     | Author-published llms.txt, with a page index when the corpus is huge |
 | `pkg_versions` | Latest version and deprecation status via deps.dev                   |
 | `repo_fetch`   | Read one file from a public repo, or shallow-clone it                |
+
+## Answer log
+
+A `SubagentStop` hook appends every `explore` and `research` answer — the question it was
+given and the answer it returned — to `~/.claude/ora/answers.jsonl`, outside the
+plugin directory so a plugin update does not erase it. Nothing else is recorded,
+nothing leaves the machine, and the hook always exits 0 so it cannot stall a turn.
+Set `ORA_ANSWER_LOG=0` to turn it off; the log stops growing past 32 MB.
+
+`scripts/audit-answers.py` reads that log and reports answers whose conclusion
+states a version or date that none of its own sources carry. A token the question
+itself named is the asker's premise, not a claim, and is excluded — an auditor
+blind to the question measures the caller instead of the answer.
+
+```bash
+python3 plugins/ora/scripts/audit-answers.py            # deterministic, offline, free
+python3 plugins/ora/scripts/audit-answers.py --jev      # + a Jev second opinion
+```
+
+`--jev` asks TypeSafe's decision model the same question over the same rows
+(`OPEN_ROUTER_API_KEY`, ~$0.00002 and ~0.5 s per row). It reports and overrules
+nothing: the regex is the enforcer, the model is a second pair of eyes.
 
 ## Skills
 
@@ -49,6 +71,13 @@ brew install trancong12102/tap/ora-mcp
 (≥ 0.45, for `outline`); `repo_fetch` uses `gh` and `git`. The formula declares
 `ast-grep` and `gh` as dependencies; a `cargo install --path plugins/ora/mcp`
 build expects them on `PATH` already.
+
+`explore` falls back to the built-in `Grep` and `Glob`, and on some machines
+Claude Code's embedded ripgrep fails its first-use test — those tools then
+return "No files found" for files that exist, with no error. Check with
+`claude --debug-file /tmp/cc.log -p hi && grep -i ripgrep /tmp/cc.log`; if it
+says `FAILED (mode=embedded)`, install `ripgrep` and set
+`"USE_BUILTIN_RIPGREP": "0"` under `env` in `~/.claude/settings.json`.
 
 ## Testing
 

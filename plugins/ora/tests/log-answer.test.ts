@@ -2,7 +2,15 @@
 // with HOME pointed at a scratch directory so the log it writes can be read back.
 //   bun test plugins/ora/tests/log-answer.test.ts
 import { beforeEach, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  statSync,
+  truncateSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -17,16 +25,28 @@ beforeEach(() => {
 const prompt = (text: string) => ({ type: "user", message: { role: "user", content: text } });
 const handback = (id: string, message: string) => ({
   type: "assistant",
-  message: { role: "assistant", content: [{ type: "tool_use", id, name: "SubagentHandback", input: { message } }] },
+  message: {
+    role: "assistant",
+    content: [{ type: "tool_use", id, name: "SubagentHandback", input: { message } }],
+  },
 });
 const handbackResult = (id: string, success: boolean, message: string) => ({
   type: "user",
   message: {
     role: "user",
-    content: [{ type: "tool_result", tool_use_id: id, content: [{ type: "text", text: JSON.stringify({ success, message }) }] }],
+    content: [
+      {
+        type: "tool_result",
+        tool_use_id: id,
+        content: [{ type: "text", text: JSON.stringify({ success, message }) }],
+      },
+    ],
   },
 });
-const reply = (text: string) => ({ type: "assistant", message: { role: "assistant", content: [{ type: "text", text }] } });
+const reply = (text: string) => ({
+  type: "assistant",
+  message: { role: "assistant", content: [{ type: "text", text }] },
+});
 
 function transcript(...records: object[]): string {
   const path = join(home, "agent.jsonl");
@@ -34,14 +54,23 @@ function transcript(...records: object[]): string {
   return path;
 }
 
-function stop(payload: object) {
-  const proc = Bun.spawnSync(["bash", hook], {
+function runHook(payload: object) {
+  return Bun.spawnSync(["bash", hook], {
     stdin: new TextEncoder().encode(JSON.stringify(payload)),
     env: { ...process.env, HOME: home, ORA_ANSWER_LOG: "1" },
-  });
+  }).exitCode;
+}
+
+function stop(payload: object) {
+  const exitCode = runHook(payload);
   const log = join(home, ".claude/ora/answers.jsonl");
-  const rows = existsSync(log) ? readFileSync(log, "utf8").trim().split("\n").map((l) => JSON.parse(l)) : [];
-  return { exitCode: proc.exitCode, rows };
+  const rows = existsSync(log)
+    ? readFileSync(log, "utf8")
+        .trim()
+        .split("\n")
+        .map((l) => JSON.parse(l))
+    : [];
+  return { exitCode, rows };
 }
 
 const event = (agent_transcript_path: string, last_assistant_message: string) => ({
@@ -109,6 +138,20 @@ test("a corrupt transcript line neither drops the row nor fails the hook", () =>
   const { exitCode, rows } = stop(event(path, "the answer"));
   expect(exitCode).toBe(0);
   expect(rows[0].answer).toBe("the answer");
+});
+
+test("the log takes rows up to 32 MB and none past it", () => {
+  const log = join(home, ".claude/ora/answers.jsonl");
+  mkdirSync(join(home, ".claude/ora"), { recursive: true });
+  writeFileSync(log, "");
+  // Sparse, so the test writes no 32 MB of data.
+  truncateSync(log, 32_000_000);
+  expect(runHook(event("", "at the cap"))).toBe(0);
+  const grown = statSync(log).size;
+  expect(grown).toBeGreaterThan(32_000_000);
+
+  expect(runHook(event("", "past the cap"))).toBe(0);
+  expect(statSync(log).size).toBe(grown);
 });
 
 test("other agents are not logged", () => {

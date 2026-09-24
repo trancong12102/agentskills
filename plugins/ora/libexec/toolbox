@@ -74,5 +74,8 @@ if ! command -v mise >/dev/null 2>&1; then
   exit 127
 fi
 
+# uv otherwise builds Python tools on the first python3 it finds, which on a stock macOS is
+# 3.9, too old for markitdown; it downloads this version when the machine lacks it.
+[[ $spec == pipx:* ]] && export UV_PYTHON=${UV_PYTHON:-3.13}
 export ORA_TOOLBOX_TRIED="$tried:mise exec"
 exec mise exec "$spec@$version" -- "$exe" "$@"

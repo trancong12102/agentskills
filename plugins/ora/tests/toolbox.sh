@@ -16,6 +16,9 @@ mkdir -p "$work/mise-only" "$work/fake"
 ln -s "$mise_bin" "$work/mise-only/mise"
 export MISE_DATA_DIR=$work/mise/data MISE_CACHE_DIR=$work/mise/cache \
   MISE_CONFIG_DIR=$work/mise/config MISE_STATE_DIR=$work/mise/state
+# uv's own Python downloads too, or a newer Python already on this machine hides what a stock
+# macOS (python3 3.9) gets.
+export UV_PYTHON_INSTALL_DIR=$work/uv/python UV_CACHE_DIR=$work/uv/cache
 timeout_bin=$(command -v timeout || command -v gtimeout) || {
   echo "timeout (coreutils) is required to run this test" >&2
   exit 1

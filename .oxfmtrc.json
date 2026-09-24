@@ -15,7 +15,7 @@
   "sortPackageJson": {
     "sortScripts": false
   },
-  "ignorePatterns": ["node_modules/**", "*-workspace/**", "**/evals/**", "bun.lock"],
+  "ignorePatterns": ["**/node_modules/**", "*-workspace/**", "**/evals/**", "bun.lock"],
   "overrides": [
     {
       "files": ["*.md", "*.mdx"],

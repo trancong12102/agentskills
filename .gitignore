@@ -23,10 +23,8 @@ Icon[
 # Node / Bun
 node_modules/
 bun.lock
-
-# Rust — plugins are shipped by shallow-cloning this repo, so build output
-# must never land in it. Cargo.lock is committed (binary crate).
-target/
+# Claude Code runs `bun install --frozen-lockfile` on install only when a plugin ships its lockfile.
+!plugins/ora/bun.lock
 
 # Skill eval artifacts
 *-workspace/

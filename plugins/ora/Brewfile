@@ -1,0 +1,25 @@
+# Native copies of the toolbox: `brew bundle --file plugins/ora/Brewfile`.
+# Optional. mise fetches anything missing on first use instead.
+brew "mise"
+brew "ast-grep"
+brew "fd"
+brew "bfs"
+brew "ripgrep"
+brew "ugrep"
+brew "jq"
+brew "yq"
+brew "gh"
+brew "difftastic"
+brew "sd"
+brew "scc"
+brew "uv"
+brew "oven-sh/bun/bun"
+brew "universal-ctags"
+brew "duckdb"
+brew "syft"
+brew "poppler"
+brew "glab"
+brew "yt-dlp"
+brew "hf"
+# Not in Homebrew, so mise fetches them: markitdown, lightpanda, the scip indexers
+# (brew's `scip` is an unrelated optimisation solver), depcruise, knip, tinyfish.

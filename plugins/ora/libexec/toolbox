@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Every link in ../bin points here. Runs the tool the link is named after: a copy
+# already on PATH if there is one, otherwise mise installs it on first use and
+# caches it, so later calls cost ~50 ms.
+set -euo pipefail
+
+name=${0##*/}
+exe=$name
+version=latest
+
+case $name in
+  sg) spec=ast-grep ;;
+  rg) spec=ripgrep ;;
+  difft) spec=difftastic ;;
+  uvx) spec=uv ;;
+  bunx) spec=bun ;;
+  # Missing from mise's own registry; aqua's carries it.
+  scc) spec=aqua:boyter/scc ;;
+  # No binary release for macOS or Linux; conda-forge builds these.
+  ugrep) spec=conda:ugrep ;;
+  pdftotext | pdfinfo) spec=conda:poppler ;;
+  # macOS puts a BSD ctags without JSON output in /usr/bin, ahead of this directory on
+  # PATH, so Universal Ctags gets its own name.
+  uctags)
+    spec=conda:universal-ctags
+    exe=ctags
+    ;;
+  # `latest` resolves to the nightly tag.
+  lightpanda)
+    spec=github:lightpanda-io/browser
+    version=0.4.1
+    ;;
+  # `[all]` installs no extras at all, and PDF conversion then fails.
+  markitdown) spec='pipx:markitdown[extras=pdf,docx,xlsx,pptx]' ;;
+  hf) spec=pipx:huggingface_hub ;;
+  scip | scip-go) spec=github:sourcegraph/$name ;;
+  scip-typescript | scip-python) spec=npm:@sourcegraph/$name ;;
+  depcruise) spec=npm:dependency-cruiser ;;
+  knip) spec=npm:knip ;;
+  tinyfish) spec=npm:@tiny-fish/cli ;;
+  *) spec=$name ;;
+esac
+
+# What earlier passes through here for this name already handed off to. Coming back means
+# that hand-off was another manager's shim (mise, asdf) with no version of its own, which
+# falls through to the next copy on PATH, which is this link, and would bounce forever.
+tried=
+[[ ${ORA_TOOLBOX_NAME:-} == "$name" ]] && tried=${ORA_TOOLBOX_TRIED:-}
+export ORA_TOOLBOX_NAME=$name
+
+IFS=: read -ra dirs <<<"${PATH}"
+for dir in "${dirs[@]}"; do
+  candidate="${dir:-.}/$exe"
+  [[ -x $candidate && ! -d $candidate ]] || continue
+  [[ :$tried: == *":$candidate:"* ]] && continue
+  # Any ora link, not just this one: two ora installs on PATH would bounce between each other.
+  [[ $candidate -ef $0 || $(readlink "$candidate" 2>/dev/null) == ../libexec/toolbox ]] && continue
+  if [[ $name == uctags ]] && ! "$candidate" --version 2>/dev/null | grep -q 'Universal Ctags'; then
+    continue
+  fi
+  export ORA_TOOLBOX_TRIED="$tried:$candidate"
+  exec "$candidate" "$@"
+done
+
+# mise puts the install on PATH before exec'ing, so being back here after that means the
+# install does not provide $exe and the lookup above found only this link again.
+if [[ :$tried: == *":mise exec:"* ]]; then
+  echo "ora toolbox: mise installed $spec but it provides no '$exe' executable" >&2
+  exit 127
+fi
+
+if ! command -v mise >/dev/null 2>&1; then
+  echo "ora toolbox: '$name' is not installed and mise is not on PATH to install it." >&2
+  echo "Install mise (https://mise.jdx.dev) or '$name' itself." >&2
+  exit 127
+fi
+
+export ORA_TOOLBOX_TRIED="$tried:mise exec"
+exec mise exec "$spec@$version" -- "$exe" "$@"

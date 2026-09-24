@@ -6,14 +6,14 @@ Reads the jsonl the SubagentStop hook writes (default ~/.claude/ora/answers.json
 The deterministic pass is the enforcer: pull every version and date out of the
 conclusion and check each one appears in the evidence the same answer cites. A
 token the question itself named is the asker's premise, not a finding, so it is
-not counted against the answer -- an auditor that cannot see the question
+not counted against the answer. An auditor that cannot see the question
 measures the caller instead of the answer.
 
 When JEV_API_KEY (or TYPESAFE_API_KEY) is set, TypeSafe's decision model is asked two further questions
 about the same rows, in one request each: whether the evidence carries the versions
 and dates, and whether the conclusion contradicts its own evidence. The second is
-the one the regex cannot do -- a false claim carrying no version or date is
-invisible to it. Both are discovery, never enforcement: they report and change no
+the one the regex cannot do, because a false claim with no version or date in it is
+invisible to a regex. Both are discovery, never enforcement: they report and change no
 verdict. Roughly $0.00002 and under a second per row. `--no-jev` forces the
 offline pass alone, which is free and needs no network.
 """
@@ -62,7 +62,7 @@ def conclusion_of(answer):
 
 
 def evidence_of(answer, conclusion):
-    """Everything in the answer that is not the conclusion -- quotes, URLs, body."""
+    """Everything in the answer that is not the conclusion: quotes, URLs, body."""
     return answer.replace(conclusion, " ", 1) if conclusion else answer
 
 
@@ -113,7 +113,7 @@ def carried(spellings, haystack):
 def audit(row):
     """(conclusion, uncited, premises, bare).
 
-    `bare` means the answer arrived with no evidence beside its conclusion -- the
+    `bare` means the answer arrived with no evidence beside its conclusion. The
     caller asked for the value alone and the agent dropped the results block.
     There is nothing to check a claim against, so such a row is reported as its
     own outcome rather than counted as an uncited claim.
@@ -212,7 +212,7 @@ def ask_jev(question, conclusion, evidence):
 
 
 def rows_of(path):
-    """Last row per agent_id -- SubagentStop can fire more than once per subagent."""
+    """Last row per agent_id, because SubagentStop can fire more than once per subagent."""
     latest = {}
     with open(path, encoding="utf-8") as handle:
         for line in handle:
@@ -287,7 +287,7 @@ def main():
         # Against rows Jev actually saw, not rows in the log: a bare answer is never sent,
         # and "0 of 5" would read as five clean rows when it means five unchecked ones.
         print(f"{contradicted} of {examined} checked conclusions contradict their own evidence "
-              f"(Jev only -- the deterministic pass cannot see this).")
+              f"(Jev only; the deterministic pass cannot see this).")
         if disagreed:
             print(f"{disagreed} answers the deterministic pass passed, Jev doubts. "
                   f"Neither is the verdict; read those rows.")

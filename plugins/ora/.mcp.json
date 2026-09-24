@@ -2,31 +2,9 @@
   "mcpServers": {
     "ora": {
       "type": "stdio",
-      "command": "ora-mcp",
-      "args": [],
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/bun",
+      "args": ["run", "${CLAUDE_PLUGIN_ROOT}/mcp/server.ts"],
       "env": {}
-    },
-    "fff": {
-      "type": "stdio",
-      "command": "fff-mcp",
-      "args": [],
-      "env": {}
-    },
-    "sourcegraph": {
-      "type": "http",
-      "url": "https://sourcegraph.com/.api/mcp",
-      "headers": {
-        "Authorization": "token ${SOURCEGRAPH_TOKEN}"
-      }
-    },
-    "morph": {
-      "type": "stdio",
-      "command": "bunx",
-      "args": ["@morphllm/morphmcp@latest"],
-      "env": {
-        "MORPH_API_KEY": "${MORPH_API_KEY}",
-        "DISABLED_TOOLS": "edit_file,reflex_list,reflex_predict,reflex_summary,reflex_traces"
-      }
     }
   }
 }

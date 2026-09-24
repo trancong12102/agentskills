@@ -11,21 +11,9 @@ pre-commit:
       run: bunx markdownlint-cli2 --fix {staged_files}
       stage_fixed: true
 
-    rust-fmt:
-      root: "plugins/ora/mcp/"
-      glob: "*.rs"
-      run: cargo fmt
-      stage_fixed: true
-
-    rust-clippy:
-      root: "plugins/ora/mcp/"
-      glob: "*.{rs,toml}"
-      run: cargo clippy --all-targets --all-features -- -D warnings
-
-    rust-test:
-      root: "plugins/ora/mcp/"
-      glob: "*.rs"
-      run: cargo test --quiet
+    server:
+      glob: "plugins/ora/{mcp,tests}/**"
+      run: cd plugins/ora && bun test tests/server.test.ts
 
     actionlint:
       glob: ".github/workflows/*.yml"
@@ -34,12 +22,7 @@ pre-commit:
 pre-push:
   parallel: true
   commands:
-    # Advisories and licences move independently of our code, so they are
-    # checked on push rather than on every commit.
-    rust-deny:
-      root: "plugins/ora/mcp/"
-      run: cargo deny check
-
-    rust-unused-deps:
-      root: "plugins/ora/mcp/"
-      run: cargo machete
+    # Installs real tools from GitHub releases (~15 s), too slow for every commit.
+    toolbox:
+      glob: "plugins/ora/{bin,libexec,tests}/**"
+      run: bash plugins/ora/tests/toolbox.sh

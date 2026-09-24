@@ -1,6 +1,6 @@
 # Agent Skills
 
-The **ora** Claude Code plugin: two research agents and the toolbox they work in, written for Claude 5-class models.
+The **ora** Claude Code plugin: two research agents, written for Claude 5-class models.
 
 ## Why ora
 
@@ -11,13 +11,13 @@ Each agent searches in its own context and hands back only the answer, so a broa
 - `explore` answers questions about the local codebase. It is read-only.
 - `research` answers questions from docs, public repos, package registries and the web.
 
-Neither agent is taught a method. Both agents and the main session get one MCP tool, `run`. It is a persistent shell with search, code-intelligence, data and web tools on its `PATH`, and a tool that isn't installed yet installs itself on first use. See the [plugin README](plugins/ora/README.md#the-run-tool).
+Neither agent is taught a method. They work through Claude Code's Bash tool with the CLIs you have installed; the [plugin README](plugins/ora/README.md#clis) lists the ones they look for.
 
 ## Getting started
 
 ### Prerequisites
 
-[Bun](https://bun.com) to run the MCP server, native tools from the plugin's `Brewfile` (optional, includes Bun), and [mise](https://mise.jdx.dev) on `PATH` to fetch whatever is still missing on first use:
+The CLIs the agents use, which the plugin does not install. The plugin's `Brewfile` covers the ones in Homebrew, and the [plugin README](plugins/ora/README.md#installation) covers the rest:
 
 ```shell
 brew bundle --file ~/.claude/plugins/marketplaces/agentskills/plugins/ora/Brewfile

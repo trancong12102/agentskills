@@ -10,29 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  toolbox:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v4
-      # tinyfish's CLI requires node >= 24; the runner images ship an older default.
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-      - if: runner.os == 'macOS'
-        run: brew install coreutils
-      - run: bash plugins/ora/tests/toolbox.sh
-
-  server:
+  hooks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-        working-directory: plugins/ora
       - run: bun test tests/
         working-directory: plugins/ora
 

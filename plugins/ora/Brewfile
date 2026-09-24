@@ -1,25 +1,18 @@
-# Native copies of the toolbox: `brew bundle --file plugins/ora/Brewfile`.
-# Optional. mise fetches anything missing on first use instead.
-brew "mise"
-brew "ast-grep"
-brew "fd"
-brew "bfs"
+# CLIs the agents look for on PATH: `brew bundle --file plugins/ora/Brewfile`.
+# The README lists the ones Homebrew does not carry.
 brew "ripgrep"
-brew "ugrep"
+brew "fd"
 brew "jq"
 brew "yq"
-brew "gh"
-brew "difftastic"
-brew "sd"
-brew "scc"
-brew "uv"
-brew "oven-sh/bun/bun"
+brew "ast-grep"
 brew "universal-ctags"
+brew "scc"
+brew "difftastic"
 brew "duckdb"
 brew "syft"
 brew "poppler"
-brew "glab"
 brew "yt-dlp"
 brew "hf"
-# Not in Homebrew, so mise fetches them: markitdown, lightpanda, the scip indexers
-# (brew's `scip` is an unrelated optimisation solver), depcruise, knip, tinyfish.
+brew "gh"
+brew "glab"
+brew "uv"

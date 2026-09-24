@@ -23,8 +23,6 @@ Icon[
 # Node / Bun
 node_modules/
 bun.lock
-# Claude Code runs `bun install --frozen-lockfile` on install only when a plugin ships its lockfile.
-!plugins/ora/bun.lock
 
 # Skill eval artifacts
 *-workspace/

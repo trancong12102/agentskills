@@ -1,9 +1,0 @@
-{
-  "name": "ora-mcp",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@modelcontextprotocol/server": "2.1.0",
-    "zod": "4.6.5"
-  }
-}

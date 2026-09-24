@@ -1,6 +1,6 @@
 {
   "name": "agentskills",
-  "description": "The ora Claude Code plugin: research agents and a self-installing shell toolbox",
+  "description": "The ora Claude Code plugin: research agents for the codebase and external sources",
   "owner": { "name": "Cong Tran" },
   "plugins": [{ "name": "ora", "source": "./plugins/ora" }]
 }

@@ -11,10 +11,6 @@ pre-commit:
       run: bunx markdownlint-cli2 --fix {staged_files}
       stage_fixed: true
 
-    server:
-      glob: "plugins/ora/{mcp,tests}/**"
-      run: cd plugins/ora && bun test tests/server.test.ts
-
     log-answer:
       glob: "plugins/ora/{hooks,tests}/**"
       run: cd plugins/ora && bun test tests/log-answer.test.ts
@@ -22,11 +18,3 @@ pre-commit:
     actionlint:
       glob: ".github/workflows/*.yml"
       run: actionlint {staged_files}
-
-pre-push:
-  parallel: true
-  commands:
-    # Installs real tools from GitHub releases (~15 s), too slow for every commit.
-    toolbox:
-      glob: "plugins/ora/{bin,libexec,tests}/**"
-      run: bash plugins/ora/tests/toolbox.sh

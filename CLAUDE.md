@@ -1,8 +1,8 @@
 # Agent Skills Repo
 
-This repo holds the ora Claude Code plugin: two research agents and the toolbox they work in. Everything here targets Claude 5-class models, so assume the model is already smart and knows tool mechanics.
+This repo holds the ora Claude Code plugin: two research agents. Everything here targets Claude 5-class models, so assume the model is already smart and knows tool mechanics.
 
-## Editing agents and the `run` tool
+## Editing agents
 
 <prompting_style>
 Subtraction over addition. Keep only what the model can't know: the outcome, the bar an answer has to clear, environment facts (what is on `PATH`, where caches live), empirical gotchas. No step-by-step workflows, no verification/self-check instructions, no anti-laziness pressure, no ALL-CAPS trigger language ("Use X when…", never "CRITICAL: you MUST use X").
@@ -17,12 +17,12 @@ An agent's `description` is the main session's only signal for when to delegate,
 </prompting_style>
 
 <plugin_versioning>
-When modifying plugin components (agents, hooks, the MCP server, manifest), bump `version` in that plugin's `plugin.json`, once per commit. The marketplace listing at `.claude-plugin/marketplace.json` points at plugins by path and carries no versions.
+When modifying plugin components (agents, hooks, manifest), bump `version` in that plugin's `plugin.json`, once per commit. The marketplace listing at `.claude-plugin/marketplace.json` points at plugins by path and carries no versions.
 </plugin_versioning>
 
 ## Repo structure
 
-- `plugins/ora/` holds two research agents (`explore` for the codebase, `research` for external sources) and one MCP tool, `run` (`mcp/server.ts`, Bun). `run` is a persistent bash session, and its description is the model's only map of the toolbox, so keep that description under Claude Code's 2,048-character cut. `bin/` links, which Claude Code also puts on the Bash tool's `PATH`, all point at `libexec/toolbox`, which runs an existing copy of the tool or installs it through mise on first use. `Brewfile` lists the native copies the links prefer. `tests/` holds the end-to-end suites for both.
+- `plugins/ora/` holds two research agents (`explore` for the codebase, `research` for external sources) and a `SubagentStop` hook that logs their answers. The agents run CLIs through Claude Code's Bash tool; the plugin installs none, and `Brewfile` plus the README list the ones the agents' prompts name. `tests/` holds the hook's end-to-end suite.
 
 ## Reference
 

@@ -15,7 +15,7 @@ mkdirSync(WORK_DIR, { recursive: true });
 const DESCRIPTION = `Run a bash script in a persistent shell and get its combined stdout and stderr. Use it to search, read and analyse code, data and documents, and to fetch from the web; pipe and filter inside the script so only what answers the question is printed. Commands that change the user's files or git state belong in the Bash tool, where the user's permission rules apply.
 
 On PATH, each installed on first use if missing (\`<cmd> --help\` for flags):
-- code search: rg, ugrep, fd, bfs, sg/ast-grep (structural search; \`ast-grep outline <path>\` lists symbols), uctags (Universal Ctags, JSON symbol tables), scc, difft
+- code search: rg, ugrep, fd, bfs, ast-grep (structural search; \`ast-grep outline <path>\` lists symbols), uctags (Universal Ctags, JSON symbol tables), scc, difft
 - code intelligence for JS/TS, Python and Go, once the project's dependencies are installed: scip, scip-typescript, scip-python, scip-go, depcruise, knip
 - data: jq, yq, duckdb (SQL over JSON, CSV, Parquet), syft (dependency inventory)
 - web and documents: tinyfish (authenticated; \`tinyfish fetch content get <url>...\` fetches up to 10 URLs in parallel as JSON, each page's markdown in \`.results[].text\`; \`tinyfish search query <q>\`; browser agents), lightpanda (\`lightpanda fetch --dump markdown <url>\` renders JavaScript pages), markitdown (PDF and Office to markdown), pdftotext, pdfinfo, yt-dlp, hf (\`hf papers read <arxiv-id>\`)

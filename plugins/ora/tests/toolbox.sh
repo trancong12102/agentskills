@@ -51,8 +51,9 @@ check "second use is served from the cache" "sd 1." "$out"
 elapsed=$(($(date +%s) - start))
 check "cached call under 2 s" "fast" "$([[ $elapsed -lt 2 ]] && echo fast || echo "${elapsed}s")"
 
-out=$(printf 'fn main() { println!("x"); }\n' >"$work/m.rs" && PATH="$root/bin:$work/mise-only:$base" sg run -p 'println!($A)' -l rust "$work/m.rs" 2>&1)
-check "aliased name (sg -> ast-grep) installs and runs" 'println!("x")' "$out"
+# Linux ships an unrelated /usr/bin/sg, so the aliases are ones no base image carries.
+out=$(PATH="$root/bin:$work/mise-only:$base" difft --version 2>&1)
+check "aliased name (difft -> difftastic) installs and runs" "Difftastic" "$out"
 
 out=$(PATH="$root/bin:$work/mise-only:$base" ugrep --version 2>&1)
 check "a conda-backed tool (ugrep) installs and runs" "ugrep 7." "$out"

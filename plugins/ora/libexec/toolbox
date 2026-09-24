@@ -9,7 +9,6 @@ exe=$name
 version=latest
 
 case $name in
-  sg) spec=ast-grep ;;
   rg) spec=ripgrep ;;
   difft) spec=difftastic ;;
   uvx) spec=uv ;;

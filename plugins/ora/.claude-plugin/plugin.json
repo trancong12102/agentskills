@@ -1,5 +1,5 @@
 {
   "name": "ora",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Research agents (explore for codebase, research for external sources) and the ora run tool: one persistent shell with a self-installing toolbox"
 }

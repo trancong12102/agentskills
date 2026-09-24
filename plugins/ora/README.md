@@ -46,7 +46,7 @@ it on first use (a few seconds; `bfs` builds from source, so it needs a C compil
 and caches it (~50 ms after that). The directory comes last on `PATH`, so any
 native copy wins without the link being involved.
 
-- Search and read code: `ast-grep` / `sg` · `fd` · `bfs` · `rg` · `ugrep` · `uctags` · `scc` · `difft` · `sd`
+- Search and read code: `ast-grep` · `fd` · `bfs` · `rg` · `ugrep` · `uctags` · `scc` · `difft` · `sd`
 - Code intelligence (JS/TS, Python, Go; needs installed dependencies): `scip` · `scip-typescript` · `scip-python` · `scip-go` · `depcruise` · `knip`
 - Data: `jq` · `yq` · `duckdb` · `syft`
 - Web and documents: `tinyfish` · `lightpanda` · `markitdown` · `pdftotext` · `pdfinfo` · `yt-dlp` · `hf`

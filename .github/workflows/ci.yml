@@ -33,7 +33,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
         working-directory: plugins/ora
-      - run: bun test tests/server.test.ts
+      - run: bun test tests/
         working-directory: plugins/ora
 
   markdown:

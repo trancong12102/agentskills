@@ -121,16 +121,19 @@ says `FAILED (mode=embedded)`, install `ripgrep` and set
 
 ## Testing
 
-Both suites run real processes, with no mocks.
+All suites run real processes, with no mocks.
 
 - `tests/server.test.ts` drives the MCP server over stdio JSON-RPC with real bash.
   It covers state, timeouts, reset, a script exiting the shell, stdin isolation,
   and parallel versus serial sessions.
+- `tests/log-answer.test.ts` pipes `SubagentStop` payloads into the hook script.
+  Among other cases, it checks that a report sent through `SubagentHandback` is
+  logged instead of the closing line the agent writes after sending it.
 - `tests/toolbox.sh` drives the `bin/` entries against real mise and real GitHub
   releases, installing into a throwaway mise data directory.
 
 ```bash
-cd plugins/ora && bun install && bun test tests/server.test.ts
+cd plugins/ora && bun install && bun test tests/
 bash plugins/ora/tests/toolbox.sh
 ```
 

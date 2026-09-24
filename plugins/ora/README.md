@@ -30,8 +30,12 @@ tool-search round trip.
   or git state stay with the Bash tool.
 - **Cleanup.** Each session is its own process group. A reset, 30 idle minutes,
   or the server exiting (the client hanging up, or a signal) kills the whole
-  group, including anything a script left running in the background.
+  group, including anything a script left running in the background. Each
+  script's file is deleted once it finishes, and the server's directory under
+  `$TMPDIR` goes when the server exits.
 - **Large output.** Claude Code saves any result over its limit to a file itself.
+- **Line endings.** CRLF lines (HTTP headers, Windows files) come back intact; a
+  line redrawn with `\r`, such as a progress bar, comes back in its final state.
 
 The server is `mcp/server.ts`, run by Bun (56 ms to start, 0.4 ms of overhead per
 call). Claude Code runs `bun install` against the plugin's `bun.lock` when it

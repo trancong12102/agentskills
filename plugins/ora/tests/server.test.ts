@@ -1,6 +1,8 @@
 // End-to-end: drives the real server over stdio JSON-RPC, running real bash.
 //   bun test plugins/ora/tests/server.test.ts
 import { afterAll, beforeAll, expect, test } from "bun:test";
+import { existsSync, readdirSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
@@ -10,13 +12,18 @@ const waiting = new Map<number, (message: any) => void>();
 
 async function readLoop() {
   const decoder = new TextDecoder();
-  let buffer = "";
+  // Held as parts until a newline arrives, so a large message is not rescanned on every chunk.
+  let parts: string[] = [];
   for await (const chunk of proc.stdout) {
-    buffer += decoder.decode(chunk, { stream: true });
-    let newline: number;
-    while ((newline = buffer.indexOf("\n")) !== -1) {
-      const message = JSON.parse(buffer.slice(0, newline));
-      buffer = buffer.slice(newline + 1);
+    const text = decoder.decode(chunk, { stream: true });
+    if (!text.includes("\n")) {
+      parts.push(text);
+      continue;
+    }
+    const lines = (parts.join("") + text).split("\n");
+    parts = [lines.pop()!];
+    for (const line of lines) {
+      const message = JSON.parse(line);
       waiting.get(message.id)?.(message);
     }
   }
@@ -35,8 +42,16 @@ async function run(args: Record<string, unknown>): Promise<string> {
   return reply.result.content[0].text;
 }
 
+// Run inside an ora session or Claude Code's Bash tool, PATH already carries the installed ora's
+// bin, which would shadow this checkout's links in the PATH test.
+const pathWithoutOra = (process.env.PATH ?? "")
+  .split(":")
+  .filter((dir) => !existsSync(join(dir, "..", "libexec/toolbox")))
+  .join(":");
+
 beforeAll(async () => {
   proc = Bun.spawn(["bun", "run", join(root, "mcp/server.ts")], {
+    env: { ...process.env, PATH: pathWithoutOra },
     stdin: "pipe",
     stdout: "pipe",
     stderr: "inherit",
@@ -78,6 +93,28 @@ test("stderr is merged in order and the exit code is reported", async () => {
 test("a script that reads stdin gets EOF instead of swallowing later commands", async () => {
   expect(await run({ script: "cat; echo after-cat", session: "stdin" })).toStartWith("after-cat\n");
   expect(await run({ script: "echo still-alive", session: "stdin" })).toStartWith("still-alive\n");
+});
+
+test("CRLF lines keep their text, and a \\r redraw keeps only its last state", async () => {
+  expect(
+    await run({ script: "printf 'a\\r\\nb\\r\\nstep 1\\rstep 2\\n'", session: "crlf" }),
+  ).toStartWith("a\nb\nstep 2\n");
+});
+
+test("a flood of output comes back whole and leaves the session usable", async () => {
+  const out = await run({
+    script: "head -c 50000000 /dev/zero | tr '\\0' x; echo; echo the-end",
+    session: "flood",
+  });
+  expect(out.length).toBeGreaterThan(50_000_000);
+  expect(out.slice(0, 10)).toBe("xxxxxxxxxx");
+  expect(out.slice(-40)).toMatch(/x\nthe-end\n\[exit 0 · [\d.]+s\]$/);
+  expect(await run({ script: "echo next", session: "flood" })).toStartWith("next\n");
+}, 30_000);
+
+test("a finished script leaves no file behind", async () => {
+  await run({ script: "echo done", session: "files" });
+  expect(readdirSync(join(tmpdir(), `ora-${proc.pid}`))).toEqual([]);
 });
 
 test("a script past its timeout keeps running and an empty call collects the rest", async () => {
@@ -169,19 +206,26 @@ async function leftBehind(stop: (server: Bun.Subprocess<"pipe", "pipe", "inherit
   stop(server);
   await server.exited;
   await Bun.sleep(300);
+  const workDir = existsSync(join(tmpdir(), `ora-${server.pid}`));
   try {
     process.kill(pid, 0);
     process.kill(pid, "SIGKILL");
-    return true;
+    return { child: true, workDir };
   } catch {
-    return false;
+    return { child: false, workDir };
   }
 }
 
-test("a server closed by its client takes its shells and their children with it", async () => {
-  expect(await leftBehind((server) => server.stdin.end())).toBe(false);
+test("a server closed by its client takes its shells, their children and its files with it", async () => {
+  expect(await leftBehind((server) => server.stdin.end())).toEqual({
+    child: false,
+    workDir: false,
+  });
 });
 
-test("a server stopped by SIGTERM takes its shells and their children with it", async () => {
-  expect(await leftBehind((server) => server.kill("SIGTERM"))).toBe(false);
+test("a server stopped by SIGTERM takes its shells, their children and its files with it", async () => {
+  expect(await leftBehind((server) => server.kill("SIGTERM"))).toEqual({
+    child: false,
+    workDir: false,
+  });
 });

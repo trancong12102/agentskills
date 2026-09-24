@@ -1,9 +1,10 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
+import manifest from "../.claude-plugin/plugin.json";
 
 const PLUGIN_BIN = join(import.meta.dir, "..", "bin");
 const WORK_DIR = join(tmpdir(), `ora-${process.pid}`);
@@ -27,8 +28,11 @@ The shell keeps its working directory, variables and functions between calls. Ca
 type Session = {
   proc: Bun.Subprocess<"pipe", "pipe", "pipe">;
   buf: string;
+  // buf before this offset holds no marker, so a search need not rescan it.
+  scanned: number;
   notify: (() => void) | null;
   marker: string | null;
+  script: string | null;
   lastUsed: number;
   exited: number | null;
 };
@@ -65,8 +69,10 @@ function startSession(): Session {
   const session: Session = {
     proc,
     buf: "",
+    scanned: 0,
     notify: null,
     marker: null,
+    script: null,
     lastUsed: Date.now(),
     exited: null,
   };
@@ -86,7 +92,30 @@ function startSession(): Session {
   return session;
 }
 
+// Hands back buf up to `upTo` and keeps what follows `from` for the next call.
+function take(session: Session, upTo: number, from = upTo) {
+  const output = session.buf.slice(0, upTo);
+  session.buf = session.buf.slice(from);
+  session.scanned = 0;
+  return output;
+}
+
+// Where output handed back at a timeout has to stop, so a marker that has only partly arrived
+// stays in buf to be found whole later.
+function heldBack(buf: string, marker: string, at: number) {
+  if (at !== -1) return at;
+  const lineStart = buf.lastIndexOf("\n") + 1;
+  const partial = buf.slice(lineStart);
+  return partial && marker.startsWith(partial) ? lineStart : buf.length;
+}
+
+function removeScript(session: Session) {
+  if (session.script) rmSync(session.script, { force: true });
+  session.script = null;
+}
+
 function kill(session: Session) {
+  removeScript(session);
   try {
     process.kill(-session.proc.pid, "SIGKILL");
   } catch {
@@ -98,9 +127,13 @@ function clean(text: string): string {
   return (
     text
       .replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")
-      // Progress bars redraw with \r; keep only what the line finally said.
+      // Progress bars redraw with \r; keep only what the line finally said. A CRLF ending is not a
+      // redraw.
       .split("\n")
-      .map((line) => line.slice(line.lastIndexOf("\r") + 1))
+      .map((line) => {
+        const body = line.endsWith("\r") ? line.replace(/\r+$/, "") : line;
+        return body.slice(body.lastIndexOf("\r") + 1);
+      })
       .join("\n")
   );
 }
@@ -108,24 +141,25 @@ function clean(text: string): string {
 async function waitForMarker(session: Session, timeoutMs: number) {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
-    const at = session.marker ? session.buf.indexOf(session.marker) : -1;
-    if (at !== -1) {
-      const end = session.buf.indexOf("\n", at);
-      const code = Number(session.buf.slice(at + session.marker!.length, end).trim());
-      const output = session.buf.slice(0, at);
-      session.buf = session.buf.slice(end + 1);
+    const marker = session.marker;
+    const at = marker ? session.buf.indexOf(marker, session.scanned) : -1;
+    // The marker line can arrive split across two reads; its end tells us the exit code is whole.
+    const end = at === -1 ? -1 : session.buf.indexOf("\n", at);
+    if (end !== -1) {
+      const code = Number(session.buf.slice(at + marker!.length, end).trim());
+      const output = take(session, at, end + 1);
       session.marker = null;
+      removeScript(session);
       return { output, code, done: true as const };
     }
+    if (marker) session.scanned = at !== -1 ? at : Math.max(0, session.buf.length - marker.length);
     if (session.exited !== null) {
-      const output = session.buf;
-      session.buf = "";
+      const output = take(session, session.buf.length);
       return { output, code: session.exited, done: "exited" as const };
     }
     const left = deadline - Date.now();
     if (left <= 0) {
-      const output = session.buf;
-      session.buf = "";
+      const output = take(session, marker ? heldBack(session.buf, marker, at) : session.buf.length);
       return { output, code: null, done: false as const };
     }
     await new Promise<void>((resolve) => {
@@ -160,6 +194,7 @@ async function run(name: string, script: string, timeoutS: number, reset: boolea
     if (!script.trim()) return "[nothing is running in this session]";
     const file = join(WORK_DIR, `script-${++counter}.sh`);
     writeFileSync(file, script);
+    session.script = file;
     session.marker = `__ORA_${NONCE}_${counter}__`;
     // stdin is the control pipe; a script that read it would swallow the commands after it.
     session.proc.stdin.write(
@@ -173,6 +208,7 @@ async function run(name: string, script: string, timeoutS: number, reset: boolea
   let trailer: string;
   if (result.done === true) trailer = `[exit ${result.code} · ${seconds}s]`;
   else if (result.done === "exited") {
+    removeScript(session);
     sessions.delete(name);
     trailer = `[the shell exited with code ${result.code}; the next call starts a fresh one]`;
   } else
@@ -195,6 +231,7 @@ setInterval(() => {
 // Detached shells outlive this process unless it takes them down on the way out.
 process.on("exit", () => {
   for (const session of sessions.values()) kill(session);
+  rmSync(WORK_DIR, { recursive: true, force: true });
 });
 for (const signal of ["SIGTERM", "SIGINT", "SIGHUP"] as const) {
   process.on(signal, () => process.exit(0));
@@ -203,7 +240,10 @@ for (const signal of ["SIGTERM", "SIGINT", "SIGHUP"] as const) {
 process.stdin.on("end", () => process.exit(0));
 
 serveStdio(() => {
-  const server = new McpServer({ name: "ora", version: "4.0.0" }, { capabilities: { tools: {} } });
+  const server = new McpServer(
+    { name: "ora", version: manifest.version },
+    { capabilities: { tools: {} } },
+  );
   server.registerTool(
     "run",
     {
